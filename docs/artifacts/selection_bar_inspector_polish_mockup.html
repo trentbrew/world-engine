@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Trellis — Selection bar + inspector polish (TRL-191 design mock)</title>
+	<style>
+		:root {
+			--background: #0a0a0a;
+			--surface: #141418;
+			--card: #141418;
+			--foreground: #e8e8ec;
+			--primary: #e8e8ec;
+			--muted-foreground: #888894;
+			--border: #2a2a32;
+			--destructive: #ef4444;
+			--destructive-muted: color-mix(in srgb, #ef4444 40%, #888894);
+			--accent-field: #e8a838;
+			--chrome-fill-panel: 30%;
+			--radius-sm: 6px;
+			--radius-md: 10px;
+			--radius-lg: 14px;
+			--rounded-pill: 999px;
+			--spacing-xs: 4px;
+			--spacing-sm: 8px;
+			--spacing-md: 12px;
+			--spacing-lg: 16px;
+			--spacing-xl: 24px;
+			--float-inset: 12px;
+			--chrome-inner-gap: 6px;
+			--chrome-top-outer: calc(var(--float-inset) + 48px + var(--chrome-inner-gap));
+			--main-inset-left: calc(56px + 300px + var(--float-inset) + var(--chrome-inner-gap) * 2);
+			--main-inset-right: calc(300px + var(--float-inset) + var(--chrome-inner-gap));
+			--font-sans: "IBM Plex Sans", system-ui, sans-serif;
+			--font-mono: "IBM Plex Mono", ui-monospace, monospace;
+		}
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			min-height: 100vh;
+			background: var(--background);
+			color: var(--foreground);
+			font-family: var(--font-sans);
+			font-size: 13px;
+		}
+		/* Full-bleed canvas + floating chrome (matches AppShell mental model) */
+		.canvas {
+			position: fixed; inset: 0;
+			background:
+				radial-gradient(ellipse 70% 60% at 50% 40%, #1a1a22 0%, transparent 70%),
+				repeating-linear-gradient(0deg, transparent, transparent 31px, #222 32px),
+				repeating-linear-gradient(90deg, transparent, transparent 31px, #222 32px),
+				#0e0e12;
+		}
+		.glass-panel {
+			position: relative;
+			isolation: isolate;
+			background: transparent;
+			border: 1px solid transparent;
+			border-radius: var(--radius-md);
+		}
+		.glass-panel::before {
+			content: "";
+			position: absolute; inset: 0; z-index: -1;
+			border-radius: inherit;
+			backdrop-filter: blur(20px);
+			-webkit-backdrop-filter: blur(20px);
+			background: color-mix(in srgb, var(--card) var(--chrome-fill-panel), transparent);
+			border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+			box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+		}
+		.rail {
+			position: fixed;
+			top: var(--float-inset); left: var(--float-inset); bottom: var(--float-inset);
+			width: 56px; padding: 8px; display: flex; flex-direction: column; gap: 6px; z-index: 15;
+		}
+		.rail .dot { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: color-mix(in srgb, var(--card) 40%, transparent); }
+		.rail .dot.active { border-color: var(--foreground); }
+		.doc {
+			position: fixed; z-index: 15;
+			top: var(--float-inset);
+			left: calc(var(--float-inset) + 56px + var(--chrome-inner-gap));
+			right: var(--float-inset);
+			height: 48px;
+			display: flex; align-items: center; gap: 10px;
+			padding: 0 12px; font-size: 12px; font-weight: 600;
+		}
+		.doc .muted { color: var(--muted-foreground); }
+		.left {
+			position: fixed; z-index: 15; overflow: auto;
+			top: var(--chrome-top-outer);
+			left: calc(var(--float-inset) + 56px + var(--chrome-inner-gap));
+			bottom: var(--float-inset);
+			width: 300px;
+			padding: 10px 12px;
+		}
+		.right {
+			position: fixed; z-index: 15; overflow: auto;
+			top: var(--chrome-top-outer);
+			right: var(--float-inset);
+			bottom: var(--float-inset);
+			width: 300px;
+			padding: 10px 12px;
+		}
+		/* Selection bar — real inset vars (WorldViewport absolute) */
+		.selection-bar {
+			position: fixed;
+			top: calc(var(--chrome-top-outer) + var(--chrome-inner-gap));
+			left: var(--main-inset-left);
+			right: var(--main-inset-right);
+			z-index: 12;
+			pointer-events: none;
+		}
+		.selection-bar-card {
+			pointer-events: auto;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			height: 40px;
+			padding: 4px 8px;
+			width: 100%;
+		}
+		.cluster { display: inline-flex; align-items: center; gap: 4px; }
+		.tool {
+			display: inline-flex; align-items: center; gap: 5px;
+			height: 28px; padding: 0 10px;
+			border-radius: var(--rounded-pill); border: 1px solid var(--border);
+			background: transparent; color: var(--muted-foreground);
+			font: 500 11px var(--font-sans); cursor: pointer;
+		}
+		.tool.active { background: color-mix(in srgb, var(--card) 55%, transparent); color: var(--foreground); }
+		.kbd {
+			font: 500 10px var(--font-mono); opacity: 0.85;
+			border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+			border-radius: 4px; padding: 0 4px; height: 16px;
+			display: inline-flex; align-items: center;
+		}
+		.icon-btn {
+			width: 26px; height: 26px; border: none; border-radius: 6px;
+			background: transparent; color: var(--muted-foreground); cursor: pointer;
+			display: inline-flex; align-items: center; justify-content: center; font-size: 14px;
+		}
+		.icon-btn.destroy { color: var(--destructive); }
+		.icon-btn.destroy:disabled { color: var(--destructive-muted); cursor: not-allowed; }
+		.divider { width: 1px; height: 20px; background: color-mix(in srgb, var(--border) 70%, transparent); }
+		.tabs { display: flex; gap: 12px; border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent); margin-bottom: 8px; font-size: 11px; }
+		.tabs .on { color: var(--foreground); border-bottom: 2px solid var(--foreground); padding-bottom: 6px; font-weight: 600; }
+		.tabs span { color: var(--muted-foreground); padding-bottom: 6px; }
+		.acc { margin-bottom: 8px; background: color-mix(in srgb, #2a2a32 8%, transparent); border-radius: 8px; padding: 8px; }
+		.acc-h {
+			position: sticky; top: 0; z-index: 2;
+			font: 700 11px/1.2 var(--font-mono);
+			letter-spacing: 0.05em; text-transform: uppercase;
+			color: color-mix(in srgb, var(--foreground) 72%, var(--muted-foreground));
+			background: color-mix(in srgb, var(--card) var(--chrome-fill-panel), transparent);
+			backdrop-filter: blur(12px);
+			padding: 6px 0;
+			display: flex; justify-content: space-between; align-items: center;
+			width: 100%; border: none; cursor: pointer; text-align: left;
+		}
+		.acc-body { padding-left: var(--spacing-md); padding-top: 4px; }
+		.row { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 12px; }
+		.row label { width: 72px; color: var(--muted-foreground); font-size: 11px; }
+		.row input, .row select {
+			flex: 1; background: #0c0c10; border: 1px solid color-mix(in srgb, var(--accent-field) 35%, var(--border));
+			border-radius: var(--radius-sm); color: var(--accent-field); padding: 4px 8px; font: 12px var(--font-mono);
+		}
+		.group-label {
+			font: 500 10px var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase;
+			color: color-mix(in srgb, var(--muted-foreground) 70%, transparent);
+			margin: 10px 0 4px;
+		}
+		.header-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+		.header-row .title { font-weight: 600; font-size: 13px; }
+		.badge { font: 500 10px var(--font-mono); border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px; color: var(--muted-foreground); }
+		.ext {
+			width: 26px; height: 26px; border: none; border-radius: 6px; background: transparent;
+			color: var(--muted-foreground); display: inline-flex; align-items: center; justify-content: center;
+			cursor: pointer; font-size: 14px;
+		}
+		.legend {
+			position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+			background: #111; border: 1px solid var(--border); border-radius: 8px;
+			padding: 8px 12px; font-size: 11px; color: var(--muted-foreground); z-index: 50;
+			max-width: 92vw;
+		}
+		.legend b { color: var(--foreground); }
+		[data-design-note] { outline: 1px dashed color-mix(in srgb, #6af 35%, transparent); outline-offset: 2px; }
+		@media (prefers-reduced-motion: reduce) {
+			* { transition: none !important; }
+		}
+	</style>
+</head>
+<body>
+	<div class="canvas" aria-hidden="true"></div>
+	<aside class="rail glass-panel" aria-label="Rail">
+		<div class="dot"></div>
+		<div class="dot active" title="Rooms"></div>
+		<div class="dot"></div>
+	</aside>
+	<header class="doc glass-panel">
+		<span class="muted">← →</span>
+		<span class="muted">Playlab</span>
+		<span>›</span>
+		<span>Physics Pit</span>
+	</header>
+	<aside class="left glass-panel" aria-label="Room">
+		<div class="tabs"><span class="on">Room</span><span>Instances</span><span>Objects</span></div>
+		<div class="acc" data-design-note="Sticky 700-weight header + indented body">
+			<button type="button" class="acc-h"><span>Essentials</span><span>▾</span></button>
+			<div class="acc-body">
+				<div class="row"><label>name</label><input value="Physics Pit" /></div>
+				<div class="row"><label>background</label><input value="#0a0a0a" /></div>
+			</div>
+		</div>
+		<div class="acc">
+			<button type="button" class="acc-h"><span>Environment</span><span>▾</span></button>
+			<div class="acc-body">
+				<div class="row"><label>sky</label><select><option>none</option></select></div>
+				<div class="row"><label>shadows</label><select><option>on</option></select></div>
+			</div>
+		</div>
+		<div class="acc" data-design-note="Look &amp; Shaders stays ONE top-level section">
+			<button type="button" class="acc-h"><span>Look &amp; shaders</span><span>▾</span></button>
+			<div class="acc-body">
+				<p class="group-label">Art style</p>
+				<div class="row"><label>preset</label><input value="realistic" /></div>
+				<p class="group-label">Surface</p>
+				<div class="row"><label>material</label><select><option>Standard</option></select></div>
+				<p class="group-label">Fog</p>
+				<div class="row"><label>fog</label><select><option>none</option></select></div>
+			</div>
+		</div>
+		<div class="acc">
+			<button type="button" class="acc-h"><span>Play mode</span><span>▸</span></button>
+		</div>
+	</aside>
+
+	<div
+		class="selection-bar"
+		data-design-note="left/right: main-inset-*; top: chrome-top-outer + chrome-inner-gap; z-index 12; pane opacity 30%"
+	>
+		<div class="selection-bar-card glass-panel" role="group" aria-label="Selection tools">
+			<div class="cluster" role="toolbar" aria-label="Transform tools">
+				<button type="button" class="tool active" aria-label="Move, shortcut M" aria-pressed="true">Move <span class="kbd" aria-hidden="true">M</span></button>
+				<button type="button" class="tool" aria-label="Rotate, shortcut R" aria-pressed="false">Rotate <span class="kbd" aria-hidden="true">R</span></button>
+				<button type="button" class="tool" aria-label="Scale, shortcut S" aria-pressed="false">Scale <span class="kbd" aria-hidden="true">S</span></button>
+			</div>
+			<div class="cluster" role="group" aria-label="Entity actions">
+				<span class="divider" aria-hidden="true"></span>
+				<button type="button" class="icon-btn" aria-label="Copy">⧉</button>
+				<button type="button" class="icon-btn" aria-label="Paste" disabled>📋</button>
+				<button type="button" class="icon-btn" aria-label="Duplicate">＋</button>
+				<button type="button" class="icon-btn destroy" aria-label="Destroy" data-design-note="enabled Destroy always --destructive">🗑</button>
+			</div>
+		</div>
+	</div>
+
+	<aside class="right glass-panel" aria-label="Inspector">
+		<div class="header-row" data-design-note="external-link 26px immediately beside title">
+			<span class="title">PhysBox</span>
+			<button type="button" class="ext" title="Open PhysBox in Objects" aria-label="Open PhysBox in Objects">↗</button>
+			<span class="badge">rain-07</span>
+		</div>
+		<div class="acc">
+			<button type="button" class="acc-h"><span>Transform</span><span>▾</span></button>
+			<div class="acc-body">
+				<div class="row"><label>position</label><input value="-0.5, 6.5, 6.2" /></div>
+				<div class="row"><label>scale</label><input value="0.55" /></div>
+			</div>
+		</div>
+		<div class="acc">
+			<button type="button" class="acc-h"><span>Render</span><span>▾</span></button>
+			<div class="acc-body">
+				<div class="row"><label>mesh</label><select><option>box</option></select></div>
+				<div class="row"><label>color</label><input value="#3a86ff" /></div>
+			</div>
+		</div>
+	</aside>
+
+	<div class="legend">
+		<b>TRL-191 mock</b> —
+		bar uses <code>main-inset-*</code> + panel 30% glass ·
+		kbd on M/R/S ·
+		Destroy red ·
+		↗ beside title ·
+		Look&amp;Shaders single · sticky 700 headers
+	</div>
+</body>
+</html>

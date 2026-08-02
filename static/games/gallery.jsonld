@@ -1,0 +1,273 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "component:Bob",
+			"@type": "ComponentSchema",
+			"fields": {
+				"x": {
+					"t": "number",
+					"default": 0
+				},
+				"z": {
+					"t": "number",
+					"default": 0
+				},
+				"baseY": {
+					"t": "number",
+					"default": 0.5
+				},
+				"amp": {
+					"t": "number",
+					"default": 0.35
+				},
+				"speed": {
+					"t": "number",
+					"default": 1.5
+				}
+			}
+		},
+		{
+			"@id": "component:Pulse",
+			"@type": "ComponentSchema",
+			"fields": {
+				"base": {
+					"t": "color",
+					"default": "#ff6b6b"
+				},
+				"accent": {
+					"t": "color",
+					"default": "#ffd166"
+				},
+				"speed": {
+					"t": "number",
+					"default": 2
+				}
+			}
+		},
+		{
+			"@id": "type:Floater",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Bob"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box"
+				},
+				"Transform": {
+					"position": "=vec(Bob.x, Bob.baseY + sin(t * Bob.speed) * Bob.amp, Bob.z)"
+				}
+			}
+		},
+		{
+			"@id": "type:Beacon",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Pulse"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "=Pulse.base"
+				},
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.5,
+						"z": 0
+					},
+					"scale": "=vec(0.5 + abs(sin(t * Pulse.speed)) * 0.25, 0.5 + abs(sin(t * Pulse.speed)) * 0.25, 0.5 + abs(sin(t * Pulse.speed)) * 0.25)"
+				}
+			}
+		},
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Ground": {
+					"size": 18,
+					"color": "#0a0a10"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.45
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 0.9
+				},
+				"Transform": {
+					"position": {
+						"x": 4,
+						"y": 9,
+						"z": 5
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/center",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.05,
+						"z": -5
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:floater/red",
+			"@type": "Thing",
+			"conformsTo": "Floater",
+			"components": {
+				"Render": {
+					"color": "#ff6b6b"
+				},
+				"Bob": {
+					"x": -3,
+					"z": 0,
+					"baseY": 0.8,
+					"amp": 0.4,
+					"speed": 1.2
+				},
+				"Transform": {
+					"position": [
+						-3,
+						0.8,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:floater/blue",
+			"@type": "Thing",
+			"conformsTo": "Floater",
+			"components": {
+				"Render": {
+					"color": "#5b9fd4"
+				},
+				"Bob": {
+					"x": 3,
+					"z": 1,
+					"baseY": 1.2,
+					"amp": 0.55,
+					"speed": 0.9
+				}
+			}
+		},
+		{
+			"@id": "entity:floater/gold",
+			"@type": "Thing",
+			"conformsTo": "Floater",
+			"components": {
+				"Render": {
+					"color": "#e8a838"
+				},
+				"Bob": {
+					"x": 0,
+					"z": 3,
+					"baseY": 0.6,
+					"amp": 0.3,
+					"speed": 2.1
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.6,
+						3
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:beacon/center",
+			"@type": "Thing",
+			"conformsTo": "Beacon",
+			"components": {
+				"Pulse": {
+					"base": "#7c6cf0",
+					"accent": "#c4b5fd",
+					"speed": 1.8
+				},
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.5,
+						"z": -1
+					}
+				}
+			}
+		}
+	]
+}

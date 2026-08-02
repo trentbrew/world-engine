@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte — Right Inspector Tabs (TRL-36 design mock)</title>
+  <style>
+    :root {
+      --viewport: #0e0e0e;
+      --viewport-grid: #1a1a1a;
+      --surface: #141414;
+      --surface-raised: #1c1c1c;
+      --surface-overlay: #242424;
+      --surface-glass: color-mix(in srgb, #242424 62%, transparent);
+      --text: #e8e8e8;
+      --text-muted: #8a8a8a;
+      --text-mono: #a3a3a3;
+      --primary: #d4d4d4;
+      --border: #333333;
+      --border-focus: #737373;
+      --accent-link: #737373;
+      --success: #86efac;
+      --right-panel-width: 280px;
+      --float-inset: 12px;
+      --rounded-sm: 6px;
+      --rounded-lg: 14px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --font-ui: 'DM Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      color: var(--text);
+      background: var(--viewport);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      background-color: var(--viewport);
+    }
+
+    .legend {
+      position: fixed;
+      bottom: var(--float-inset);
+      left: var(--float-inset);
+      max-width: 360px;
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--surface-overlay);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      font-size: 11px;
+      color: var(--text-muted);
+      z-index: 50;
+    }
+
+    .legend strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+    .controls {
+      position: fixed;
+      top: var(--float-inset);
+      left: var(--float-inset);
+      display: flex;
+      gap: 8px;
+      z-index: 50;
+    }
+
+    .controls button {
+      font-family: inherit;
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-overlay);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .controls button.active {
+      color: var(--text);
+      border-color: var(--border-focus);
+      background: var(--surface-raised);
+    }
+
+    .controls button:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    .right-panel {
+      position: absolute;
+      top: var(--float-inset);
+      right: var(--float-inset);
+      width: var(--right-panel-width);
+      max-height: calc(100vh - var(--float-inset) * 2 - 48px);
+      display: flex;
+      flex-direction: column;
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      border-radius: var(--rounded-lg);
+      box-shadow: 0 8px 32px rgb(0 0 0 / 0.24);
+      overflow: hidden;
+    }
+
+    .inspector-header {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      font-weight: 600;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      padding: 0 var(--spacing-sm);
+      flex-shrink: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .panel-tabs::-webkit-scrollbar { display: none; }
+
+    .panel-tab {
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 8px 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .panel-tab.active {
+      color: var(--text);
+      border-bottom-color: var(--text-muted);
+    }
+
+    .panel-tab:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      color: #525252;
+    }
+
+    .panel-tab:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: -2px;
+    }
+
+    .tab-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .accordion {
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    }
+
+    .accordion-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 8px 0;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .accordion-trigger:hover { color: var(--text); }
+
+    .accordion-trigger .chev {
+      font-size: 10px;
+      transition: transform 120ms;
+    }
+
+    .accordion.open .accordion-trigger .chev { transform: rotate(180deg); }
+
+    .accordion-body {
+      display: none;
+      padding-bottom: var(--spacing-sm);
+    }
+
+    .accordion.open .accordion-body { display: block; }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .field-row input[type="text"],
+    .field-row input[type="number"] {
+      width: 48px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 6px;
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      background: var(--surface-raised);
+      color: var(--text);
+    }
+
+    .color-field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #ff14c0;
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 6px;
+      margin-bottom: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+
+    .meta-key { color: var(--text-muted); }
+    .meta-val { color: var(--text-mono); word-break: break-all; }
+
+    .schema-field {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 4px 0;
+      border-top: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+    }
+
+    .sync-badge {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--surface-raised);
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .sync-badge.realtime { color: var(--success); }
+
+    .graph-link {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent-link);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      cursor: pointer;
+    }
+
+    .graph-link:hover { color: var(--text); }
+
+    .empty {
+      padding: var(--spacing-md) 0;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .empty-title {
+      color: var(--text);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .ops-row {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 6px 0 6px 10px;
+      border-left: 2px solid var(--border);
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+
+    .ops-row strong { color: var(--text); font-weight: 500; }
+
+    .ops-time {
+      display: block;
+      margin-top: 2px;
+      opacity: 0.7;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: var(--spacing-sm);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .accordion-trigger .chev { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" data-design-note="Viewport placeholder — right panel is the design subject">
+    <div class="controls" data-design-note="Mock-only toggles — not shipped UI">
+      <button type="button" id="btnEntity" class="active">Entity: ground/main</button>
+      <button type="button" id="btnScene">Scene (no selection)</button>
+      <button type="button" id="btnDurable">Durable: live</button>
+    </div>
+
+    <aside class="right-panel" aria-label="Inspector" data-design-note="Floating right panel — 280px glass">
+      <div class="inspector-header" id="headerLabel">main</div>
+
+      <div class="panel-tabs" role="tablist" aria-label="Inspector views">
+        <button type="button" role="tab" class="panel-tab active" id="tab-props" aria-selected="true" aria-controls="panel-props" title="Properties">Props</button>
+        <button type="button" role="tab" class="panel-tab" id="tab-schema" aria-selected="false" aria-controls="panel-schema" title="Entity schema">Schema</button>
+        <button type="button" role="tab" class="panel-tab" id="tab-graph" aria-selected="false" aria-controls="panel-graph" title="Facts and relationships">Graph</button>
+        <button type="button" role="tab" class="panel-tab" id="tab-ops" aria-selected="false" aria-controls="panel-ops" title="History and ops log">Ops</button>
+      </div>
+
+      <div class="tab-body">
+        <!-- Properties -->
+        <div role="tabpanel" class="tab-panel active" id="panel-props" aria-labelledby="tab-props">
+          <div id="props-entity">
+            <div class="accordion open">
+              <button type="button" class="accordion-trigger">Entity <span class="chev">▾</span></button>
+              <div class="accordion-body">
+                <div class="meta-row"><span class="meta-key">@id</span><span class="meta-val">entity:ground/main</span></div>
+                <div class="meta-row"><span class="meta-key">conformsTo</span><span class="meta-val">GroundPlane</span></div>
+              </div>
+            </div>
+            <div class="accordion open">
+              <button type="button" class="accordion-trigger">Transform <span class="chev">▾</span></button>
+              <div class="accordion-body">
+                <div class="field-row"><span>position</span><span><input type="number" value="0" /> <input type="number" value="0" /> <input type="number" value="0" /></span></div>
+                <div class="field-row"><span>scale</span><span><input type="number" value="1" /> <input type="number" value="1" /> <input type="number" value="1" /></span></div>
+              </div>
+            </div>
+            <div class="accordion open">
+              <button type="button" class="accordion-trigger">Ground <span class="chev">▾</span></button>
+              <div class="accordion-body">
+                <div class="field-row"><span>size</span><input type="number" value="24" /></div>
+                <div class="field-row"><span>color</span><span class="color-field"><span class="swatch"></span><input type="text" value="#ff14c0" style="width:72px" /></span></div>
+              </div>
+            </div>
+          </div>
+          <div id="props-scene" hidden>
+            <div class="accordion open">
+              <button type="button" class="accordion-trigger">Viewport <span class="chev">▾</span></button>
+              <div class="accordion-body">
+                <div class="field-row"><span>Background</span><span class="meta-val">#0c0c10</span></div>
+              </div>
+            </div>
+            <div class="accordion open">
+              <button type="button" class="accordion-trigger">Grid <span class="chev">▾</span></button>
+              <div class="accordion-body">
+                <label class="field-row"><span>Show grid</span><input type="checkbox" checked /></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schema -->
+        <div role="tabpanel" class="tab-panel" id="panel-schema" aria-labelledby="tab-schema" hidden>
+          <div class="accordion open">
+            <button type="button" class="accordion-trigger">Type · GroundPlane <span class="chev">▾</span></button>
+            <div class="accordion-body">
+              <div class="meta-row"><span class="meta-key">@id</span><span class="meta-val">type:GroundPlane</span></div>
+              <div class="meta-row"><span class="meta-key">components</span><span class="meta-val">Transform, Ground</span></div>
+            </div>
+          </div>
+          <div class="accordion open">
+            <button type="button" class="accordion-trigger">Ground <span class="chev">▾</span></button>
+            <div class="accordion-body">
+              <div class="schema-field"><span>size</span><span>number</span><span class="sync-badge">durable</span></div>
+              <div class="schema-field"><span>color</span><span>string</span><span class="sync-badge">durable</span></div>
+            </div>
+          </div>
+          <div class="accordion open">
+            <button type="button" class="accordion-trigger">Transform <span class="chev">▾</span></button>
+            <div class="accordion-body">
+              <div class="schema-field"><span>position</span><span>vec3</span><span class="sync-badge realtime">realtime</span></div>
+              <div class="schema-field"><span>scale</span><span>vec3</span><span class="sync-badge">durable</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Graph -->
+        <div role="tabpanel" class="tab-panel" id="panel-graph" aria-labelledby="tab-graph" hidden>
+          <div class="accordion open">
+            <button type="button" class="accordion-trigger">References <span class="chev">▾</span></button>
+            <div class="accordion-body">
+              <p class="empty" style="padding:0">No outgoing <code>other()</code> references</p>
+            </div>
+          </div>
+          <div class="accordion open">
+            <button type="button" class="accordion-trigger">Facts <span class="chev">▾</span></button>
+            <div class="accordion-body">
+              <div class="meta-row"><span class="meta-key">Ground.size</span><span class="meta-val">24</span></div>
+              <div class="meta-row"><span class="meta-key">Ground.color</span><span class="meta-val">#ff14c0</span></div>
+              <div class="meta-row"><span class="meta-key">Transform.scale</span><span class="meta-val">[1,1,1]</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ops -->
+        <div role="tabpanel" class="tab-panel" id="panel-ops" aria-labelledby="tab-ops" hidden>
+          <div id="ops-live">
+            <div class="ops-row">
+              <strong>update</strong> Ground.color → <span style="color:#ff14c0">#ff14c0</span>
+              <span class="ops-time">2m ago · trellis:op:a3f…</span>
+            </div>
+            <div class="ops-row">
+              <strong>update</strong> Ground.size → 24
+              <span class="ops-time">5m ago · trellis:op:91c…</span>
+            </div>
+          </div>
+          <div id="ops-offline" hidden>
+            <div class="empty">
+              <div class="empty-title">No ops log</div>
+              Durable history requires <code>?durable=trellis</code> and a running Trellis server.
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="legend">
+      <strong>TRL-36 — Right inspector tabs</strong>
+      Toggle entity/scene and durable mode. Tabs mirror left panel pattern. Props = shadcn accordions (existing). Schema/Graph/Ops phased per design doc.
+    </div>
+  </div>
+
+  <script>
+    const tabs = ['props', 'schema', 'graph', 'ops'];
+    let context = 'entity';
+    let durable = true;
+    let activeTab = 'props';
+
+    const headerLabel = document.getElementById('headerLabel');
+    const propsEntity = document.getElementById('props-entity');
+    const propsScene = document.getElementById('props-scene');
+    const opsLive = document.getElementById('ops-live');
+    const opsOffline = document.getElementById('ops-offline');
+    const btnEntity = document.getElementById('btnEntity');
+    const btnScene = document.getElementById('btnScene');
+    const btnDurable = document.getElementById('btnDurable');
+
+    function setTab(id) {
+      activeTab = id;
+      tabs.forEach((t) => {
+        const tabBtn = document.getElementById('tab-' + t);
+        const panel = document.getElementById('panel-' + t);
+        const on = t === id;
+        tabBtn.classList.toggle('active', on);
+        tabBtn.setAttribute('aria-selected', on ? 'true' : 'false');
+        panel.classList.toggle('active', on);
+        panel.hidden = !on;
+      });
+    }
+
+    function updateContext() {
+      const isEntity = context === 'entity';
+      headerLabel.textContent = isEntity ? 'main' : 'Scene';
+      propsEntity.hidden = !isEntity;
+      propsScene.hidden = isEntity;
+
+      document.getElementById('tab-schema').disabled = !isEntity;
+      document.getElementById('tab-graph').disabled = !isEntity;
+
+      if (!isEntity && (activeTab === 'schema' || activeTab === 'graph')) {
+        setTab('props');
+      }
+
+      btnEntity.classList.toggle('active', isEntity);
+      btnScene.classList.toggle('active', !isEntity);
+    }
+
+    function updateDurable() {
+      opsLive.hidden = !durable;
+      opsOffline.hidden = durable;
+      btnDurable.textContent = durable ? 'Durable: live' : 'Durable: offline';
+      btnDurable.classList.toggle('active', durable);
+    }
+
+    tabs.forEach((t) => {
+      document.getElementById('tab-' + t).addEventListener('click', () => {
+        const btn = document.getElementById('tab-' + t);
+        if (btn.disabled) return;
+        setTab(t);
+      });
+    });
+
+    document.querySelectorAll('.accordion-trigger').forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        trigger.closest('.accordion').classList.toggle('open');
+      });
+    });
+
+    btnEntity.addEventListener('click', () => { context = 'entity'; updateContext(); });
+    btnScene.addEventListener('click', () => { context = 'scene'; updateContext(); });
+    btnDurable.addEventListener('click', () => { durable = !durable; updateDurable(); });
+
+    updateContext();
+    updateDurable();
+  </script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		},
+		"events": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "type:Platform",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Physics"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#3a3a44"
+				},
+				"Physics": {
+					"body": "fixed",
+					"collider": "box"
+				}
+			}
+		},
+		{
+			"@id": "type:Coin",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Collectible"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#e8c14a"
+				},
+				"Transform": {
+					"scale": [
+						0.4,
+						0.4,
+						0.4
+					]
+				},
+				"Collectible": {
+					"radius": 0.8,
+					"value": 1
+				}
+			},
+			"events": {
+				"collision": [
+					{
+						"with": "Player",
+						"do": [
+							{
+								"score": "=Collectible.value"
+							},
+							{
+								"sfx": "=Collectible.sfx"
+							},
+							{
+								"destroy": "self"
+							}
+						]
+					}
+				]
+			}
+		},
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Ground": {
+					"size": 20,
+					"color": "#0e0e14"
+				},
+				"Transform": {
+					"position": [
+						0.34847700113202384,
+						0,
+						3.26463602401832
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1.5,
+						1,
+						2.7
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.5
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1.1
+				},
+				"Transform": {
+					"position": {
+						"x": 6,
+						"y": 10,
+						"z": 4
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/start",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": [
+						-3.890095018663426,
+						0.05,
+						-6.866630671939322
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/start",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						4,
+						0.5,
+						-4
+					],
+					"scale": [
+						3,
+						1,
+						3
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/mid-left",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						-3,
+						2,
+						0
+					],
+					"scale": [
+						2,
+						1,
+						2
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					]
+				},
+				"Render": {
+					"color": "#4a5568"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/mid-right",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						3,
+						2.5,
+						1
+					],
+					"scale": [
+						2,
+						1,
+						2
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					]
+				},
+				"Render": {
+					"color": "#4a5568"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/high",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						3,
+						4
+					],
+					"scale": [
+						2.5,
+						1,
+						2.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					]
+				},
+				"Render": {
+					"color": "#5b6a7a"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/finish",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 4.5,
+						"z": 7
+					},
+					"scale": [
+						3,
+						1,
+						2
+					]
+				},
+				"Render": {
+					"color": "#3ecf8e"
+				}
+			}
+		},
+		{
+			"@id": "entity:coin/1",
+			"@type": "Thing",
+			"conformsTo": "Coin",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -3,
+						"y": 2.2,
+						"z": 0
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:coin/2",
+			"@type": "Thing",
+			"conformsTo": "Coin",
+			"components": {
+				"Transform": {
+					"position": [
+						3,
+						4,
+						1
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:coin/3",
+			"@type": "Thing",
+			"conformsTo": "Coin",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 4.2,
+						"z": 4
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:coin/4",
+			"@type": "Thing",
+			"conformsTo": "Coin",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						6,
+						7
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.4,
+						0.4,
+						0.4
+					]
+				},
+				"Collectible": {
+					"value": 5
+				}
+			}
+		}
+	]
+}

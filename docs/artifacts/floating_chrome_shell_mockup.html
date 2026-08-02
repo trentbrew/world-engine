@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte Skeleton — Floating Chrome Shell (design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --viewport: #1c1c1c;
+      --viewport-grid: #2a2a2a;
+      --surface: #252525;
+      --surface-raised: #2e2e2e;
+      --surface-overlay: #363636;
+      --surface-glass: color-mix(in srgb, var(--surface-overlay) 72%, transparent);
+      --text: #e4e4e4;
+      --text-muted: #949494;
+      --text-mono: #b0b0b0;
+      --accent-entity: #c8c8c8;
+      --accent-link: #b4b4b4;
+      --border: #3d3d3d;
+      --border-focus: #a3a3a3;
+      --rail-pill-width: 44px;
+      --sidebar-width: 200px;
+      --attributes-width: 260px;
+      --toolbar-height: 40px;
+      --float-inset: 16px;
+      --rounded-sm: 4px;
+      --rounded-lg: 12px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--viewport);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: var(--toolbar-height) 1fr;
+      height: 100%;
+    }
+
+    /* Toolbar — docked */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      padding: 0 var(--spacing-md);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+
+    .toolbar-title {
+      font-weight: 600;
+      font-size: 14px;
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    .toolbar-stat { color: var(--text-muted); font-size: 12px; }
+    .toolbar-stat strong { color: var(--text); font-weight: 500; }
+    .toolbar-spacer { flex: 1; }
+
+    .btn {
+      font-family: inherit;
+      font-size: 12px;
+      padding: 4px 10px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover { border-color: var(--text-muted); }
+    .btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+    .btn[aria-pressed="true"] { border-color: var(--accent-entity); color: var(--accent-entity); }
+
+    .icon { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* Viewport — full bleed */
+    .viewport {
+      position: relative;
+      background: var(--viewport);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .viewport-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .viewport-label {
+      position: absolute;
+      bottom: var(--float-inset);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* Glass panel shared */
+    .glass {
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      border-radius: var(--rounded-lg);
+      box-shadow: 0 4px 24px rgb(0 0 0 / 0.28), inset 0 1px 0 rgb(255 255 255 / 0.04);
+      pointer-events: auto;
+    }
+
+    /* Rail pill */
+    .rail-pill {
+      position: absolute;
+      top: var(--float-inset);
+      left: var(--float-inset);
+      width: var(--rail-pill-width);
+      padding: var(--spacing-sm) 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      z-index: 18;
+    }
+
+    .rail-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: var(--rounded-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .rail-btn svg { width: 16px; height: 16px; }
+
+    .rail-btn:hover { background: var(--surface-raised); color: var(--text); }
+    .rail-btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+    .rail-btn[aria-pressed="true"] {
+      background: var(--surface-raised);
+      color: var(--accent-entity);
+      box-shadow: inset 2px 0 0 var(--accent-entity);
+    }
+
+    .rail-btn[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: calc(100% + 8px);
+      top: 50%;
+      transform: translateY(-50%);
+      white-space: nowrap;
+      padding: 4px 8px;
+      background: var(--surface-overlay);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      font-size: 11px;
+      color: var(--text);
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    /* Sidebar float */
+    .sidebar-float {
+      position: absolute;
+      top: var(--float-inset);
+      left: calc(var(--float-inset) + var(--rail-pill-width) + var(--spacing-sm));
+      width: var(--sidebar-width);
+      max-height: calc(100% - var(--float-inset) * 2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 19;
+      opacity: 0;
+      transform: translateY(4px);
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .sidebar-float.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: none;
+    }
+
+    .sidebar-float.visible .glass-inner { pointer-events: auto; }
+
+    .glass-inner {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    }
+
+    .entity-list { list-style: none; flex: 1; overflow-y: auto; padding: var(--spacing-sm); }
+
+    .entity-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px var(--spacing-sm);
+      border-radius: var(--rounded-sm);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .entity-row:hover { background: var(--surface-raised); }
+    .entity-row.selected {
+      background: var(--surface-raised);
+      box-shadow: inset 2px 0 0 var(--accent-entity);
+    }
+
+    .type-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+
+    .panel-footer { padding: var(--spacing-sm); border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+
+    /* Attributes float */
+    .attributes-float {
+      position: absolute;
+      top: var(--float-inset);
+      right: var(--float-inset);
+      width: var(--attributes-width);
+      max-height: calc(100% - var(--float-inset) * 2);
+      z-index: 20;
+      opacity: 0;
+      transform: translateY(4px);
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+      overflow: hidden;
+    }
+
+    .attributes-float.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .attr-row {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 6px;
+      margin-bottom: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      padding: 0 var(--spacing-md);
+    }
+
+    .attr-key { color: var(--text-muted); }
+    .attr-val { color: var(--text-mono); }
+
+    .panel-body { padding: var(--spacing-sm) 0; overflow-y: auto; }
+
+    /* Legend */
+    .legend {
+      position: absolute;
+      top: var(--float-inset);
+      right: calc(var(--float-inset) + var(--attributes-width) + 12px);
+      max-width: 200px;
+      padding: 10px 12px;
+      font-size: 10px;
+      color: var(--text-muted);
+      background: rgb(0 0 0 / 0.35);
+      border-radius: var(--rounded-sm);
+      pointer-events: none;
+      line-height: 1.5;
+    }
+
+    .legend strong { color: var(--text); display: block; margin-bottom: 4px; font-size: 11px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sidebar-float, .attributes-float { transition: none; }
+    }
+
+    @media (max-width: 767px) {
+      .rail-pill { display: none; }
+      .legend { display: none; }
+      .sidebar-float { left: var(--float-inset); width: auto; right: var(--float-inset); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="toolbar">
+      <span class="toolbar-title">world.jsonld</span>
+      <span class="toolbar-stat"><strong>4</strong> entities</span>
+      <span class="toolbar-stat">tick <strong>128</strong></span>
+      <span class="toolbar-spacer"></span>
+      <button type="button" class="btn" id="btn-camera" aria-pressed="false">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+        Orbit
+      </button>
+      <button type="button" class="btn" id="btn-inspector" aria-pressed="false">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1" opacity="0.4"/></svg>
+        Inspector
+      </button>
+    </header>
+
+    <main class="viewport" data-design-note="Full-bleed canvas — chrome floats above, no grid columns">
+      <div class="viewport-grid"></div>
+      <div class="viewport-label">Viewport hero — toggles below do not resize this region</div>
+
+      <nav class="rail-pill glass" aria-label="Tool rail" data-design-note="Always-visible mode switcher">
+        <button type="button" class="rail-btn" data-route="world" data-tip="World" aria-pressed="true" aria-label="World">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </button>
+        <button type="button" class="rail-btn" data-route="entities" data-tip="Entities" aria-pressed="false" aria-label="Entities">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12.83 2.18 2 3.5H20a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7.68a2 2 0 0 1 2-2h5.17l2-3.5a2 2 0 0 1 3.66 0z"/><path d="M12 10v6M9 13h6"/></svg>
+        </button>
+        <button type="button" class="rail-btn" data-route="assets" data-tip="Assets" aria-pressed="false" aria-label="Assets">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+        <button type="button" class="rail-btn" disabled data-tip="Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </nav>
+
+      <aside class="sidebar-float glass" id="sidebar" aria-label="Sidebar panel">
+        <div class="glass-inner">
+          <div class="section-label" id="sidebar-title">Entities</div>
+          <ul class="entity-list" id="sidebar-entities">
+            <li class="entity-row selected"><span class="type-dot"></span>crate-a</li>
+            <li class="entity-row"><span class="type-dot"></span>crate-b</li>
+            <li class="entity-row"><span class="type-dot"></span>ground/main</li>
+            <li class="entity-row"><span class="type-dot"></span>spawn/player-1</li>
+          </ul>
+          <div class="panel-footer" id="sidebar-footer">
+            <button type="button" class="btn" style="width:100%;justify-content:center">+ Add entity</button>
+          </div>
+        </div>
+      </aside>
+
+      <aside class="attributes-float glass" id="attributes" aria-label="Entity attributes">
+        <div class="section-label">Attributes</div>
+        <div class="panel-body">
+          <div class="attr-row"><span class="attr-key">@id</span><span class="attr-val">entity:prop/crate-b</span></div>
+          <div class="attr-row"><span class="attr-key">mesh</span><span class="attr-val">/models/barrel.glb</span></div>
+          <div class="attr-row"><span class="attr-key">anchor</span><span class="attr-val">bottom</span></div>
+        </div>
+      </aside>
+
+      <div class="legend">
+        <strong>Design mock</strong>
+        Toggle Entities/Assets on rail or Inspector in toolbar.
+        Viewport width stays constant.
+        Open <code>floating_chrome_shell_design.md</code> for spec.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const state = { inspectorOpen: false, route: 'world' };
+
+    const sidebar = document.getElementById('sidebar');
+    const attributes = document.getElementById('attributes');
+    const btnInspector = document.getElementById('btn-inspector');
+    const sidebarTitle = document.getElementById('sidebar-title');
+    const sidebarEntities = document.getElementById('sidebar-entities');
+    const sidebarFooter = document.getElementById('sidebar-footer');
+
+    function render() {
+      const showSidebar = state.inspectorOpen && state.route !== 'world';
+      sidebar.classList.toggle('visible', showSidebar);
+      attributes.classList.toggle('visible', state.inspectorOpen);
+      btnInspector.setAttribute('aria-pressed', String(state.inspectorOpen));
+
+      document.querySelectorAll('.rail-btn[data-route]').forEach((btn) => {
+        const r = btn.dataset.route;
+        const pressed = r === 'world'
+          ? state.route === 'world'
+          : state.route === r && state.inspectorOpen;
+        btn.setAttribute('aria-pressed', String(pressed));
+      });
+
+      if (state.route === 'assets') {
+        sidebarTitle.textContent = 'Assets';
+        sidebarEntities.innerHTML = '<li class="entity-row"><span class="type-dot"></span>barrel.glb</li><li class="entity-row"><span class="type-dot"></span>(textures empty)</li>';
+        sidebarFooter.style.display = 'none';
+      } else {
+        sidebarTitle.textContent = 'Entities';
+        sidebarEntities.innerHTML = '<li class="entity-row selected"><span class="type-dot"></span>crate-a</li><li class="entity-row"><span class="type-dot"></span>crate-b</li><li class="entity-row"><span class="type-dot"></span>ground/main</li><li class="entity-row"><span class="type-dot"></span>spawn/player-1</li>';
+        sidebarFooter.style.display = '';
+      }
+    }
+
+    function toggleInspector() {
+      state.inspectorOpen = !state.inspectorOpen;
+      if (state.inspectorOpen && state.route === 'world') state.route = 'entities';
+      render();
+    }
+
+    btnInspector.addEventListener('click', toggleInspector);
+
+    document.querySelectorAll('.rail-btn[data-route]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const route = btn.dataset.route;
+        if (route === 'entities') {
+          if (state.route === 'entities' && state.inspectorOpen) {
+            state.inspectorOpen = false;
+          } else {
+            state.route = 'entities';
+            state.inspectorOpen = true;
+          }
+        } else if (route === 'assets') {
+          state.route = 'assets';
+          state.inspectorOpen = true;
+        } else {
+          state.route = 'world';
+        }
+        render();
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>

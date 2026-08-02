@@ -1,0 +1,102 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Ground": {
+					"size": 20,
+					"color": "#80808080"
+				},
+				"Transform": {
+					"position": [
+						0.2296600794783834,
+						0,
+						-2.9911964575891674
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.6
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 0.9
+				},
+				"Transform": {
+					"position": {
+						"x": 4,
+						"y": 8,
+						"z": 6
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/center",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0,
+						"z": 0
+					}
+				},
+				"Marker": {
+					"kind": "spawn"
+				}
+			}
+		},
+		{
+			"@id": "entity:character/new",
+			"@type": "Thing",
+			"conformsTo": "Character",
+			"components": {
+				"Transform": {
+					"position": [
+						1,
+						0,
+						1
+					]
+				},
+				"SkinnedMesh": {},
+				"Mesh3DAnimator": {}
+			}
+		}
+	]
+}

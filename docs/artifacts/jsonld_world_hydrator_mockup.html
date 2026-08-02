@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte Skeleton — JSON-LD World Hydrator (TRL-2 design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --viewport: #08080a;
+      --viewport-grid: #1a1a22;
+      --surface: #111116;
+      --surface-raised: #18181f;
+      --text: #e4e4ea;
+      --text-muted: #7a7a8c;
+      --text-mono: #a8b4c0;
+      --primary: #ff6b6b;
+      --accent-spawn: #e8a838;
+      --accent-entity: #5b9fd4;
+      --accent-link: #7c6cf0;
+      --border: #2a2a36;
+      --border-focus: #5b9fd4;
+      --inspector-width: 320px;
+      --toolbar-height: 40px;
+      --rounded-sm: 3px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--viewport);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: var(--toolbar-height) 1fr;
+      grid-template-columns: 1fr;
+      height: 100%;
+    }
+
+    .app.inspector-open {
+      grid-template-columns: 1fr var(--inspector-width);
+    }
+
+    .toolbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      padding: 0 var(--spacing-md);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+
+    .toolbar-title {
+      font-weight: 600;
+      font-size: 14px;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--accent-link);
+    }
+
+    .toolbar-stat {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .toolbar-stat strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .toolbar-spacer { flex: 1; }
+
+    .btn {
+      font-family: inherit;
+      font-size: 12px;
+      padding: 4px 10px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .btn:hover { border-color: var(--text-muted); }
+    .btn:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    .main {
+      display: contents;
+    }
+
+    .viewport-wrap {
+      position: relative;
+      background: var(--viewport);
+      min-height: 0;
+    }
+
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .viewport-hint {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      pointer-events: none;
+      letter-spacing: 0.04em;
+    }
+
+    .inspector {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateX(100%);
+      transition: transform 0.2s ease;
+    }
+
+    .app.inspector-open .inspector {
+      transform: translateX(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .inspector { transition: none; }
+    }
+
+    .inspector-section {
+      padding: var(--spacing-md);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .entity-list {
+      list-style: none;
+      overflow-y: auto;
+      flex: 1;
+      padding: var(--spacing-sm);
+    }
+
+    .entity-row {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--rounded-sm);
+      cursor: pointer;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+
+    .entity-row:hover { background: var(--surface-raised); }
+    .entity-row[aria-selected="true"] {
+      background: var(--surface-raised);
+      box-shadow: inset 2px 0 0 var(--accent-entity);
+    }
+
+    .entity-row:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: -2px;
+    }
+
+    .type-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .type-dot.ground { background: var(--viewport-grid); border: 1px solid var(--text-muted); }
+    .type-dot.prop { background: var(--primary); }
+    .type-dot.spawn { background: var(--accent-spawn); }
+
+    .entity-type {
+      color: var(--text-muted);
+      font-size: 10px;
+      margin-left: auto;
+    }
+
+    .attrs {
+      padding: var(--spacing-md);
+      overflow-y: auto;
+      max-height: 40%;
+    }
+
+    .attr-row {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: var(--spacing-sm);
+      margin-bottom: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+    }
+
+    .attr-key { color: var(--text-muted); }
+    .attr-val { color: var(--text-mono); word-break: break-all; }
+
+    .json-fragment {
+      margin-top: var(--spacing-sm);
+      padding: var(--spacing-sm);
+      background: var(--viewport);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      line-height: 1.6;
+      color: var(--text-mono);
+      white-space: pre-wrap;
+    }
+
+    .legend {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(17, 17, 22, 0.85);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      padding: 8px 10px;
+      font-size: 10px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .legend span { color: var(--text); }
+
+    #world-status {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+    }
+
+    @media (max-width: 767px) {
+      .app.inspector-open {
+        grid-template-columns: 1fr;
+        grid-template-rows: var(--toolbar-height) 1fr 50vh;
+      }
+      .inspector {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        transform: translateY(100%);
+      }
+      .app.inspector-open .inspector {
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app inspector-open" id="app">
+    <header class="toolbar">
+      <span class="toolbar-title">world.jsonld</span>
+      <span class="toolbar-stat"><strong id="entity-count">4</strong> entities</span>
+      <span class="toolbar-stat">tick <strong>0</strong></span>
+      <span class="toolbar-spacer"></span>
+      <button class="btn" id="toggle-inspector" aria-label="Toggle entity inspector" aria-expanded="true">◧ Inspector</button>
+    </header>
+
+    <div class="main">
+      <div class="viewport-wrap" data-design-note="Threlte Canvas region — OrbitControls, full bleed below toolbar">
+        <div id="canvas-container"></div>
+        <div class="legend" data-design-note="Dev legend — omit in production">
+          <span>POC mock</span> · drag to orbit · click mesh to select
+        </div>
+        <p class="viewport-hint">ORBIT · SELECT ENTITY</p>
+        <div id="world-status" role="status" aria-live="polite">World loaded, 4 entities</div>
+      </div>
+
+      <aside class="inspector" data-design-note="Collapsible dev inspector — 320px desktop">
+        <div class="inspector-section">
+          <div class="section-label">Entities</div>
+        </div>
+        <ul class="entity-list" id="entity-list" role="listbox" aria-label="World entities">
+          <!-- populated by JS -->
+        </ul>
+        <div class="attrs" id="attrs-panel">
+          <div class="section-label">Attributes</div>
+          <div id="attr-content"></div>
+          <pre class="json-fragment" id="json-fragment"></pre>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const ENTITIES = [
+      {
+        id: 'entity:ground/main',
+        type: 'GroundPlane',
+        position: [0, 0, 0],
+        color: null,
+        mesh: null,
+        threeType: 'ground'
+      },
+      {
+        id: 'entity:prop/crate-a',
+        type: 'Prop',
+        position: [-1.5, 0.5, 0.8],
+        color: '#ff6b6b',
+        mesh: 'primitive:box',
+        threeType: 'prop'
+      },
+      {
+        id: 'entity:prop/crate-b',
+        type: 'Prop',
+        position: [1.2, 0.5, -0.6],
+        color: '#ff6b6b',
+        mesh: 'https://assets.example/models/barrel.glb',
+        threeType: 'prop'
+      },
+      {
+        id: 'entity:spawn/player-1',
+        type: 'SpawnPoint',
+        position: [0, 0.05, -2],
+        color: '#e8a838',
+        mesh: null,
+        threeType: 'spawn'
+      }
+    ];
+
+    let selectedId = ENTITIES[1].id;
+    const meshes = new Map();
+
+    // Scene setup
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x08080a);
+
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.set(4, 3, 5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 0.5, 0);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(5, 8, 5);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    // Grid
+    const grid = new THREE.GridHelper(20, 20, 0x2a2a36, 0x1a1a22);
+    scene.add(grid);
+
+    // Ground plane
+    const groundGeo = new THREE.PlaneGeometry(20, 20);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x0e0e12, roughness: 0.9 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    ground.userData.entityId = ENTITIES[0].id;
+    scene.add(ground);
+    meshes.set(ENTITIES[0].id, ground);
+
+    // Props
+    ENTITIES.filter(e => e.threeType === 'prop').forEach(ent => {
+      const geo = new THREE.BoxGeometry(1, 1, 1);
+      const mat = new THREE.MeshStandardMaterial({ color: ent.color });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(...ent.position);
+      mesh.castShadow = true;
+      mesh.userData.entityId = ent.id;
+      scene.add(mesh);
+      meshes.set(ent.id, mesh);
+    });
+
+    // Spawn marker
+    const spawnEnt = ENTITIES.find(e => e.threeType === 'spawn');
+    const spawnGroup = new THREE.Group();
+    const cyl = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.4, 0.4, 0.05, 24),
+      new THREE.MeshStandardMaterial({ color: 0xe8a838, transparent: true, opacity: 0.55 })
+    );
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.6, 0.03, 8, 32),
+      new THREE.MeshStandardMaterial({ color: 0xe8a838, transparent: true, opacity: 0.55 })
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.03;
+    spawnGroup.add(cyl, ring);
+    spawnGroup.position.set(...spawnEnt.position);
+    spawnGroup.userData.entityId = spawnEnt.id;
+    scene.add(spawnGroup);
+    meshes.set(spawnEnt.id, spawnGroup);
+
+    // Selection outline
+    const outlineMat = new THREE.MeshBasicMaterial({
+      color: 0x5b9fd4,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.6
+    });
+
+    function updateSelection() {
+      scene.children.filter(c => c.userData.isOutline).forEach(c => scene.remove(c));
+
+      const target = meshes.get(selectedId);
+      if (!target) return;
+
+      const box = new THREE.Box3().setFromObject(target);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const outline = new THREE.Mesh(
+        new THREE.BoxGeometry(size.x + 0.15, size.y + 0.15, size.z + 0.15),
+        outlineMat
+      );
+      outline.position.copy(center);
+      outline.userData.isOutline = true;
+      scene.add(outline);
+
+      document.querySelectorAll('.entity-row').forEach(row => {
+        row.setAttribute('aria-selected', row.dataset.id === selectedId ? 'true' : 'false');
+      });
+
+      renderAttrs();
+    }
+
+    function renderAttrs() {
+      const ent = ENTITIES.find(e => e.id === selectedId);
+      if (!ent) return;
+
+      document.getElementById('attr-content').innerHTML = `
+        <div class="attr-row"><span class="attr-key">@id</span><span class="attr-val">${ent.id}</span></div>
+        <div class="attr-row"><span class="attr-key">@type</span><span class="attr-val">${ent.type}</span></div>
+        <div class="attr-row"><span class="attr-key">position</span><span class="attr-val">[${ent.position.join(', ')}]</span></div>
+        ${ent.color ? `<div class="attr-row"><span class="attr-key">color</span><span class="attr-val">${ent.color}</span></div>` : ''}
+        ${ent.mesh ? `<div class="attr-row"><span class="attr-key">mesh</span><span class="attr-val">${ent.mesh}</span></div>` : ''}
+      `;
+
+      document.getElementById('json-fragment').textContent = JSON.stringify({
+        '@id': ent.id,
+        '@type': ent.type,
+        position: { '@type': 'Vector3', x: ent.position[0], y: ent.position[1], z: ent.position[2] },
+        ...(ent.color && { color: ent.color }),
+        ...(ent.mesh && { mesh: { '@id': ent.mesh } })
+      }, null, 2);
+    }
+
+    // Entity list UI
+    const list = document.getElementById('entity-list');
+    ENTITIES.forEach(ent => {
+      const li = document.createElement('li');
+      li.className = 'entity-row';
+      li.dataset.id = ent.id;
+      li.setAttribute('role', 'option');
+      li.tabIndex = 0;
+      li.innerHTML = `
+        <span class="type-dot ${ent.threeType}"></span>
+        <span>${ent.id.split('/').pop()}</span>
+        <span class="entity-type">${ent.type}</span>
+      `;
+      li.addEventListener('click', () => { selectedId = ent.id; updateSelection(); });
+      li.addEventListener('keydown', e => {
+        const idx = ENTITIES.findIndex(x => x.id === selectedId);
+        if (e.key === 'ArrowDown') { e.preventDefault(); selectedId = ENTITIES[Math.min(idx + 1, ENTITIES.length - 1)].id; updateSelection(); li.blur(); list.children[ENTITIES.findIndex(x => x.id === selectedId)]?.focus(); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); selectedId = ENTITIES[Math.max(idx - 1, 0)].id; updateSelection(); li.blur(); list.children[ENTITIES.findIndex(x => x.id === selectedId)]?.focus(); }
+      });
+      list.appendChild(li);
+    });
+
+    // Raycast select
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    renderer.domElement.addEventListener('click', e => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(scene.children, true);
+      for (const hit of hits) {
+        let obj = hit.object;
+        while (obj && !obj.userData.entityId) obj = obj.parent;
+        if (obj?.userData.entityId) {
+          selectedId = obj.userData.entityId;
+          updateSelection();
+          break;
+        }
+      }
+    });
+
+    // Inspector toggle
+    document.getElementById('toggle-inspector').addEventListener('click', () => {
+      const app = document.getElementById('app');
+      const open = app.classList.toggle('inspector-open');
+      document.getElementById('toggle-inspector').setAttribute('aria-expanded', open);
+    });
+
+    function resize() {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+    updateSelection();
+  </script>
+</body>
+</html>

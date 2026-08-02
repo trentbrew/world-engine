@@ -1,0 +1,51 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" }
+  },
+  "@graph": [
+    {
+      "@id": "entity:world/profile",
+      "@type": "Thing",
+      "components": {
+        "WorldProfile": {
+          "dimensions": "2d",
+          "plane": "xy",
+          "unit": "pixel",
+          "pixelsPerUnit": 64,
+          "gravity": { "x": 0, "y": -20, "z": 0 }
+        },
+        "Camera2D": {
+          "deadZoneX": 1.5,
+          "deadZoneY": 1,
+          "lookAhead": 0.8,
+          "zoom": 52
+        }
+      }
+    },
+    {
+      "@id": "entity:ground/main",
+      "@type": "Thing",
+      "conformsTo": "GroundPlane",
+      "components": {
+        "Ground": { "size": 24, "color": "#12121a" }
+      }
+    },
+    {
+      "@id": "entity:spawn/center",
+      "@type": "Thing",
+      "conformsTo": "SpawnPoint",
+      "components": {
+        "Transform": { "position": { "x": 0, "y": 0, "z": 0 } },
+        "Marker": { "kind": "spawn" }
+      }
+    },
+    {
+      "@id": "entity:light/ambient",
+      "@type": "Thing",
+      "conformsTo": "AmbientLight",
+      "components": { "Light": { "intensity": 0.85 } }
+    }
+  ]
+}

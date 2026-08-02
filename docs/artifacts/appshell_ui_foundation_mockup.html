@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte Skeleton — AppShell UI Foundation (TRL-23 design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --viewport: #08080a;
+      --viewport-grid: #1a1a22;
+      --surface: #111116;
+      --surface-raised: #18181f;
+      --surface-overlay: #1e1e26;
+      --text: #e4e4ea;
+      --text-muted: #7a7a8c;
+      --text-mono: #a8b4c0;
+      --primary: #ff6b6b;
+      --primary-foreground: #0a0a0c;
+      --accent-spawn: #e8a838;
+      --accent-entity: #5b9fd4;
+      --accent-link: #7c6cf0;
+      --success: #4ade80;
+      --destructive: #ef4444;
+      --border: #2a2a36;
+      --border-focus: #5b9fd4;
+      --rail-width: 48px;
+      --inspector-width: 240px;
+      --toolbar-height: 40px;
+      --rounded-sm: 3px;
+      --rounded-md: 6px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--viewport);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: var(--toolbar-height) 1fr;
+      grid-template-columns: var(--rail-width) 1fr;
+      height: 100%;
+    }
+
+    .app.inspector-open {
+      grid-template-columns: var(--rail-width) 1fr var(--inspector-width);
+    }
+
+    /* Toolbar */
+    .toolbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      padding: 0 var(--spacing-md);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+
+    .toolbar-title {
+      font-weight: 600;
+      font-size: 14px;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--accent-link);
+    }
+
+    .toolbar-stat { color: var(--text-muted); font-size: 12px; }
+    .toolbar-stat strong { color: var(--text); font-weight: 500; }
+    .toolbar-spacer { flex: 1; }
+
+    .dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      margin-right: 4px;
+      background: var(--text-muted);
+      vertical-align: middle;
+    }
+    .dot.on { background: var(--accent-link); opacity: 1; }
+    .dot.host { background: var(--accent-spawn); }
+
+    .btn {
+      font-family: inherit;
+      font-size: 12px;
+      padding: 4px 10px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .btn:hover { border-color: var(--text-muted); }
+    .btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+    .btn[aria-pressed="true"] { border-color: var(--accent-entity); color: var(--accent-entity); }
+
+    /* Rail */
+    .rail {
+      grid-row: 2;
+      grid-column: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: var(--spacing-sm) 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 11;
+    }
+
+    .rail-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: var(--rounded-sm);
+      color: var(--text-muted);
+      font-size: 16px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .rail-btn:hover { background: var(--surface-raised); color: var(--text); }
+    .rail-btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+    .rail-btn[aria-pressed="true"] {
+      background: var(--surface-raised);
+      color: var(--accent-entity);
+      box-shadow: inset 2px 0 0 var(--accent-entity);
+    }
+
+    .rail-btn[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: calc(100% + 8px);
+      top: 50%;
+      transform: translateY(-50%);
+      white-space: nowrap;
+      padding: 4px 8px;
+      background: var(--surface-overlay);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      font-size: 11px;
+      color: var(--text);
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .rail-sep {
+      width: 24px;
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    /* Viewport */
+    .viewport-wrap {
+      grid-row: 2;
+      grid-column: 2;
+      position: relative;
+      background: var(--viewport);
+      min-height: 0;
+      min-width: 0;
+    }
+
+    .app.inspector-open .viewport-wrap { grid-column: 2; }
+
+    #canvas-container { width: 100%; height: 100%; }
+
+    .viewport-hint {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* Inspector */
+    .inspector {
+      grid-row: 2;
+      grid-column: 3;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .entity-list { list-style: none; flex: 1; overflow-y: auto; padding: var(--spacing-sm); }
+
+    .entity-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px var(--spacing-sm);
+      border-radius: var(--rounded-sm);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .entity-row:hover { background: var(--surface-raised); }
+    .entity-row.selected {
+      background: var(--surface-raised);
+      box-shadow: inset 2px 0 0 var(--accent-entity);
+    }
+
+    .type-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--primary);
+    }
+
+    .attrs {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-top: 1px solid var(--border);
+      max-height: 40%;
+      overflow-y: auto;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+    }
+
+    .attr-key { color: var(--text-muted); }
+
+    /* Dialog */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgb(0 0 0 / 0.55);
+      z-index: 40;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.open { display: flex; }
+
+    .dialog {
+      width: min(420px, calc(100vw - 32px));
+      background: var(--surface-overlay);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-md);
+      box-shadow: 0 16px 48px rgb(0 0 0 / 0.45);
+      padding: var(--spacing-md);
+    }
+
+    .dialog h2 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .field { margin-bottom: 12px; }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      padding: 6px 8px;
+      background: var(--viewport);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    .field input:focus-visible, .field select:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 0;
+    }
+
+    .preview {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--text-mono);
+      padding: 8px;
+      background: var(--viewport);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+      font-weight: 500;
+    }
+
+    .btn-primary:hover { filter: brightness(1.08); }
+
+    /* Toast (Sonner-style) */
+    .toast-host {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    .toast {
+      padding: 10px 16px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+      font-size: 13px;
+      animation: toast-in 0.2s ease-out;
+    }
+
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--destructive); }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .legend {
+      position: fixed;
+      top: 52px;
+      right: 12px;
+      font-size: 10px;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      border-radius: var(--rounded-sm);
+      max-width: 220px;
+      z-index: 20;
+      line-height: 1.5;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .toast { animation: none; }
+    }
+
+    @media (max-width: 767px) {
+      .app.inspector-open {
+        grid-template-columns: var(--rail-width) 1fr;
+        grid-template-rows: var(--toolbar-height) 1fr min(50vh, 360px);
+      }
+      .inspector {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+      .legend { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app inspector-open" id="app">
+    <header class="toolbar">
+      <span class="toolbar-title">world.jsonld</span>
+      <span class="toolbar-stat"><strong>4</strong> entities</span>
+      <span class="toolbar-stat">tick <strong>128</strong></span>
+      <span class="toolbar-stat">
+        <span class="dot host"></span>
+        <strong>2</strong> players · host
+      </span>
+      <span class="toolbar-stat">
+        <span class="dot on" id="pad-dot"></span>
+        <strong id="pad-label">Xbox Controller</strong>
+      </span>
+      <span class="toolbar-spacer"></span>
+      <button type="button" class="btn" aria-pressed="false">◎ Orbit</button>
+      <button type="button" class="btn" id="toggle-inspector" aria-pressed="true" aria-label="Toggle entity inspector">◧ Inspector</button>
+    </header>
+
+    <nav class="rail" aria-label="Tool rail" data-design-note="48px icon rail — shadcn Button + Tooltip in impl">
+      <button type="button" class="rail-btn" data-tip="World" aria-label="World" aria-pressed="true" data-rail="world">◉</button>
+      <button type="button" class="rail-btn" data-tip="Entities" aria-label="Entities" aria-pressed="true" data-rail="entities" id="rail-entities">◧</button>
+      <button type="button" class="rail-btn" data-tip="Add entity" aria-label="Add entity" data-rail="add" id="rail-add">＋</button>
+      <div class="rail-sep"></div>
+      <button type="button" class="rail-btn" data-tip="Settings" aria-label="Settings" data-rail="settings" disabled style="opacity:0.35">⚙</button>
+    </nav>
+
+    <div class="viewport-wrap" data-design-note="Hero viewport — ≥55% width at 1280px">
+      <div id="canvas-container"></div>
+      <div class="viewport-hint">drag to orbit · click mesh to select · TRL-23 AppShell mock</div>
+    </div>
+
+    <aside class="inspector" id="inspector" aria-label="Entity inspector" data-design-note="Docked right — migrates from current left placement">
+      <div class="section-label">Entities</div>
+      <ul class="entity-list" id="entity-list">
+        <li class="entity-row"><span class="type-dot" style="background:#888;border:1px solid #666"></span> main</li>
+        <li class="entity-row selected"><span class="type-dot"></span> crate-a</li>
+        <li class="entity-row"><span class="type-dot"></span> crate-b</li>
+        <li class="entity-row"><span class="type-dot" style="background:#e8a838"></span> player-1</li>
+      </ul>
+      <div class="attrs">
+        <div class="section-label" style="border:none;padding:0 0 8px">Attributes</div>
+        <div><span class="attr-key">@id </span>entity:prop/crate-a</div>
+        <div><span class="attr-key">conformsTo </span>Prop</div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="overlay" id="dialog-overlay" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+    <div class="dialog" data-design-note="shadcn Dialog + Form reference pattern">
+      <h2 id="dialog-title">Add entity</h2>
+      <div class="field">
+        <label for="conforms">conformsTo</label>
+        <select id="conforms">
+          <option>Prop</option>
+          <option>SpawnPoint</option>
+          <option>GroundPlane</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="suffix">@id suffix</label>
+        <input id="suffix" type="text" value="crate-c" placeholder="crate-c" />
+      </div>
+      <div class="field">
+        <label>preview</label>
+        <div class="preview" id="preview">entity:prop/crate-c</div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="dialog-cancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="dialog-add">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-host" id="toast-host" aria-live="polite"></div>
+
+  <div class="legend">
+    <strong>TRL-23 mock controls</strong><br>
+    Rail ＋ → Add entity dialog<br>
+    Rail ◧ / Inspector → toggle panel<br>
+    Demo toast button below
+  </div>
+
+  <button type="button" class="btn" style="position:fixed;bottom:12px;right:12px;z-index:60" id="demo-toast">Demo toast</button>
+
+  <script type="importmap">
+  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x08080a);
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.set(10, 8, 10);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    container.appendChild(renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0.5, 0);
+    controls.minPolarAngle = 0.12;
+    controls.maxPolarAngle = Math.PI / 2 - 0.08;
+
+    const grid = new THREE.GridHelper(20, 20, 0x2a2a36, 0x1a1a22);
+    scene.add(grid);
+
+    const box = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.MeshStandardMaterial({ color: 0xff6b6b })
+    );
+    box.position.set(-1.5, 0.5, 0.8);
+    scene.add(box);
+
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 10, 5);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+    function resize() {
+      const w = container.clientWidth, h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // UI interactions
+    const app = document.getElementById('app');
+    const inspector = document.getElementById('inspector');
+    const overlay = document.getElementById('dialog-overlay');
+    const toastHost = document.getElementById('toast-host');
+    const suffix = document.getElementById('suffix');
+    const preview = document.getElementById('preview');
+    const conforms = document.getElementById('conforms');
+
+    function showToast(msg, variant = '') {
+      const t = document.createElement('div');
+      t.className = 'toast' + (variant ? ' ' + variant : '');
+      t.textContent = msg;
+      toastHost.appendChild(t);
+      setTimeout(() => t.remove(), 3200);
+    }
+
+    function setInspector(open) {
+      app.classList.toggle('inspector-open', open);
+      document.getElementById('toggle-inspector').setAttribute('aria-pressed', open);
+      document.getElementById('rail-entities').setAttribute('aria-pressed', open);
+    }
+
+    document.getElementById('toggle-inspector').addEventListener('click', () => {
+      setInspector(!app.classList.contains('inspector-open'));
+    });
+
+    document.getElementById('rail-entities').addEventListener('click', () => {
+      setInspector(!app.classList.contains('inspector-open'));
+    });
+
+    document.getElementById('rail-add').addEventListener('click', () => {
+      overlay.classList.add('open');
+    });
+
+    document.getElementById('dialog-cancel').addEventListener('click', () => {
+      overlay.classList.remove('open');
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+
+    document.getElementById('dialog-add').addEventListener('click', () => {
+      overlay.classList.remove('open');
+      showToast('entity:prop/' + suffix.value + ' created', 'success');
+    });
+
+    suffix.addEventListener('input', () => {
+      const type = conforms.value.toLowerCase();
+      preview.textContent = 'entity:' + type + '/' + suffix.value;
+    });
+
+    document.getElementById('demo-toast').addEventListener('click', () => {
+      showToast('Xbox Controller connected');
+    });
+
+    document.querySelectorAll('.entity-row').forEach(row => {
+      row.addEventListener('click', () => {
+        document.querySelectorAll('.entity-row').forEach(r => r.classList.remove('selected'));
+        row.classList.add('selected');
+      });
+    });
+
+    // Rail toggle (world deselects entities rail)
+    document.querySelector('[data-rail="world"]').addEventListener('click', (e) => {
+      document.querySelectorAll('.rail-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+      e.currentTarget.setAttribute('aria-pressed', 'true');
+    });
+  </script>
+</body>
+</html>

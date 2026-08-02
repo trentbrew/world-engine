@@ -1,0 +1,170 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "component:Orbit",
+			"@type": "ComponentSchema",
+			"fields": {
+				"radius": {
+					"t": "number",
+					"default": 3
+				},
+				"speed": {
+					"t": "number",
+					"default": 1
+				}
+			}
+		},
+		{
+			"@id": "type:Orbiter",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Orbit"
+			],
+			"defaults": {
+				"Transform": {
+					"position": "=vec(cos(t * Orbit.speed) * Orbit.radius, 0.6, sin(t * Orbit.speed) * Orbit.radius)"
+				}
+			}
+		},
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Ground": {
+					"size": 16
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.5
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1
+				},
+				"Transform": {
+					"position": {
+						"x": 5,
+						"y": 8,
+						"z": 5
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/center",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.05,
+						"z": 0
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:orbiter/red",
+			"@type": "Thing",
+			"conformsTo": "Orbiter",
+			"components": {
+				"Render": {
+					"color": "#ff6b6b"
+				},
+				"Orbit": {
+					"radius": 3,
+					"speed": 1.2
+				},
+				"Transform": {
+					"position": [
+						3,
+						1,
+						4
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:orbiter/blue",
+			"@type": "Thing",
+			"conformsTo": "Orbiter",
+			"components": {
+				"Render": {
+					"color": "#5b9fd4"
+				},
+				"Orbit": {
+					"radius": 5,
+					"speed": -0.8
+				},
+				"Transform": {
+					"position": [
+						5,
+						0.6,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:orbiter/gold",
+			"@type": "Thing",
+			"conformsTo": "Orbiter",
+			"components": {
+				"Render": {
+					"color": "#e8a838"
+				},
+				"Orbit": {
+					"radius": 2,
+					"speed": 2
+				}
+			}
+		}
+	]
+}

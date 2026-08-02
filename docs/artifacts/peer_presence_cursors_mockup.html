@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte Skeleton — Peer Presence Cursors (TRL-43 design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --viewport: #0e0e0e;
+      --viewport-grid: #1a1a1a;
+      --surface: #141414;
+      --surface-raised: #1c1c1c;
+      --surface-overlay: #242424;
+      --text: #e8e8e8;
+      --text-muted: #8a8a8a;
+      --border: #333333;
+      --border-focus: #737373;
+      --peer-blue: #0f62fe;
+      --peer-pink: #ee5396;
+      --peer-green: #42be65;
+      --peer-orange: #ff832b;
+      --peer-purple: #a56eff;
+      --peer-teal: #08bdba;
+      --float-inset: 12px;
+      --rounded-sm: 6px;
+      --rounded-lg: 14px;
+      --doc-bar-height: 36px;
+      --status-bar-height: 22px;
+      --right-panel-width: 280px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--surface);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: var(--doc-bar-height) 1fr var(--status-bar-height);
+      height: 100%;
+    }
+
+    .doc-bar {
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      background: var(--surface-raised);
+      border-bottom: 1px solid var(--border);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+
+    .doc-bar .badge {
+      margin-left: auto;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1fr var(--right-panel-width);
+      min-height: 0;
+    }
+
+    .viewport-wrap {
+      position: relative;
+      background: var(--viewport);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .viewport-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .viewport-scene-hint {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0.35;
+    }
+
+    /* z-index 1 — pointer-events none on layer; events bubble from canvas area */
+    .peer-presence-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .peer-cursor {
+      position: absolute;
+      transform: translate(-2px, -2px);
+      pointer-events: none;
+      transition: left 60ms linear, top 60ms linear;
+      will-change: left, top;
+    }
+
+    .peer-cursor.self { transition: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .peer-cursor:not(.self) { transition: none; }
+    }
+
+    .peer-cursor svg {
+      display: block;
+      filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.6));
+    }
+
+    .peer-cursor .label {
+      position: absolute;
+      left: 16px;
+      top: 12px;
+      white-space: nowrap;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.4;
+      color: #fff;
+    }
+
+    .view-controls {
+      position: absolute;
+      bottom: var(--float-inset);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      pointer-events: none;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 12px;
+      background: color-mix(in srgb, var(--surface-overlay) 62%, transparent);
+      backdrop-filter: blur(12px);
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      border-radius: var(--rounded-lg);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .right-panel {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .section { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .section-title {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 28px;
+    }
+
+    .hint {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .switch {
+      width: 32px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--border);
+      border: none;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .switch[aria-checked="true"] { background: var(--peer-blue); }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 120ms ease;
+    }
+
+    .switch[aria-checked="true"]::after { transform: translateX(14px); }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    .status-bar strong { color: var(--text); font-weight: 500; }
+
+    .legend {
+      position: absolute;
+      top: var(--float-inset);
+      right: var(--float-inset);
+      z-index: 2;
+      max-width: 220px;
+      padding: 10px 12px;
+      background: color-mix(in srgb, var(--surface-overlay) 85%, transparent);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      pointer-events: none;
+    }
+
+    .legend kbd {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      padding: 1px 4px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+
+    [data-design-note]::after {
+      content: " ◆";
+      color: var(--peer-teal);
+      font-size: 8px;
+      vertical-align: super;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="doc-bar">
+      <span>orbit.jsonld</span>
+      <span class="badge">TRL-43 design mock</span>
+    </header>
+
+    <div class="main">
+      <div
+        class="viewport-wrap"
+        id="viewport"
+        data-design-note="Pointer listeners on viewport-wrap; events bubble from canvas"
+      >
+        <div class="viewport-grid" aria-hidden="true"></div>
+        <div class="viewport-scene-hint" aria-hidden="true">3D canvas (Threlte)</div>
+
+        <div class="peer-presence-layer" id="presence-layer" aria-hidden="true"></div>
+
+        <div class="view-controls" data-design-note="Same z-index as cursors; pointer-events none">
+          Perspective · Orbit
+        </div>
+
+        <div class="legend">
+          <strong style="color:var(--text);display:block;margin-bottom:4px">Mock controls</strong>
+          Move pointer → your cursor (teal). Two fake peers drift. Toggle in panel hides all.<br><br>
+          <kbd>R</kbd> toggle reduced-motion preview
+        </div>
+      </div>
+
+      <aside class="right-panel">
+        <section class="section">
+          <h3 class="section-title">Collaboration</h3>
+          <div class="field-row">
+            <span>Show peer cursors</span>
+            <button
+              type="button"
+              class="switch"
+              id="toggle-cursors"
+              role="switch"
+              aria-checked="true"
+              aria-label="Show peer cursors in viewport"
+            ></button>
+          </div>
+          <p class="hint" id="solo-hint" hidden>Open another tab on the same room to see collaborators.</p>
+        </section>
+        <section class="section">
+          <h3 class="section-title">Reference grid</h3>
+          <div class="field-row"><span>Show grid</span><button type="button" class="switch" role="switch" aria-checked="true" disabled></button></div>
+        </section>
+      </aside>
+    </div>
+
+    <footer class="status-bar">
+      <span><strong>12</strong> entities · tick <strong>842</strong></span>
+      <span style="margin-left:12px">👥 <strong id="peer-count">3</strong> peers · host</span>
+    </footer>
+  </div>
+
+  <script>
+    const COLORS = [
+      getComputedStyle(document.documentElement).getPropertyValue('--peer-blue').trim(),
+      getComputedStyle(document.documentElement).getPropertyValue('--peer-pink').trim(),
+      getComputedStyle(document.documentElement).getPropertyValue('--peer-green').trim(),
+      getComputedStyle(document.documentElement).getPropertyValue('--peer-orange').trim(),
+      getComputedStyle(document.documentElement).getPropertyValue('--peer-purple').trim(),
+      getComputedStyle(document.documentElement).getPropertyValue('--peer-teal').trim(),
+    ];
+
+    const POINTER_SVG = `<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 2 L2 16 L6 12 L9 18 L11 17 L8 11 L14 11 Z" fill="currentColor" stroke="white" stroke-width="1"/></svg>`;
+
+    const viewport = document.getElementById('viewport');
+    const layer = document.getElementById('presence-layer');
+    const toggle = document.getElementById('toggle-cursors');
+
+    const self = { id: 'self', name: 'You', color: COLORS[5], x: 0.5, y: 0.5, self: true };
+    const remotes = [
+      { id: 'peer-a', name: 'Peer 9b1c', color: COLORS[0], x: 0.28, y: 0.38, self: false, t: 0 },
+      { id: 'peer-b', name: 'Host a3f2', color: COLORS[1], x: 0.62, y: 0.55, self: false, t: 1.4 },
+    ];
+
+    let cursorsEnabled = true;
+    let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function clamp(v) { return Math.min(1, Math.max(0, v)); }
+
+    function normalize(event) {
+      const rect = viewport.getBoundingClientRect();
+      return {
+        x: clamp((event.clientX - rect.left) / rect.width),
+        y: clamp((event.clientY - rect.top) / rect.height),
+      };
+    }
+
+    function renderCursor(peer) {
+      if (!cursorsEnabled || peer.x < 0 || peer.y < 0) return '';
+      return `
+        <div class="peer-cursor${peer.self ? ' self' : ''}" style="left:${peer.x * 100}%;top:${peer.y * 100}%;color:${peer.color}">
+          ${POINTER_SVG}
+          <span class="label" style="background:${peer.color}">${peer.name}${peer.self ? ' (you)' : ''}</span>
+        </div>`;
+    }
+
+    function render() {
+      const all = [...remotes, self];
+      layer.innerHTML = all.map(renderCursor).join('');
+    }
+
+    viewport.addEventListener('pointermove', (e) => {
+      const pos = normalize(e);
+      self.x = pos.x;
+      self.y = pos.y;
+      render();
+    });
+
+    viewport.addEventListener('pointerleave', () => {
+      self.x = -1;
+      self.y = -1;
+      render();
+    });
+
+    toggle.addEventListener('click', () => {
+      cursorsEnabled = !cursorsEnabled;
+      toggle.setAttribute('aria-checked', String(cursorsEnabled));
+      render();
+    });
+
+    function animateRemotes(ts) {
+      if (!reducedMotion) {
+        for (const p of remotes) {
+          p.x = clamp(0.5 + Math.sin(ts / 2200 + p.t) * 0.22);
+          p.y = clamp(0.5 + Math.cos(ts / 1800 + p.t) * 0.18);
+        }
+      }
+      render();
+      requestAnimationFrame(animateRemotes);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'r' || e.key === 'R') {
+        reducedMotion = !reducedMotion;
+        document.documentElement.style.setProperty(
+          '--motion-hint',
+          reducedMotion ? 'reduced' : 'normal'
+        );
+      }
+    });
+
+    requestAnimationFrame(animateRemotes);
+    render();
+  </script>
+</body>
+</html>

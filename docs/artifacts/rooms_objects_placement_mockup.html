@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trellis — Rooms Objects Placement (TRL-162 design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: #0c0c0e;
+      --surface: #141418;
+      --surface-raised: #1a1a20;
+      --text: #e8e8ec;
+      --text-muted: #888894;
+      --primary: #e85d4c;
+      --accent-entity: #5b9fd4;
+      --accent-placement: #5b9fd4;
+      --accent-placement-muted: color-mix(in srgb, #5b9fd4 22%, transparent);
+      --accent-placement-border: color-mix(in srgb, #5b9fd4 55%, #a3a3a3);
+      --ghost-wireframe: #5b9fd4;
+      --ghost-fill: color-mix(in srgb, #5b9fd4 18%, #1c1c1c);
+      --cell-highlight: color-mix(in srgb, #5b9fd4 20%, transparent);
+      --cell-highlight-border: color-mix(in srgb, #5b9fd4 65%, transparent);
+      --border: #2a2a32;
+      --border-focus: #a3a3a3;
+      --surface-glass: color-mix(in srgb, #1a1a20 72%, transparent);
+      --rounded-sm: 6px;
+      --rounded-md: 10px;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --panel-width: 320px;
+      --rail-width: 56px;
+      --float-inset: 12px;
+      --tile-gap: 6px;
+      /* spacing keys mirror design.md YAML */
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Geist, system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: #050506;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .mock-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: #111114;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+    }
+    .mock-bar strong { font-weight: 500; }
+    .mock-bar span { color: var(--text-muted); }
+    .state-toggle { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+    .state-btn {
+      font: 500 10px/1 "Geist Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .state-btn.active {
+      border-color: var(--accent-entity);
+      color: var(--accent-entity);
+      background: var(--accent-placement-muted);
+    }
+    .state-btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+
+    .shell {
+      display: grid;
+      grid-template-columns: var(--rail-width) var(--panel-width) 1fr;
+      height: 100dvh;
+      padding-top: 40px;
+      gap: var(--float-inset);
+      padding-right: var(--float-inset);
+      padding-bottom: var(--float-inset);
+      background: var(--background);
+    }
+
+    .rail {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px 6px;
+      background: color-mix(in srgb, var(--surface) 86%, transparent);
+      border-right: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+    }
+    .rail-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 4px;
+      border-radius: var(--rounded-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font: 500 9px/1.2 Geist, sans-serif;
+      cursor: pointer;
+    }
+    .rail-item.active {
+      color: var(--text);
+      background: color-mix(in srgb, var(--primary) 14%, transparent);
+      box-shadow: inset 2px 0 0 var(--primary);
+    }
+    .rail-dot {
+      width: 18px; height: 18px;
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--text-muted) 35%, transparent);
+    }
+    .rail-item.active .rail-dot { background: var(--primary); }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background: var(--surface);
+      border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      border-radius: var(--rounded-md);
+      overflow: hidden;
+    }
+
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      padding: 0 var(--spacing-sm);
+      flex-shrink: 0;
+    }
+    .panel-tab {
+      flex: 1;
+      font: 500 11px/1 Geist, sans-serif;
+      padding: 8px 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .panel-tab.active {
+      color: var(--text);
+      border-bottom-color: var(--primary);
+    }
+    .panel-tab:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+    .panel-tab[hidden] { display: none; }
+
+    .panel-subtitle {
+      padding: 6px var(--spacing-sm) 0;
+      font: 400 11px/1.35 Geist, sans-serif;
+      color: var(--text-muted);
+    }
+    .play-hint {
+      margin: 0 var(--spacing-sm) var(--spacing-sm);
+      padding: 6px 8px;
+      border-radius: var(--rounded-sm);
+      background: color-mix(in srgb, var(--primary) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+      color: var(--text);
+      font: 400 11px/1.35 Geist, sans-serif;
+      display: none;
+    }
+    .play-hint.visible { display: block; }
+    .panel-search {
+      padding: var(--spacing-sm);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    }
+    .panel-search input {
+      width: 100%;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      background: var(--background);
+      color: var(--text);
+      font: 400 12px/1 Geist, sans-serif;
+    }
+    .panel-search input:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 1px; }
+
+    .panel-body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: var(--spacing-sm);
+    }
+
+    .type-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--tile-gap);
+    }
+
+    .type-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 4px;
+      min-height: 72px;
+      padding: 6px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      background: color-mix(in srgb, var(--background) 35%, transparent);
+      color: var(--text);
+      cursor: grab;
+      text-align: left;
+    }
+    .type-tile:hover { border-color: color-mix(in srgb, var(--accent-entity) 40%, var(--border)); }
+    .type-tile.armed {
+      border-color: var(--accent-placement-border);
+      background: var(--accent-placement-muted);
+    }
+    .type-tile:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 1px; }
+    .type-tile:disabled { opacity: 0.45; cursor: not-allowed; }
+    .type-thumb {
+      height: 40px;
+      border-radius: 4px;
+      background: linear-gradient(145deg, #2a2a34, #18181e);
+      border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+      display: grid;
+      place-items: center;
+      font: 500 9px/1 "Geist Mono", monospace;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .type-thumb.char { background: linear-gradient(145deg, #3a4a5a, #1c242c); color: var(--accent-entity); }
+    .type-name { font: 500 11px/1.2 Geist, sans-serif; }
+    .type-badge {
+      font: 500 9px/1 "Geist Mono", monospace;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+
+    .empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-height: 180px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 24px 16px;
+    }
+    .empty strong { color: var(--text); font-weight: 500; display: block; margin-bottom: 4px; }
+    .empty-cta, .clear-search {
+      font: 500 11px/1 Geist, sans-serif;
+      padding: 8px 12px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .clear-search {
+      border: none;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      color: var(--accent-entity);
+      padding: 4px 0;
+    }
+    .empty-cta:focus-visible, .clear-search:focus-visible { outline: 2px solid var(--border-focus); }
+
+    .instances-list { display: flex; flex-direction: column; gap: 2px; }
+    .instance-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: var(--rounded-sm);
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .instance-row .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent-entity);
+    }
+    .panel-footer {
+      padding: var(--spacing-sm);
+      border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    }
+    .add-object {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 32px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font: 500 11px/1 Geist, sans-serif;
+      cursor: pointer;
+    }
+    .add-object:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 1px; }
+
+    .viewport {
+      position: relative;
+      border-radius: var(--rounded-md);
+      border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      background:
+        linear-gradient(180deg, #16161c 0%, #0e0e12 100%);
+      overflow: hidden;
+      min-height: 0;
+    }
+    .viewport::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(color-mix(in srgb, var(--border) 35%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--border) 35%, transparent) 1px, transparent 1px);
+      background-size: 32px 32px;
+      background-position: center 60%;
+      mask-image: linear-gradient(180deg, transparent 20%, #000 55%);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .placement-banner {
+      position: absolute;
+      top: var(--float-inset);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      padding: 6px 12px;
+      border-radius: var(--rounded-sm);
+      background: var(--surface-glass);
+      border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      font: 400 11px/1.3 Geist, sans-serif;
+      color: var(--accent-entity);
+      backdrop-filter: blur(8px);
+      display: none;
+    }
+    .placement-banner.visible { display: block; }
+
+    .ghost {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      margin: -24px 0 0 -24px;
+      border: 1.5px dashed var(--ghost-wireframe);
+      background: var(--ghost-fill);
+      border-radius: 4px;
+      pointer-events: none;
+      display: none;
+      z-index: 4;
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--ghost-wireframe) 25%, transparent);
+    }
+    .ghost.visible { display: block; }
+    .cell {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      margin: -16px 0 0 -16px;
+      background: var(--cell-highlight);
+      border: 1px dashed var(--cell-highlight-border);
+      pointer-events: none;
+      display: none;
+      z-index: 3;
+    }
+    .cell.visible { display: block; }
+
+    .placed {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      margin: -20px 0 0 -20px;
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--accent-entity) 35%, #2a2a34);
+      border: 1px solid var(--accent-entity);
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      font: 500 8px/1 "Geist Mono", monospace;
+      color: var(--text);
+      pointer-events: none;
+    }
+
+    .ctx-menu {
+      position: absolute;
+      z-index: 20;
+      min-width: 160px;
+      padding: 4px;
+      border-radius: var(--rounded-sm);
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+      display: none;
+    }
+    .ctx-menu.visible { display: block; }
+    .ctx-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 10px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text);
+      font: 400 12px/1 Geist, sans-serif;
+      cursor: pointer;
+    }
+    .ctx-item:hover, .ctx-item:focus-visible {
+      background: color-mix(in srgb, var(--accent-entity) 18%, transparent);
+      outline: none;
+    }
+
+    .legend {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      z-index: 100;
+      max-width: 300px;
+      padding: 10px 12px;
+      background: var(--surface-glass);
+      border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      border-radius: var(--rounded-sm);
+      font-size: 11px;
+      color: var(--text-muted);
+      backdrop-filter: blur(8px);
+    }
+    .legend strong { color: var(--text); font-weight: 500; }
+    .legend code {
+      font-family: "Geist Mono", monospace;
+      font-size: 10px;
+      color: var(--accent-entity);
+    }
+
+    .toast {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 6;
+      padding: 6px 12px;
+      border-radius: var(--rounded-sm);
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text);
+      opacity: 0;
+      transition: opacity 120ms ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .toast { transition: none; }
+      .type-tile.armed { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mock-bar" role="banner">
+    <strong>Trellis — Rooms Objects Placement</strong>
+    <span>(TRL-162 design mock)</span>
+    <div class="state-toggle" role="group" aria-label="Mock states">
+      <button type="button" class="state-btn active" data-state="objects" data-design-note="Default: Objects catalog">Objects</button>
+      <button type="button" class="state-btn" data-state="armed" data-design-note="Armed placement">Armed</button>
+      <button type="button" class="state-btn" data-state="instances" data-design-note="Add object footer">Instances</button>
+      <button type="button" class="state-btn" data-state="empty" data-design-note="Empty catalog">Empty</button>
+      <button type="button" class="state-btn" data-state="play" data-design-note="Play disables place">Play</button>
+    </div>
+  </div>
+
+  <div class="shell" id="shell">
+    <nav class="rail" aria-label="Resource rail">
+      <button type="button" class="rail-item active" data-rail="rooms" title="Rooms"><span class="rail-dot"></span>Rooms</button>
+      <button type="button" class="rail-item" data-rail="objects" title="Objects" data-design-note="Define types here"><span class="rail-dot"></span>Objects</button>
+      <button type="button" class="rail-item" data-rail="assets" title="Assets" data-design-note="Meshes stay on rail"><span class="rail-dot"></span>Assets</button>
+      <button type="button" class="rail-item" data-rail="settings" title="Settings" data-design-note="Settings not in Rooms tabs"><span class="rail-dot"></span>Settings</button>
+    </nav>
+
+    <aside class="left-panel" aria-label="Room editor" data-design-note="Tabs: Room | Instances | Objects only">
+      <div class="panel-tabs" role="tablist" aria-label="Room views">
+        <button type="button" class="panel-tab" role="tab" id="tab-room" data-tab="room" aria-selected="false">Room</button>
+        <button type="button" class="panel-tab" role="tab" id="tab-instances" data-tab="instances" aria-selected="false">Instances</button>
+        <button type="button" class="panel-tab active" role="tab" id="tab-objects" data-tab="objects" aria-selected="true">Objects</button>
+        <!-- Intentionally absent: Assets, Settings -->
+      </div>
+
+      <div id="objects-chrome">
+        <p class="panel-subtitle" data-design-note="Disambiguates from rail Objects">Place types into this room</p>
+        <div class="panel-search">
+          <input type="search" id="type-search" placeholder="Search object types…" aria-label="Search object types" />
+        </div>
+        <div class="play-hint" id="play-hint" role="status" aria-live="polite" hidden>Exit play to place objects.</div>
+        <div class="panel-body" role="tabpanel" aria-labelledby="tab-objects" id="objects-panel">
+          <div class="type-grid" id="type-grid" role="toolbar" aria-label="Placeable object types">
+            <button type="button" class="type-tile" aria-pressed="false" data-type="Prop" aria-label="Place Prop in room" draggable="true">
+              <span class="type-thumb">box</span>
+              <span class="type-name">Prop</span>
+              <span class="type-badge">built-in</span>
+            </button>
+            <button type="button" class="type-tile" aria-pressed="false" data-type="Character" aria-label="Place Character in room" draggable="true">
+              <span class="type-thumb char">skin</span>
+              <span class="type-name">Character</span>
+              <span class="type-badge">built-in</span>
+            </button>
+            <button type="button" class="type-tile" aria-pressed="false" data-type="SpawnPoint" aria-label="Place SpawnPoint in room" draggable="true">
+              <span class="type-thumb">mark</span>
+              <span class="type-name">SpawnPoint</span>
+              <span class="type-badge">built-in</span>
+            </button>
+            <button type="button" class="type-tile" aria-pressed="false" data-type="Crate" aria-label="Place Crate in room" draggable="true">
+              <span class="type-thumb">glb</span>
+              <span class="type-name">Crate</span>
+              <span class="type-badge">custom</span>
+            </button>
+            <button type="button" class="type-tile" aria-pressed="false" data-type="Player" aria-label="Place Player in room" draggable="true">
+              <span class="type-thumb char">play</span>
+              <span class="type-name">Player</span>
+              <span class="type-badge">built-in</span>
+            </button>
+            <button type="button" class="type-tile" aria-pressed="false" data-type="SpriteProp" aria-label="Place SpriteProp in room" draggable="true">
+              <span class="type-thumb">spr</span>
+              <span class="type-name">SpriteProp</span>
+              <span class="type-badge">built-in</span>
+            </button>
+          </div>
+          <div class="empty" id="empty-state" hidden>
+            <div>
+              <strong id="empty-title">No placeable types in this world.</strong>
+              <span id="empty-body"></span>
+            </div>
+            <button type="button" class="empty-cta" id="open-objects-rail">Open Objects rail</button>
+            <button type="button" class="clear-search" id="clear-search" hidden>Clear search</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="instances-chrome" hidden>
+        <div class="panel-body" role="tabpanel" aria-labelledby="tab-instances">
+          <div class="instances-list" id="instances-list" aria-label="Room instances">
+            <div class="instance-row"><span class="dot"></span>entity:prop/1 · Prop</div>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <button type="button" class="add-object" id="add-object" data-design-note="Opens Objects tab — no create dialog">
+            + Add object
+          </button>
+        </div>
+      </div>
+
+      <div id="room-chrome" hidden>
+        <div class="panel-body" role="tabpanel" aria-labelledby="tab-room">
+          <p style="color:var(--text-muted);font-size:12px;padding:8px;">Room inspector (unchanged) — scene settings stay here; app Settings live on the rail.</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="viewport" id="viewport" aria-label="Scene viewport" data-design-note="Ghost + banner reuse TRL-55 placement">
+      <div class="placement-banner" id="banner" role="status" aria-live="polite">Click to place · Esc to cancel</div>
+      <div class="cell" id="cell" aria-hidden="true"></div>
+      <div class="ghost" id="ghost" aria-hidden="true"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="ctx-menu" id="ctx" role="menu">
+        <button type="button" class="ctx-item" role="menuitem" id="ctx-add">Add object</button>
+      </div>
+    </main>
+  </div>
+
+  <aside class="legend">
+    <strong>Legend</strong><br />
+    Rooms tabs = <code>Room | Instances | Objects</code> only.<br />
+    Click / drag a type → ghost → ground click → <code>spawnFromType</code>.<br />
+    Rail Assets / Settings stay on the rail — not Rooms tabs.
+  </aside>
+
+  <script>
+    const TYPES = ["Prop", "Character", "SpawnPoint", "Crate", "Player", "SpriteProp"];
+    let tab = "objects";
+    let armed = null;
+    let play = false;
+    let empty = false;
+    let placed = [];
+
+    const grid = document.getElementById("type-grid");
+    const emptyEl = document.getElementById("empty-state");
+    const emptyTitle = document.getElementById("empty-title");
+    const emptyBody = document.getElementById("empty-body");
+    const openRailBtn = document.getElementById("open-objects-rail");
+    const clearSearchBtn = document.getElementById("clear-search");
+    const playHint = document.getElementById("play-hint");
+    const banner = document.getElementById("banner");
+    const ghost = document.getElementById("ghost");
+    const cell = document.getElementById("cell");
+    const toast = document.getElementById("toast");
+    const viewport = document.getElementById("viewport");
+    const ctx = document.getElementById("ctx");
+    const search = document.getElementById("type-search");
+    const instancesList = document.getElementById("instances-list");
+
+    function setTab(next) {
+      tab = next;
+      document.querySelectorAll(".panel-tab").forEach((el) => {
+        const on = el.dataset.tab === next;
+        el.classList.toggle("active", on);
+        el.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      document.getElementById("objects-chrome").hidden = next !== "objects";
+      document.getElementById("instances-chrome").hidden = next !== "instances";
+      document.getElementById("room-chrome").hidden = next !== "room";
+      if (next === "objects") search.focus();
+    }
+
+    function setArmed(type) {
+      if (play) return;
+      armed = type;
+      document.querySelectorAll(".type-tile").forEach((el) => {
+        const on = el.dataset.type === type;
+        el.classList.toggle("armed", on);
+        el.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      banner.classList.toggle("visible", !!type);
+      ghost.classList.toggle("visible", !!type);
+      cell.classList.toggle("visible", !!type);
+      if (!type) {
+        ghost.style.left = "";
+        ghost.style.top = "";
+        cell.style.left = "";
+        cell.style.top = "";
+      }
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 1400);
+    }
+
+    function renderInstances() {
+      instancesList.innerHTML = placed.map((p) =>
+        `<div class="instance-row"><span class="dot"></span>${p.id} · ${p.type}</div>`
+      ).join("") || `<div class="instance-row" style="opacity:.6">No instances yet</div>`;
+    }
+
+    function showFilteredEmpty(query) {
+      emptyEl.hidden = false;
+      grid.hidden = true;
+      emptyTitle.textContent = `No types match “${query}”.`;
+      emptyBody.textContent = "";
+      openRailBtn.hidden = true;
+      clearSearchBtn.hidden = false;
+    }
+
+    function showZeroEmpty() {
+      emptyEl.hidden = false;
+      grid.hidden = true;
+      emptyTitle.textContent = "No placeable types in this world.";
+      emptyBody.textContent = "";
+      openRailBtn.hidden = false;
+      clearSearchBtn.hidden = true;
+    }
+
+    function hideEmpty() {
+      emptyEl.hidden = true;
+      grid.hidden = false;
+      openRailBtn.hidden = false;
+      clearSearchBtn.hidden = true;
+    }
+
+    function setEmpty(on) {
+      empty = on;
+      if (on) showZeroEmpty();
+      else hideEmpty();
+    }
+
+    function setPlay(on) {
+      play = on;
+      document.querySelectorAll(".type-tile").forEach((el) => { el.disabled = on; });
+      playHint.hidden = !on;
+      playHint.classList.toggle("visible", on);
+      if (on) setArmed(null);
+    }
+
+    function applySearchFilter() {
+      if (empty) return;
+      const q = search.value.trim().toLowerCase();
+      let visible = 0;
+      document.querySelectorAll(".type-tile").forEach((el) => {
+        const show = !q || el.dataset.type.toLowerCase().includes(q);
+        el.hidden = !show;
+        if (show) visible++;
+      });
+      if (visible === 0 && q) showFilteredEmpty(search.value);
+      else hideEmpty();
+    }
+
+    document.querySelectorAll(".panel-tab").forEach((el) => {
+      el.addEventListener("click", () => setTab(el.dataset.tab));
+    });
+
+    document.querySelectorAll(".type-tile").forEach((el) => {
+      el.addEventListener("click", () => setArmed(el.dataset.type));
+      el.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", el.dataset.type);
+        setArmed(el.dataset.type);
+      });
+    });
+
+    search.addEventListener("input", applySearchFilter);
+
+    clearSearchBtn.addEventListener("click", () => {
+      search.value = "";
+      applySearchFilter();
+      search.focus();
+    });
+
+    viewport.addEventListener("pointermove", (e) => {
+      if (!armed || play) return;
+      const r = viewport.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      const sx = Math.round(x / 32) * 32;
+      const sy = Math.round(y / 32) * 32;
+      ghost.style.left = x + "px";
+      ghost.style.top = y + "px";
+      cell.style.left = sx + "px";
+      cell.style.top = sy + "px";
+    });
+
+    viewport.addEventListener("click", (e) => {
+      if (ctx.classList.contains("visible") && !ctx.contains(e.target)) {
+        ctx.classList.remove("visible");
+      }
+      if (!armed || play) return;
+      const r = viewport.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      const id = `entity:${armed.toLowerCase()}/${placed.filter(p => p.type === armed).length + 1}`;
+      const marker = document.createElement("div");
+      marker.className = "placed";
+      marker.style.left = x + "px";
+      marker.style.top = y + "px";
+      marker.textContent = armed.slice(0, 3).toUpperCase();
+      viewport.appendChild(marker);
+      placed.push({ id, type: armed });
+      renderInstances();
+      showToast(`Placed ${armed}`);
+      setArmed(null);
+    });
+
+    viewport.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      const r = viewport.getBoundingClientRect();
+      ctx.style.left = (e.clientX - r.left) + "px";
+      ctx.style.top = (e.clientY - r.top) + "px";
+      ctx.classList.add("visible");
+    });
+
+    document.getElementById("ctx-add").addEventListener("click", () => {
+      ctx.classList.remove("visible");
+      setTab("objects");
+      showToast("Opened Objects — pick a type to place");
+    });
+
+    document.getElementById("add-object").addEventListener("click", () => {
+      setTab("objects");
+      showToast("Opened Objects — pick a type to place");
+    });
+
+    openRailBtn.addEventListener("click", () => {
+      document.querySelectorAll(".rail-item").forEach((el) => {
+        el.classList.toggle("active", el.dataset.rail === "objects");
+      });
+      showToast("Rail → Objects (define types)");
+    });
+
+    document.querySelectorAll(".rail-item").forEach((el) => {
+      el.addEventListener("click", () => {
+        document.querySelectorAll(".rail-item").forEach((r) => r.classList.toggle("active", r === el));
+        if (el.dataset.rail !== "rooms" && armed) {
+          setArmed(null);
+          showToast("Placement cancelled");
+        }
+      });
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (armed) {
+          setArmed(null);
+          showToast("Placement cancelled");
+        }
+        ctx.classList.remove("visible");
+      }
+    });
+
+    document.querySelectorAll(".state-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".state-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const s = btn.dataset.state;
+        setPlay(false);
+        setEmpty(false);
+        setArmed(null);
+        search.value = "";
+        if (s === "objects") setTab("objects");
+        if (s === "armed") { setTab("objects"); setArmed("Character"); }
+        if (s === "instances") setTab("instances");
+        if (s === "empty") { setTab("objects"); setEmpty(true); }
+        if (s === "play") { setTab("objects"); setPlay(true); }
+      });
+    });
+
+    placed = [{ id: "entity:prop/1", type: "Prop" }];
+    renderInstances();
+  </script>
+</body>
+</html>

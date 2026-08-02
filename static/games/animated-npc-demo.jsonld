@@ -1,0 +1,316 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "type:Character",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"SkinnedMesh",
+				"Mesh3DAnimator"
+			]
+		},
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"kind": "ambient",
+					"intensity": 0.6
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Transform": {
+					"position": [
+						5,
+						10,
+						5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					]
+				},
+				"Light": {
+					"kind": "directional",
+					"intensity": 1.2
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/player",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						-3
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:npc/guard",
+			"@type": "Thing",
+			"conformsTo": "Character",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				},
+				"SkinnedMesh": {
+					"mesh": "/models/characters/mannequin.glb",
+					"anchor": "bottom",
+					"rig": "human",
+					"color": "#e8c4a0"
+				},
+				"Mesh3DAnimator": {
+					"catalog": "catalog:mesh2motion-human",
+					"clip": "Idle_Loop",
+					"speed": 1,
+					"loop": true,
+					"rootMotion": false,
+					"playing": true
+				}
+			},
+			"events": {
+				"comment": "clip-switch via events: idle ⇄ dance on a timer",
+				"create": [
+					{
+						"alarm": 0,
+						"in": 2.5
+					}
+				],
+				"alarm0": [
+					{
+						"set": "Mesh3DAnimator.clip",
+						"to": "Dance_Loop"
+					},
+					{
+						"alarm": 1,
+						"in": 4
+					}
+				],
+				"alarm1": [
+					{
+						"set": "Mesh3DAnimator.clip",
+						"to": "Idle_Loop"
+					},
+					{
+						"alarm": 0,
+						"in": 2.5
+					}
+				]
+			}
+		},
+		{
+			"@id": "entity:npc/walker",
+			"@type": "Thing",
+			"conformsTo": "Character",
+			"components": {
+				"Transform": {
+					"position": [
+						2.5,
+						0,
+						0
+					],
+					"rotation": [
+						0,
+						0.707,
+						0,
+						0.707
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				},
+				"SkinnedMesh": {
+					"mesh": "/models/characters/mannequin.glb",
+					"anchor": "bottom",
+					"rig": "human"
+				},
+				"Mesh3DAnimator": {
+					"catalog": "catalog:mesh2motion-human",
+					"clip": "Walk_Loop",
+					"speed": 1,
+					"loop": true,
+					"rootMotion": false,
+					"playing": true
+				}
+			},
+			"events": {
+				"comment": "play/pause via events: walk in place, freeze mid-stride, resume",
+				"create": [
+					{
+						"alarm": 0,
+						"in": 3
+					}
+				],
+				"alarm0": [
+					{
+						"set": "Mesh3DAnimator.playing",
+						"to": false
+					},
+					{
+						"alarm": 1,
+						"in": 1.5
+					}
+				],
+				"alarm1": [
+					{
+						"set": "Mesh3DAnimator.playing",
+						"to": true
+					},
+					{
+						"alarm": 0,
+						"in": 3
+					}
+				]
+			}
+		},
+		{
+			"@id": "entity:npc/roller",
+			"@type": "Thing",
+			"conformsTo": "Character",
+			"components": {
+				"Transform": {
+					"position": [
+						-3,
+						0,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				},
+				"SkinnedMesh": {
+					"mesh": "/models/characters/mannequin.glb",
+					"anchor": "bottom",
+					"rig": "human",
+					"color": "#a0c4e8"
+				},
+				"Mesh3DAnimator": {
+					"catalog": "catalog:mesh2motion-human",
+					"clip": "Idle_Loop",
+					"speed": 1,
+					"loop": true,
+					"rootMotion": true,
+					"playing": true
+				}
+			},
+			"events": {
+				"comment": "root motion: Roll_RM drives the root bone → Transform travels +Z; wraps back",
+				"create": [
+					{
+						"alarm": 0,
+						"in": 1
+					}
+				],
+				"alarm0": [
+					{
+						"set": "Mesh3DAnimator.loop",
+						"to": false
+					},
+					{
+						"set": "Mesh3DAnimator.clip",
+						"to": "Roll_RM"
+					},
+					{
+						"alarm": 1,
+						"in": 2
+					}
+				],
+				"alarm1": [
+					{
+						"set": "Mesh3DAnimator.loop",
+						"to": true
+					},
+					{
+						"set": "Mesh3DAnimator.clip",
+						"to": "Idle_Loop"
+					},
+					{
+						"if": "=abs(Transform.position.z) > 6",
+						"then": [
+							{
+								"set": "Transform.position.z",
+								"to": 0
+							}
+						]
+					},
+					{
+						"alarm": 0,
+						"in": 1.2
+					}
+				]
+			}
+		}
+	]
+}

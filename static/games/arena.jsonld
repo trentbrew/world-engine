@@ -1,0 +1,182 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "type:Block",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#d4d4d4"
+				}
+			}
+		},
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Ground": {
+					"size": 24,
+					"color": "#101014"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0,
+						4
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.55
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1
+				},
+				"Transform": {
+					"position": {
+						"x": 8,
+						"y": 12,
+						"z": 6
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/center",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.05,
+						"z": 0
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:block/red",
+			"@type": "Thing",
+			"conformsTo": "Block",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -3,
+						"y": 0.5,
+						"z": -2
+					}
+				},
+				"Render": {
+					"color": "#ff6b6b"
+				}
+			}
+		},
+		{
+			"@id": "entity:block/blue",
+			"@type": "Thing",
+			"conformsTo": "Block",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 3,
+						"y": 0.5,
+						"z": -2
+					}
+				},
+				"Render": {
+					"color": "#5b9fd4"
+				}
+			}
+		},
+		{
+			"@id": "entity:block/gold",
+			"@type": "Thing",
+			"conformsTo": "Block",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.5,
+						"z": 3
+					}
+				},
+				"Render": {
+					"color": "#e8a838"
+				}
+			}
+		},
+		{
+			"@id": "entity:block/purple",
+			"@type": "Thing",
+			"conformsTo": "Block",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -5,
+						"y": 0.5,
+						"z": 4
+					}
+				},
+				"Render": {
+					"color": "#7c6cf0"
+				}
+			}
+		},
+		{
+			"@id": "entity:block/mint",
+			"@type": "Thing",
+			"conformsTo": "Block",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 5,
+						"y": 0.5,
+						"z": 4
+					}
+				},
+				"Render": {
+					"color": "#3ecf8e"
+				}
+			}
+		}
+	]
+}

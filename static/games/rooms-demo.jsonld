@@ -1,0 +1,225 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": {
+      "@type": "@id"
+    },
+    "components": {
+      "@type": "@json"
+    },
+    "events": {
+      "@type": "@json"
+    },
+    "inRoom": {
+      "@type": "@id"
+    }
+  },
+  "@graph": [
+    {
+      "@id": "room:hall",
+      "@type": "Room",
+      "start": true,
+      "title": "Hall",
+      "next": "room:vault",
+      "camera": "follow",
+      "layers": [
+        "bg",
+        "instances",
+        "fg"
+      ]
+    },
+    {
+      "@id": "room:vault",
+      "@type": "Room",
+      "title": "Vault",
+      "camera": "follow",
+      "layers": [
+        "bg",
+        "instances"
+      ]
+    },
+    {
+      "@id": "type:Door",
+      "@type": "EntityType",
+      "components": [
+        "Transform",
+        "Render",
+        "Collision",
+        "RoomPortal"
+      ],
+      "defaults": {
+        "Render": {
+          "mesh": "primitive:box",
+          "color": "#6c5ce7"
+        },
+        "Transform": {
+          "scale": [
+            0.6,
+            1.2,
+            0.3
+          ]
+        },
+        "Collision": {
+          "radius": 0.85
+        },
+        "RoomPortal": {
+          "mode": "press",
+          "radius": 1.6,
+          "transition": "fade",
+          "transitionMs": 350
+        }
+      }
+    },
+    {
+      "@id": "type:Gem",
+      "@type": "EntityType",
+      "components": [
+        "Transform",
+        "Render"
+      ],
+      "defaults": {
+        "Render": {
+          "mesh": "primitive:box",
+          "color": "#00cec9"
+        },
+        "Transform": {
+          "scale": [
+            0.45,
+            0.45,
+            0.45
+          ]
+        }
+      }
+    },
+    {
+      "@id": "entity:light/ambient",
+      "@type": "Thing",
+      "conformsTo": "AmbientLight",
+      "components": {
+        "Light": {
+          "intensity": 0.65
+        }
+      }
+    },
+    {
+      "@id": "entity:ground/hall",
+      "@type": "Thing",
+      "inRoom": "room:hall",
+      "conformsTo": "GroundPlane",
+      "components": {
+        "Ground": {
+          "size": 14,
+          "color": "#12121a"
+        }
+      }
+    },
+    {
+      "@id": "entity:spawn/hall",
+      "@type": "Thing",
+      "inRoom": "room:hall",
+      "conformsTo": "SpawnPoint",
+      "components": {
+        "Transform": {
+          "position": {
+            "x": -2,
+            "y": 0.05,
+            "z": -2
+          }
+        }
+      }
+    },
+    {
+      "@id": "entity:door/1",
+      "@type": "Thing",
+      "inRoom": "room:hall",
+      "conformsTo": "Door",
+      "components": {
+        "Transform": {
+          "position": {
+            "x": 3,
+            "y": 0.6,
+            "z": 0
+          }
+        },
+        "RoomPortal": {
+          "target": "room:vault",
+          "prompt": "Enter Vault",
+          "mode": "press",
+          "radius": 1.6,
+          "transition": "fade",
+          "transitionMs": 350
+        }
+      }
+    },
+    {
+      "@id": "entity:ground/vault",
+      "@type": "Thing",
+      "inRoom": "room:vault",
+      "conformsTo": "GroundPlane",
+      "components": {
+        "Ground": {
+          "size": 10,
+          "color": "#0a1628"
+        }
+      }
+    },
+    {
+      "@id": "entity:spawn/vault",
+      "@type": "Thing",
+      "inRoom": "room:vault",
+      "conformsTo": "SpawnPoint",
+      "components": {
+        "Transform": {
+          "position": {
+            "x": 0,
+            "y": 0.05,
+            "z": 0
+          }
+        }
+      }
+    },
+    {
+      "@id": "entity:door/return",
+      "@type": "Thing",
+      "inRoom": "room:vault",
+      "conformsTo": "Door",
+      "components": {
+        "Transform": {
+          "position": {
+            "x": -2.5,
+            "y": 0.6,
+            "z": 0
+          }
+        },
+        "Render": {
+          "mesh": "primitive:box",
+          "color": "#a29bfe"
+        },
+        "RoomPortal": {
+          "target": "room:hall",
+          "prompt": "Return to Hall",
+          "mode": "press",
+          "radius": 1.6,
+          "transition": "fade",
+          "transitionMs": 350,
+          "returnPortal": true
+        }
+      }
+    },
+    {
+      "@id": "entity:gem/1",
+      "@type": "Thing",
+      "inRoom": "room:vault",
+      "conformsTo": "Gem",
+      "components": {
+        "Transform": {
+          "position": {
+            "x": 1.5,
+            "y": 0.35,
+            "z": 1
+          }
+        }
+      }
+    }
+  ]
+}

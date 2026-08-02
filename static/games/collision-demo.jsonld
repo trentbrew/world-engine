@@ -1,0 +1,56 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" },
+    "events": { "@type": "@json" }
+  },
+  "@graph": [
+    {
+      "@id": "type:Coin",
+      "@type": "EntityType",
+      "components": ["Transform", "Render", "Collectible"],
+      "defaults": {
+        "Render": { "color": "#e8c14a" },
+        "Transform": { "scale": [0.35, 0.35, 0.35] },
+        "Collectible": { "radius": 0.75, "value": 1 }
+      },
+      "events": {
+        "collision": [
+          {
+            "with": "Player",
+            "do": [
+              { "score": "=Collectible.value" },
+              { "sfx": "=Collectible.sfx" },
+              { "destroy": "self" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "@id": "entity:ground/main",
+      "@type": "Thing",
+      "conformsTo": "GroundPlane",
+      "components": { "Ground": { "size": 12, "color": "#0e0e14" } }
+    },
+    {
+      "@id": "entity:light/ambient",
+      "@type": "Thing",
+      "conformsTo": "AmbientLight",
+      "components": { "Light": { "intensity": 0.6 } }
+    },
+    {
+      "@id": "entity:spawn/start",
+      "@type": "Thing",
+      "conformsTo": "SpawnPoint",
+      "components": { "Transform": { "position": { "x": 0, "y": 0.05, "z": -2 } } }
+    },
+    {
+      "@id": "entity:coin/1",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": 2, "y": 0.4, "z": 0 } } }
+    }
+  ]
+}

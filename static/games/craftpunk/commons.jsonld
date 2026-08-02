@@ -1,0 +1,81 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" }
+  },
+  "@graph": [
+    {
+      "@id": "component:Civic",
+      "@type": "ComponentSchema",
+      "fields": {
+        "kind": { "t": "string", "sync": "durable", "default": "commons" },
+        "warmth": { "t": "number", "sync": "derived", "default": "=0.6 + sin(t * 0.5) * 0.4" }
+      }
+    },
+    {
+      "@id": "type:Citizen",
+      "@type": "EntityType",
+      "components": ["Transform", "SkinnedMesh", "Mesh3DAnimator", "Civic"],
+      "defaults": { "Civic": { "kind": "ai" } }
+    },
+    {
+      "@id": "type:Grove",
+      "@type": "EntityType",
+      "components": ["Transform", "Render", "Civic"],
+      "defaults": { "Civic": { "kind": "nature" } }
+    },
+
+    {
+      "@id": "entity:ground/commons",
+      "@type": "Thing",
+      "conformsTo": "GroundPlane",
+      "components": { "Ground": { "size": 30, "color": "#4c6b53" } }
+    },
+    {
+      "@id": "entity:light/ambient",
+      "@type": "Thing",
+      "conformsTo": "AmbientLight",
+      "components": { "Light": { "intensity": 0.5 } }
+    },
+    {
+      "@id": "entity:light/sun",
+      "@type": "Thing",
+      "conformsTo": "DirectionalLight",
+      "components": {
+        "Light": { "intensity": "=1.0 + sin(t * 0.4) * 0.25" },
+        "Transform": { "position": { "x": 8, "y": 12, "z": 6 } }
+      }
+    },
+
+    {
+      "@id": "entity:spawn/hearth",
+      "@type": "Thing",
+      "conformsTo": "SpawnPoint",
+      "components": {
+        "Transform": { "position": { "x": 0, "y": 0, "z": 0 } },
+        "Marker": { "kind": "spawn" }
+      }
+    },
+
+    {
+      "@id": "entity:citizen/ada",
+      "@type": "Thing",
+      "conformsTo": "Citizen",
+      "components": {
+        "Transform": { "position": { "x": 3, "y": 0, "z": -2 } },
+        "SkinnedMesh": {},
+        "Mesh3DAnimator": {}
+      }
+    },
+    {
+      "@id": "entity:grove/first",
+      "@type": "Thing",
+      "conformsTo": "Grove",
+      "components": {
+        "Transform": { "position": { "x": -4, "y": 0.6, "z": 3 }, "scale": [1.2, 1.6, 1.2] },
+        "Render": { "color": "#6fae74" }
+      }
+    }
+  ]
+}

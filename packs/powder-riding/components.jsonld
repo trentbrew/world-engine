@@ -1,0 +1,44 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" }
+  },
+  "__note": "AUTHORING SOURCE — proposed, data-only tier. No auto-import loader yet: copy the schemas a world needs inline. Fields needing the carve/trick behaviors are marked; those behaviors stay proposed until built (see pack.json). Sync tiers: authored tunables = durable; live board/score state the owner streams = realtime; visual feel = derived.",
+  "@graph": [
+    {
+      "@id": "component:Board",
+      "@type": "ComponentSchema",
+      "fields": {
+        "carveGrip": { "t": "number", "sync": "durable", "default": 11.0, "__note": "tunable — from prototype tunables.json" },
+        "sidecutRadius": { "t": "number", "sync": "durable", "default": 7.5 },
+        "maxTilt": { "t": "number", "sync": "durable", "default": 0.6 },
+        "jumpMin": { "t": "number", "sync": "durable", "default": 5.5 },
+        "jumpMax": { "t": "number", "sync": "durable", "default": 16.5 },
+        "edgeAngle": { "t": "number", "sync": "realtime", "default": 0, "__note": "live carve state — driven by the carve behavior" },
+        "tilt": { "t": "number", "sync": "realtime", "default": 0 },
+        "lean": { "t": "number", "sync": "derived", "default": "=clamp(Board.tilt / Board.maxTilt, -1, 1)", "__note": "visual lean — derived, never on the wire" }
+      }
+    },
+    {
+      "@id": "component:TrickScore",
+      "@type": "ComponentSchema",
+      "fields": {
+        "baseTickPoints": { "t": "number", "sync": "durable", "default": 12 },
+        "repeatDecay": { "t": "number", "sync": "durable", "default": 0.72 },
+        "active": { "t": "boolean", "sync": "realtime", "default": false },
+        "score": { "t": "number", "sync": "realtime", "default": 0 },
+        "multiplier": { "t": "number", "sync": "realtime", "default": 1 }
+      }
+    },
+    {
+      "@id": "component:Terrain",
+      "@type": "ComponentSchema",
+      "fields": {
+        "source": { "t": "string", "sync": "durable", "default": "", "__note": "ref to patch/heightfield data (prototype patch_course); needs procedural-mesh render + heightfield collider — see PORTING.md" },
+        "tessU": { "t": "number", "sync": "durable", "default": 8 },
+        "tessV": { "t": "number", "sync": "durable", "default": 16 }
+      }
+    }
+  ]
+}

@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trellis — Inset Hierarchy Shell (TRL design mock)</title>
+  <!-- trellis-design-adopted: slug=inset_hierarchy revision=1 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      /* Craftpunk depth ladder — dark */
+      --d0: #1c1a17;
+      --d1: #151210;
+      --d2: #100e0b;
+      --d3: #0c0a08;
+      --t: #ddd8d0;
+      --tm: #9e9790;
+      --td: #6a6258;
+      --tdd: #3c3630;
+      --acc: #cf7d44;
+      --b: rgba(255, 255, 255, 0.055);
+      --shell-gap: 10px;
+      --r0: 10px;
+      --r1: 6px;
+      --r2: 5px;
+      --r3: 4px;
+
+      /* Layout */
+      --left-w: 280px;
+      --right-w: 300px;
+      --doc-h: 44px;
+      --dock-h: 52px;
+      --bottom-h: 148px;
+      --font-ui: 'Syne', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+      /* Elevation mode (current-ish) */
+      --elev-bg: #141414;
+      --elev-panel: color-mix(in srgb, #1a1a1a 84%, transparent);
+      --elev-border: rgba(255, 255, 255, 0.1);
+      --elev-viewport: #0e0e0e;
+      --elev-grid: #1a1a1a;
+      --elev-shadow: 0 12px 40px rgb(0 0 0 / 0.28), 0 2px 8px rgb(0 0 0 / 0.14);
+      --chrome-edge: 12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--t);
+      background: var(--d0);
+      height: 100dvh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* —— Shared content blocks —— */
+    .doc-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 100%;
+      padding: 0 14px;
+      min-width: 0;
+    }
+    .world-title { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .doc-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+    .mode-tabs {
+      display: flex;
+      gap: 2px;
+      padding: 3px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--t) 5%, transparent);
+    }
+    .mode-tabs button {
+      font: 600 11px var(--font-ui);
+      padding: 5px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--tm);
+      cursor: pointer;
+    }
+    .mode-tabs button.active { background: var(--t); color: var(--d0); }
+    .doc-end { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+    .av { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--d1); margin-left: -5px; }
+    .av:nth-child(1) { background: #6a8cff; margin-left: 0; }
+    .av:nth-child(2) { background: #e85d8a; }
+
+    .panel-tabs {
+      display: flex;
+      padding: 0 8px;
+      flex-shrink: 0;
+    }
+    .panel-tab {
+      font: 600 10px var(--font-mono);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 9px 10px 8px;
+      border: 0;
+      background: none;
+      color: var(--td);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .panel-tab.active { color: var(--t); border-bottom-color: var(--acc); }
+
+    .entity-list { padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+    .entity-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: var(--r3);
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--tm);
+    }
+    .entity-item.selected { background: color-mix(in srgb, var(--acc) 14%, transparent); color: var(--t); }
+    .dot { width: 7px; height: 7px; border-radius: 2px; background: var(--td); flex-shrink: 0; }
+    .dot.spawn { background: #c9a84c; }
+
+    .inspector-hdr {
+      padding: 10px 12px;
+      font-weight: 600;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .inspector-hdr span { font-weight: 400; color: var(--td); font-size: 11px; font-family: var(--font-mono); }
+
+    .field-group { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .field-well {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 8px;
+      align-items: center;
+      padding: 5px 8px;
+      border-radius: var(--r3);
+      font-size: 12px;
+    }
+    .field-well label { color: var(--td); font: 500 10px var(--font-mono); letter-spacing: 0.04em; }
+    .field-well input {
+      height: 26px;
+      padding: 0 7px;
+      border: 0;
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--t) 6%, transparent);
+      color: var(--t);
+      font: 400 11px var(--font-mono);
+    }
+
+    .viewport-grid {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(var(--grid-line, #1e1c18) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line, #1e1c18) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .duck {
+      position: absolute;
+      left: 52%;
+      top: 42%;
+      width: 56px;
+      height: 48px;
+      border: 2px solid #e8c547;
+      border-radius: 50% 50% 45% 45%;
+      transform: translate(-50%, -50%);
+      opacity: 0.75;
+    }
+    .gizmo {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      width: 56px;
+      height: 56px;
+      border-radius: var(--r2);
+      background: color-mix(in srgb, var(--d2) 90%, transparent);
+      border: 1px solid var(--b);
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      color: var(--td);
+      font-family: var(--font-mono);
+    }
+
+    .pane-handle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 12px;
+      border: 0;
+      background: transparent;
+      color: var(--td);
+      font: 600 10px var(--font-mono);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: left;
+      flex-shrink: 0;
+    }
+    .pane-handle .ttl { color: var(--t); text-transform: none; font-family: var(--font-ui); font-size: 12px; }
+    .pane-handle kbd {
+      margin-left: auto;
+      font: 600 9px var(--font-mono);
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--t) 6%, transparent);
+    }
+    .palette-strip { display: flex; gap: 8px; padding: 0 10px 10px; overflow-x: auto; }
+    .asset-card {
+      flex: none;
+      width: 88px;
+      padding: 8px;
+      border-radius: var(--r2);
+      text-align: center;
+    }
+    .asset-thumb {
+      height: 44px;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      background: color-mix(in srgb, var(--t) 5%, transparent);
+    }
+    .asset-name { font: 500 9px var(--font-mono); color: var(--tm); }
+
+    .dock-inner {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      padding: 0 12px;
+      gap: 4px;
+    }
+    .dock-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+    }
+    .dock-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 12px;
+      border: 0;
+      border-radius: var(--r2);
+      background: transparent;
+      color: var(--td);
+      font: 600 9px var(--font-mono);
+      cursor: pointer;
+    }
+    .dock-btn.active { color: var(--acc); background: color-mix(in srgb, var(--acc) 12%, transparent); }
+    .dock-icon { font-size: 14px; line-height: 1; }
+
+    /* Depth debug labels */
+    .depth-tag {
+      display: none;
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      z-index: 5;
+      font: 500 9px var(--font-mono);
+      letter-spacing: 0.06em;
+      color: var(--acc);
+      opacity: 0.85;
+      pointer-events: none;
+    }
+    body.show-depth .depth-tag { display: block; }
+
+    /* —— INSET HIERARCHY SHELL —— */
+    .shell-inset {
+      display: grid;
+      grid-template-rows: var(--doc-h) 1fr var(--dock-h);
+      height: 100dvh;
+      background: var(--d0);
+      padding: var(--shell-gap);
+      gap: var(--shell-gap);
+    }
+
+    .shell-inset .doc-bar {
+      position: relative;
+      background: var(--d1);
+      border-radius: var(--r0);
+      flex-shrink: 0;
+    }
+
+    .shell-inset .workspace {
+      display: grid;
+      grid-template-columns: var(--left-w) 1fr var(--right-w);
+      grid-template-rows: 1fr var(--bottom-h);
+      gap: var(--shell-gap);
+      background: var(--d1);
+      border-radius: var(--r0);
+      padding: var(--shell-gap);
+      min-height: 0;
+    }
+
+    .shell-inset .panel-left,
+    .shell-inset .panel-right,
+    .shell-inset .viewport-col,
+    .shell-inset .bottom-pane {
+      position: relative;
+      background: var(--d2);
+      border-radius: var(--r1);
+      min-height: 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .shell-inset .panel-left { grid-column: 1; grid-row: 1; }
+    .shell-inset .viewport-col { grid-column: 2; grid-row: 1; }
+    .shell-inset .panel-right { grid-column: 3; grid-row: 1; }
+    .shell-inset .bottom-pane { grid-column: 2; grid-row: 2; }
+
+    .shell-inset .panel-inner,
+    .shell-inset .viewport-inner,
+    .shell-inset .pane-body {
+      flex: 1;
+      min-height: 0;
+      background: var(--d3);
+      border-radius: var(--r2);
+      margin: var(--shell-gap);
+      margin-top: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .shell-inset .panel-left .panel-inner { margin-top: 0; }
+    .shell-inset .panel-left .panel-tabs + .panel-inner { margin-top: var(--shell-gap); }
+
+    .shell-inset .viewport-inner {
+      margin: var(--shell-gap);
+      background: var(--d3);
+      --grid-line: #141210;
+    }
+
+    .shell-inset .field-well { background: color-mix(in srgb, var(--t) 4%, transparent); }
+    .shell-inset .asset-card { background: color-mix(in srgb, var(--t) 4%, transparent); }
+
+    .shell-inset .bottom-dock {
+      position: relative;
+      background: var(--d1);
+      border-radius: var(--r0);
+    }
+
+    /* No structural borders in inset mode */
+    body:not(.show-borders) .shell-inset .panel-tabs,
+    body:not(.show-borders) .shell-inset .pane-handle {
+      border: none;
+    }
+
+    body.show-borders .shell-inset .panel-tabs {
+      border-bottom: 1px solid var(--b);
+    }
+
+    /* —— ELEVATION SHELL (current) —— */
+    .shell-elev { display: none; }
+
+    body.mode-elev .shell-inset { display: none; }
+    body.mode-elev .shell-elev { display: block; }
+
+    .shell-elev .canvas-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: var(--elev-viewport);
+    }
+    .shell-elev .canvas-layer .viewport-grid {
+      --grid-line: var(--elev-grid);
+      background-color: var(--elev-viewport);
+    }
+
+    .shell-elev .chrome-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .shell-elev .float-card {
+      position: relative;
+      isolation: isolate;
+      pointer-events: auto;
+      border-radius: var(--r0);
+      overflow: hidden;
+    }
+    .shell-elev .float-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: var(--elev-panel);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--elev-border);
+      box-shadow: var(--elev-shadow);
+      pointer-events: none;
+    }
+
+    .shell-elev .doc-wrap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: var(--chrome-edge) var(--chrome-edge) 0;
+      z-index: 30;
+    }
+    .shell-elev .doc-bar {
+      height: var(--doc-h);
+      position: relative;
+    }
+
+    .shell-elev .panel-left-wrap {
+      position: absolute;
+      top: calc(var(--chrome-edge) + var(--doc-h) + 8px);
+      bottom: calc(var(--dock-h) + var(--chrome-edge) + var(--bottom-h) + 8px);
+      left: 0;
+      width: calc(var(--left-w) + var(--chrome-edge));
+      padding: 0 8px 0 var(--chrome-edge);
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+    }
+    .shell-elev .panel-left-wrap .float-card { flex: 1; display: flex; flex-direction: column; }
+
+    .shell-elev .panel-right-wrap {
+      position: absolute;
+      top: calc(var(--chrome-edge) + var(--doc-h) + 8px);
+      bottom: calc(var(--dock-h) + var(--chrome-edge) + var(--bottom-h) + 8px);
+      right: 0;
+      width: calc(var(--right-w) + var(--chrome-edge));
+      padding: 0 var(--chrome-edge) 0 8px;
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+    }
+    .shell-elev .panel-right-wrap .float-card { flex: 1; display: flex; flex-direction: column; }
+
+    .shell-elev .bottom-wrap {
+      position: absolute;
+      left: calc(var(--left-w) + var(--chrome-edge));
+      right: calc(var(--right-w) + var(--chrome-edge));
+      bottom: calc(var(--dock-h) + var(--chrome-edge));
+      height: var(--bottom-h);
+      z-index: 12;
+      pointer-events: auto;
+    }
+    .shell-elev .bottom-wrap .float-card {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-radius: 0;
+    }
+    .shell-elev .bottom-wrap .float-card::before {
+      border-radius: 0;
+      box-shadow: 0 -4px 24px rgb(0 0 0 / 0.2);
+    }
+
+    .shell-elev .dock-wrap {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: calc(var(--dock-h) + var(--chrome-edge));
+      padding: 0 var(--chrome-edge) var(--chrome-edge);
+      z-index: 25;
+    }
+    .shell-elev .bottom-dock {
+      height: 100%;
+      border-radius: var(--r0) var(--r0) 0 0;
+    }
+
+    .shell-elev .panel-body-elev { flex: 1; overflow: auto; }
+    .shell-elev .panel-tabs { border-bottom: 1px solid var(--elev-border); }
+    .shell-elev .inspector-hdr { border-bottom: 1px solid var(--elev-border); }
+    .shell-elev .pane-handle { border-top: 1px solid var(--elev-border); }
+    .shell-elev .field-well input {
+      border: 1px solid var(--elev-border);
+      background: color-mix(in srgb, var(--elev-viewport) 60%, transparent);
+    }
+    .shell-elev .asset-card {
+      border: 1px solid var(--elev-border);
+      background: color-mix(in srgb, #fff 4%, transparent);
+    }
+
+    /* —— Mock controls —— */
+    .mock-bar {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 10px;
+      max-width: 96vw;
+      background: color-mix(in srgb, var(--d0) 92%, transparent);
+      border: 1px solid var(--b);
+      border-radius: 999px;
+      backdrop-filter: blur(12px);
+      pointer-events: auto;
+    }
+    .mock-bar button {
+      font: 600 10px var(--font-mono);
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--b);
+      background: transparent;
+      color: var(--td);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .mock-bar button.active {
+      background: var(--acc);
+      color: var(--d0);
+      border-color: var(--acc);
+    }
+    .mock-bar .sep { width: 1px; background: var(--b); margin: 2px 4px; }
+
+    .legend {
+      position: fixed;
+      bottom: calc(var(--dock-h) + 24px);
+      right: 16px;
+      z-index: 150;
+      max-width: 280px;
+      padding: 12px 14px;
+      background: var(--d1);
+      border-radius: var(--r1);
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--td);
+      pointer-events: none;
+    }
+    .legend strong {
+      display: block;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      color: var(--t);
+      margin-bottom: 6px;
+    }
+    .legend .swatch {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 6px;
+      vertical-align: -1px;
+    }
+    .legend p { margin-top: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--tdd); }
+
+    body.mode-elev .legend { bottom: calc(var(--dock-h) + var(--chrome-edge) + 24px); }
+
+    @media (max-width: 900px) {
+      :root { --left-w: 220px; --right-w: 0px; }
+      .shell-inset .panel-right { display: none; }
+      .legend { display: none; }
+    }
+  </style>
+</head>
+<body class="mode-inset">
+
+  <!-- —— INSET HIERARCHY —— -->
+  <div class="shell-inset" aria-label="Inset Hierarchy shell">
+    <header class="doc-bar" data-depth="1">
+      <span class="depth-tag">D1 · doc bar</span>
+      <div class="doc-inner">
+        <span class="world-title">parkour</span>
+        <div class="doc-center">
+          <div class="mode-tabs">
+            <button class="active">Edit</button>
+            <button>Play</button>
+          </div>
+        </div>
+        <div class="doc-end">
+          <div class="av"></div>
+          <div class="av"></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace" data-depth="1">
+      <span class="depth-tag">D1 · workspace shell</span>
+
+      <aside class="panel-left" data-depth="2">
+        <span class="depth-tag">D2 · left panel</span>
+        <div class="panel-tabs">
+          <button class="panel-tab">Room</button>
+          <button class="panel-tab active">Instances</button>
+          <button class="panel-tab">Assets</button>
+        </div>
+        <div class="panel-inner" data-depth="3">
+          <span class="depth-tag">D3 · list</span>
+          <div class="entity-list">
+            <div class="entity-item"><span class="dot"></span>GroundPlane</div>
+            <div class="entity-item"><span class="dot spawn"></span>SpawnPoint</div>
+            <div class="entity-item selected"><span class="dot"></span>Player</div>
+            <div class="entity-item"><span class="dot" style="background:#c47a9a"></span>Prop / crate</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="viewport-col" data-depth="2">
+        <span class="depth-tag">D2 · viewport frame</span>
+        <div class="viewport-inner" data-depth="3">
+          <span class="depth-tag">D3 · canvas recess</span>
+          <div class="viewport-grid"></div>
+          <div class="duck"></div>
+          <div class="gizmo">XYZ</div>
+        </div>
+      </main>
+
+      <aside class="panel-right" data-depth="2">
+        <span class="depth-tag">D2 · inspector</span>
+        <div class="inspector-hdr">Player <span>player/1</span></div>
+        <div class="panel-tabs">
+          <button class="panel-tab active">Props</button>
+          <button class="panel-tab">Events</button>
+          <button class="panel-tab">Schema</button>
+        </div>
+        <div class="panel-inner" data-depth="3">
+          <span class="depth-tag">D3 · fields</span>
+          <div class="field-group">
+            <div class="field-well"><label>Speed</label><input value="4" /></div>
+            <div class="field-well"><label>Color</label><input value="#6a8cff" /></div>
+            <div class="field-well"><label>Position</label><input value="0, 0.5, 0" /></div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="bottom-pane" data-depth="2" aria-label="Palette">
+        <span class="depth-tag">D2 · bottom pane</span>
+        <button type="button" class="pane-handle">
+          <span>⌃</span>
+          <span class="ttl">Palette</span>
+          <span>drag onto scene</span>
+          <kbd>/</kbd>
+        </button>
+        <div class="pane-body" data-depth="3">
+          <span class="depth-tag">D3 · assets</span>
+          <div class="palette-strip">
+            <div class="asset-card"><div class="asset-thumb">📦</div><div class="asset-name">barrel</div></div>
+            <div class="asset-card"><div class="asset-thumb">🧍</div><div class="asset-name">mannequin</div></div>
+            <div class="asset-card"><div class="asset-thumb">◻</div><div class="asset-name">box</div></div>
+            <div class="asset-card"><div class="asset-thumb">🏔</div><div class="asset-name">ramp</div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="bottom-dock" data-depth="1">
+      <span class="depth-tag">D1 · world nav</span>
+      <div class="dock-inner">
+        <button class="dock-btn"><span class="dock-icon">◇</span>Graph</button>
+        <div class="dock-center">
+          <button class="dock-btn"><span class="dock-icon">📁</span>Assets</button>
+          <button class="dock-btn"><span class="dock-icon">⊞</span>Objects</button>
+          <button class="dock-btn active"><span class="dock-icon">▦</span>Rooms</button>
+          <button class="dock-btn"><span class="dock-icon">⬡</span>Collections</button>
+        </div>
+        <button class="dock-btn"><span class="dock-icon">💬</span>Chat</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- —— ELEVATION (current) —— -->
+  <div class="shell-elev" aria-label="Elevation shell (current)">
+    <div class="canvas-layer">
+      <div class="viewport-grid"></div>
+      <div class="duck"></div>
+      <div class="gizmo">XYZ</div>
+    </div>
+
+    <div class="chrome-layer">
+      <div class="doc-wrap">
+        <header class="doc-bar float-card">
+          <div class="doc-inner">
+            <span class="world-title">parkour</span>
+            <div class="doc-center">
+              <div class="mode-tabs">
+                <button class="active">Edit</button>
+                <button>Play</button>
+              </div>
+            </div>
+            <div class="doc-end">
+              <div class="av"></div>
+              <div class="av"></div>
+            </div>
+          </div>
+        </header>
+      </div>
+
+      <div class="panel-left-wrap">
+        <aside class="float-card panel-left">
+          <div class="panel-tabs">
+            <button class="panel-tab">Room</button>
+            <button class="panel-tab active">Instances</button>
+            <button class="panel-tab">Assets</button>
+          </div>
+          <div class="panel-body-elev">
+            <div class="entity-list">
+              <div class="entity-item"><span class="dot"></span>GroundPlane</div>
+              <div class="entity-item"><span class="dot spawn"></span>SpawnPoint</div>
+              <div class="entity-item selected"><span class="dot"></span>Player</div>
+              <div class="entity-item"><span class="dot" style="background:#c47a9a"></span>Prop / crate</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="panel-right-wrap">
+        <aside class="float-card panel-right">
+          <div class="inspector-hdr">Player <span>player/1</span></div>
+          <div class="panel-tabs">
+            <button class="panel-tab active">Props</button>
+            <button class="panel-tab">Events</button>
+            <button class="panel-tab">Schema</button>
+          </div>
+          <div class="panel-body-elev">
+            <div class="field-group">
+              <div class="field-well"><label>Speed</label><input value="4" /></div>
+              <div class="field-well"><label>Color</label><input value="#6a8cff" /></div>
+              <div class="field-well"><label>Position</label><input value="0, 0.5, 0" /></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="bottom-wrap">
+        <section class="float-card bottom-pane">
+          <button type="button" class="pane-handle">
+            <span>⌃</span>
+            <span class="ttl">Palette</span>
+            <span>drag onto scene</span>
+            <kbd>/</kbd>
+          </button>
+          <div class="pane-body-elev">
+            <div class="palette-strip">
+              <div class="asset-card"><div class="asset-thumb">📦</div><div class="asset-name">barrel</div></div>
+              <div class="asset-card"><div class="asset-thumb">🧍</div><div class="asset-name">mannequin</div></div>
+              <div class="asset-card"><div class="asset-thumb">◻</div><div class="asset-name">box</div></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="dock-wrap">
+        <footer class="float-card bottom-dock">
+          <div class="dock-inner">
+            <button class="dock-btn"><span class="dock-icon">◇</span>Graph</button>
+            <div class="dock-center">
+              <button class="dock-btn"><span class="dock-icon">📁</span>Assets</button>
+              <button class="dock-btn"><span class="dock-icon">⊞</span>Objects</button>
+              <button class="dock-btn active"><span class="dock-icon">▦</span>Rooms</button>
+              <button class="dock-btn"><span class="dock-icon">⬡</span>Collections</button>
+            </div>
+            <button class="dock-btn"><span class="dock-icon">💬</span>Chat</button>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <div class="mock-bar" role="group" aria-label="Mock controls">
+    <button class="active" id="btn-inset" onclick="setMode('inset')">Inset Hierarchy</button>
+    <button id="btn-elev" onclick="setMode('elev')">Elevation (current)</button>
+    <span class="sep"></span>
+    <button class="active" id="btn-depth" onclick="toggleDepth()">Depth labels</button>
+    <button id="btn-borders" onclick="toggleBorders()">Borders off</button>
+  </div>
+
+  <div class="legend" id="legend">
+    <strong id="legend-title">Inset Hierarchy</strong>
+    <div><span class="swatch" style="background:var(--d0)"></span>D0 page root</div>
+    <div><span class="swatch" style="background:var(--d1)"></span>D1 doc bar · workspace · dock</div>
+    <div><span class="swatch" style="background:var(--d2)"></span>D2 panels · viewport frame · bottom pane</div>
+    <div><span class="swatch" style="background:var(--d3)"></span>D3 lists · fields · canvas recess</div>
+    <p id="legend-note">Padding gap + background delta. No box-shadow. DOM = visual.</p>
+  </div>
+
+  <script>
+    function setMode(mode) {
+      document.body.className = document.body.className
+        .replace(/mode-\w+/g, '')
+        .trim() + ' mode-' + mode;
+      document.getElementById('btn-inset').classList.toggle('active', mode === 'inset');
+      document.getElementById('btn-elev').classList.toggle('active', mode === 'elev');
+      const title = document.getElementById('legend-title');
+      const note = document.getElementById('legend-note');
+      if (mode === 'inset') {
+        title.textContent = 'Inset Hierarchy';
+        note.textContent = 'Padding gap + background delta. No box-shadow. DOM = visual.';
+      } else {
+        title.textContent = 'Elevation (current)';
+        note.textContent = 'Floating glass cards, z-index bands, borders + shadows carry structure.';
+      }
+    }
+
+    function toggleDepth() {
+      document.body.classList.toggle('show-depth');
+      document.getElementById('btn-depth').classList.toggle('active', document.body.classList.contains('show-depth'));
+    }
+
+    function toggleBorders() {
+      const on = document.body.classList.toggle('show-borders');
+      document.getElementById('btn-borders').classList.toggle('active', !on);
+      document.getElementById('btn-borders').textContent = on ? 'Borders on' : 'Borders off';
+    }
+
+    document.querySelectorAll('.panel-tab, .dock-btn, .mode-tabs button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const group = btn.closest('.panel-tabs, .dock-center, .mode-tabs');
+        if (!group) return;
+        group.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    /* Depth labels on by default for inset mode */
+    document.body.classList.add('show-depth');
+  </script>
+</body>
+</html>

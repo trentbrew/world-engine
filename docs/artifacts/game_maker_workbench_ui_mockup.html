@@ -1,0 +1,250 @@
+<!doctype html>
+<!-- trellis-design: slug=game_maker_workbench_ui parent=TRL-137 -->
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Trellis - GameMaker Workbench UI (TRL-137 design mock)</title>
+		<style>
+			:root {
+				--bg: #08090d;
+				--viewport: #11131a;
+				--panel: rgba(28, 30, 38, 0.9);
+				--rail: rgba(18, 20, 28, 0.88);
+				--border: rgba(255, 255, 255, 0.12);
+				--text: #f4f4f5;
+				--muted: #a1a1aa;
+				--accent: #8bdaff;
+				--good: #3ecf8e;
+				--radius: 14px;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				background: var(--bg);
+				color: var(--text);
+				font: 12px/1.4 Inter, ui-sans-serif, system-ui, sans-serif;
+			}
+			.shell {
+				position: fixed;
+				inset: 0;
+				display: grid;
+				grid-template-rows: 44px 1fr 34px;
+				gap: 10px;
+				padding: 12px;
+			}
+			.topbar,
+			.docbar,
+			.left,
+			.right,
+			.tray,
+			.overlay {
+				background: var(--panel);
+				border: 1px solid var(--border);
+				border-radius: var(--radius);
+				backdrop-filter: blur(16px);
+			}
+			.topbar,
+			.docbar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 0 14px;
+			}
+			.body {
+				position: relative;
+				min-height: 0;
+				background:
+					linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+					linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+					var(--viewport);
+				background-size: 32px 32px;
+				border-radius: 18px;
+				overflow: hidden;
+			}
+			.left {
+				position: absolute;
+				inset: 16px auto 74px 16px;
+				width: 336px;
+				display: grid;
+				grid-template-columns: 52px 1fr;
+				overflow: hidden;
+			}
+			.rail {
+				background: var(--rail);
+				border-right: 1px solid var(--border);
+				padding: 8px 6px;
+				display: grid;
+				gap: 4px;
+				align-content: start;
+			}
+			.rail button {
+				border: 0;
+				border-radius: 10px;
+				background: transparent;
+				color: var(--muted);
+				padding: 7px 2px;
+				font: inherit;
+				cursor: pointer;
+			}
+			.rail button.active {
+				background: rgba(139, 218, 255, 0.14);
+				color: var(--text);
+				box-shadow: inset 3px 0 0 var(--accent);
+			}
+			.drawer {
+				padding: 12px;
+				overflow: auto;
+			}
+			.kicker {
+				color: var(--muted);
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				font-size: 10px;
+			}
+			.card {
+				margin-top: 8px;
+				padding: 10px;
+				border: 1px solid var(--border);
+				border-radius: 12px;
+				background: rgba(255, 255, 255, 0.04);
+			}
+			.right {
+				position: absolute;
+				inset: 16px 16px 74px auto;
+				width: 360px;
+				overflow: hidden;
+				display: grid;
+				grid-template-rows: auto auto 1fr;
+			}
+			.header {
+				padding: 12px;
+				border-bottom: 1px solid var(--border);
+			}
+			.tabs {
+				display: flex;
+				border-bottom: 1px solid var(--border);
+				padding: 0 8px;
+			}
+			.tabs button {
+				flex: 1;
+				border: 0;
+				background: transparent;
+				color: var(--muted);
+				padding: 9px 4px;
+				font: inherit;
+			}
+			.tabs button.active {
+				color: var(--text);
+				box-shadow: inset 0 -2px 0 var(--accent);
+			}
+			.inspector {
+				padding: 12px;
+				overflow: auto;
+			}
+			.action {
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 11px;
+				color: var(--good);
+			}
+			.tray {
+				position: absolute;
+				left: 368px;
+				right: 392px;
+				bottom: 16px;
+				height: 48px;
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				padding: 0 12px;
+				color: var(--muted);
+			}
+			.scrub {
+				height: 10px;
+				flex: 1;
+				border-radius: 999px;
+				background: linear-gradient(90deg, var(--accent), rgba(255, 255, 255, 0.12));
+			}
+			.overlay {
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				width: min(560px, 78vw);
+				transform: translate(-50%, -50%);
+				padding: 16px;
+				box-shadow: 0 22px 80px rgba(0, 0, 0, 0.45);
+			}
+			.preview {
+				height: 190px;
+				margin-top: 12px;
+				display: grid;
+				place-items: center;
+				border: 1px dashed var(--border);
+				border-radius: 12px;
+				color: var(--muted);
+				background: rgba(255, 255, 255, 0.035);
+			}
+		</style>
+	</head>
+	<body>
+		<main class="shell">
+			<section class="topbar">
+				<strong>Trellis Workbench</strong>
+				<span class="kicker">Edit mode</span>
+			</section>
+			<section class="body">
+				<aside class="left" data-design-note="Resource rail replaces flat left-panel tabs">
+					<nav class="rail" aria-label="Workbench resources">
+						<button>Rooms</button>
+						<button class="active">Objects</button>
+						<button>Sprites</button>
+						<button>Events</button>
+						<button>Scripts</button>
+						<button>Assets</button>
+						<button>Settings</button>
+					</nav>
+					<div class="drawer">
+						<div class="kicker">Objects</div>
+						<h2>Scene objects</h2>
+						<div class="card">Player <span class="kicker">has Step, Input</span></div>
+						<div class="card">Coin <span class="kicker">has Create, Collision</span></div>
+						<div class="card">Fountain <span class="kicker">has Create</span></div>
+					</div>
+				</aside>
+				<aside class="right" data-design-note="Events live with selected thing, not a global modal">
+					<div class="header"><strong>Coin</strong> <span class="kicker">object:type</span></div>
+					<div class="tabs">
+						<button>Props</button>
+						<button class="active">Events</button>
+						<button>Graph</button>
+						<button>JSON</button>
+					</div>
+					<div class="inspector">
+						<div class="card">
+							<div class="kicker">Create</div>
+							<div class="action">set Sprite.frameSpeed = 0.2</div>
+						</div>
+						<div class="card">
+							<div class="kicker">Collision with Player</div>
+							<div class="action">score += Collectible.value</div>
+							<div class="action">destroy self</div>
+						</div>
+					</div>
+				</aside>
+				<section class="tray" data-design-note="Bottom tray is reserved for timelines/logs/waveforms">
+					<span>Animation preview</span>
+					<div class="scrub"></div>
+					<span>12f @ 8fps</span>
+				</section>
+				<section class="overlay" role="dialog" aria-labelledby="preview-title">
+					<div class="kicker">Shallow overlay</div>
+					<h2 id="preview-title">Preview texture: coin.png</h2>
+					<div class="preview">texture / sprite atlas preview</div>
+				</section>
+			</section>
+			<section class="docbar">?game=events-demo <span>Back closes overlay, not the world</span></section>
+		</main>
+	</body>
+</html>

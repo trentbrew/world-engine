@@ -1,0 +1,57 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Transient build/check logs
+*.exit
+.*.log
+.*.txt
+build-stderr.txt
+
+# Agent scratch / test artifacts (never commit)
+.agent/
+.agents/
+.playwright-mcp/
+docs/scratch/
+/test-results/
+
+# Scratch logs & debug screenshots (root level)
+/*.log
+/*.txt
+/*.png
+/*.jpeg
+/*.out
+/pw-*
+/review-*
+/check-*
+/e2e-run.log
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+.trellis/
+!.trellis/tests.json
+!.trellis/browser-suites/
+
+# Local Trellis durable DB — contains an API key / JWT secret; never commit
+.trellis-db/
+.trellis-db.json
+
+# Local realtime-relay blob store (content-addressed uploads; regenerable)
+.trellis-relay/

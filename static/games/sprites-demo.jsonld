@@ -1,0 +1,71 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" },
+    "events": { "@type": "@json" }
+  },
+  "@graph": [
+    {
+      "@id": "entity:world/profile",
+      "@type": "Thing",
+      "components": {
+        "WorldProfile": {
+          "dimensions": "2d",
+          "plane": "xy",
+          "unit": "pixel",
+          "pixelsPerUnit": 64,
+          "gravity": { "x": 0, "y": -20, "z": 0 }
+        }
+      }
+    },
+    {
+      "@id": "entity:ground/main",
+      "@type": "Thing",
+      "conformsTo": "GroundPlane",
+      "components": { "Ground": { "size": 16, "color": "#0e0e14" } }
+    },
+    {
+      "@id": "entity:spawn/start",
+      "@type": "Thing",
+      "conformsTo": "SpawnPoint",
+      "components": { "Transform": { "position": { "x": 0, "y": 0.05, "z": -2 } } }
+    },
+    {
+      "@id": "entity:light/ambient",
+      "@type": "Thing",
+      "conformsTo": "AmbientLight",
+      "components": { "Light": { "intensity": 0.75 } }
+    },
+
+    {
+      "@id": "type:Torch",
+      "@type": "EntityType",
+      "components": ["Transform", "Sprite", "Animator"],
+      "defaults": {
+        "Sprite": {
+          "texture": "/logo.png",
+          "anchor": "bottom",
+          "mask": "box"
+        },
+        "Animator": {
+          "fps": 8,
+          "frameCount": 4,
+          "columns": 4,
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      "events": {
+        "create": [{ "set": "Animator.fps", "to": 4 }]
+      }
+    },
+
+    {
+      "@id": "entity:torch/1",
+      "@type": "Thing",
+      "conformsTo": "Torch",
+      "components": { "Transform": { "position": { "x": 0, "y": 0.5, "z": 0 } } }
+    }
+  ]
+}

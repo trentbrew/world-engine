@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="default" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte Skeleton — Design System Unification (TRL-75 design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ---- Base structure (theme-agnostic layout tokens) ---- */
+  :root {
+      --doc-bar-height: 32px;
+      --doc-bar-pad-top: 14px;
+      --doc-bar-pad-bottom: 6px;
+      --status-bar-height: 22px;
+      --left-panel-width: 280px;
+      --right-panel-width: 320px;
+      --float-inset: 12px;
+      --rounded-sm: 6px;
+      --rounded-md: 10px;
+      --rounded-lg: 14px;
+      --rounded-pill: 999px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --font-ui: 'Geist', system-ui, sans-serif;
+      --font-mono: 'Geist Mono', ui-monospace, monospace;
+    }
+
+    /* ---- Theme: default (neutral) — light ---- */
+    [data-theme="default"] {
+      --background: oklch(0.985 0 0);
+      --foreground: oklch(0.145 0 0);
+      --card: oklch(0.97 0 0);
+      --card-foreground: oklch(0.145 0 0);
+      --primary: oklch(0.205 0 0);
+      --primary-foreground: oklch(0.985 0 0);
+      --secondary: oklch(0.94 0 0);
+      --secondary-foreground: oklch(0.205 0 0);
+      --muted: oklch(0.94 0 0);
+      --muted-foreground: oklch(0.45 0 0);
+      --accent: oklch(0.94 0 0);
+      --accent-foreground: oklch(0.205 0 0);
+      --destructive: oklch(0.577 0.245 27.325);
+      --border: oklch(0.9 0 0);
+      --input: oklch(0.9 0 0);
+      --ring: oklch(0.55 0 0);
+      --viewport: oklch(0.92 0 0);
+      --viewport-grid: oklch(0.86 0 0);
+      --accent-spawn: oklch(0.55 0 0);
+      --accent-entity: oklch(0.45 0 0);
+      --success: oklch(0.55 0.15 155);
+      --play-go: oklch(0.55 0.17 145);
+      --play-go-foreground: oklch(0.98 0.01 145);
+      --surface-glass: color-mix(in srgb, var(--secondary) 75%, transparent);
+    }
+
+    /* ---- Theme: default — dark ---- */
+    [data-theme="default"].dark {
+      --background: oklch(0.145 0 0);
+      --foreground: oklch(0.985 0 0);
+      --card: oklch(0.205 0 0);
+      --card-foreground: oklch(0.985 0 0);
+      --primary: oklch(0.922 0 0);
+      --primary-foreground: oklch(0.205 0 0);
+      --secondary: oklch(0.269 0 0);
+      --secondary-foreground: oklch(0.985 0 0);
+      --muted: oklch(0.269 0 0);
+      --muted-foreground: oklch(0.708 0 0);
+      --accent: oklch(0.269 0 0);
+      --accent-foreground: oklch(0.985 0 0);
+      --destructive: oklch(0.704 0.191 22.216);
+      --border: oklch(1 0 0 / 10%);
+      --input: oklch(1 0 0 / 15%);
+      --ring: oklch(0.556 0 0);
+      --viewport: oklch(0.1 0 0);
+      --viewport-grid: oklch(0.18 0 0);
+      --accent-spawn: oklch(0.75 0 0);
+      --accent-entity: oklch(0.65 0 0);
+      --success: oklch(0.696 0.17 162.48);
+      --play-go: oklch(0.62 0.19 145);
+      --play-go-foreground: oklch(0.14 0.02 145);
+      --surface-glass: color-mix(in srgb, var(--secondary) 68%, transparent);
+    }
+
+    /* ---- Theme: violet-bloom (tweakcn-style) — light ---- */
+    [data-theme="violet-bloom"] {
+      --background: oklch(0.99 0.005 300);
+      --foreground: oklch(0.25 0.04 300);
+      --card: oklch(0.98 0.01 300);
+      --card-foreground: oklch(0.25 0.04 300);
+      --primary: oklch(0.55 0.22 300);
+      --primary-foreground: oklch(0.99 0.01 300);
+      --secondary: oklch(0.94 0.02 300);
+      --secondary-foreground: oklch(0.35 0.06 300);
+      --muted: oklch(0.94 0.02 300);
+      --muted-foreground: oklch(0.5 0.04 300);
+      --accent: oklch(0.92 0.04 320);
+      --accent-foreground: oklch(0.35 0.08 300);
+      --destructive: oklch(0.577 0.245 27.325);
+      --border: oklch(0.88 0.02 300);
+      --input: oklch(0.88 0.02 300);
+      --ring: oklch(0.55 0.22 300);
+      --viewport: oklch(0.96 0.015 300);
+      --viewport-grid: oklch(0.9 0.025 300);
+      --accent-spawn: oklch(0.7 0.15 85);
+      --accent-entity: oklch(0.55 0.18 250);
+      --success: oklch(0.6 0.16 155);
+      --play-go: oklch(0.58 0.2 145);
+      --play-go-foreground: oklch(0.98 0.02 145);
+      --surface-glass: color-mix(in srgb, var(--secondary) 72%, transparent);
+    }
+
+    /* ---- Theme: violet-bloom — dark ---- */
+    [data-theme="violet-bloom"].dark {
+      --background: oklch(0.16 0.03 300);
+      --foreground: oklch(0.95 0.02 300);
+      --card: oklch(0.22 0.04 300);
+      --card-foreground: oklch(0.95 0.02 300);
+      --primary: oklch(0.72 0.18 300);
+      --primary-foreground: oklch(0.18 0.04 300);
+      --secondary: oklch(0.28 0.05 300);
+      --secondary-foreground: oklch(0.92 0.02 300);
+      --muted: oklch(0.28 0.05 300);
+      --muted-foreground: oklch(0.68 0.04 300);
+      --accent: oklch(0.32 0.07 310);
+      --accent-foreground: oklch(0.95 0.02 300);
+      --destructive: oklch(0.65 0.2 25);
+      --border: oklch(1 0 0 / 12%);
+      --input: oklch(1 0 0 / 16%);
+      --ring: oklch(0.72 0.18 300);
+      --viewport: oklch(0.12 0.035 300);
+      --viewport-grid: oklch(0.2 0.05 300);
+      --accent-spawn: oklch(0.78 0.12 85);
+      --accent-entity: oklch(0.68 0.14 250);
+      --success: oklch(0.72 0.16 155);
+      --play-go: oklch(0.65 0.19 145);
+      --play-go-foreground: oklch(0.14 0.03 145);
+      --surface-glass: color-mix(in srgb, var(--secondary) 65%, transparent);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--foreground);
+      background: var(--card);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+  .app {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+    }
+
+  .doc-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      min-height: calc(var(--doc-bar-height) + var(--doc-bar-pad-top) + var(--doc-bar-pad-bottom));
+      padding: var(--doc-bar-pad-top) var(--spacing-sm) var(--doc-bar-pad-bottom) var(--spacing-md);
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+  .doc-bar .scene {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+
+  .mode-tabs {
+      display: flex;
+      gap: 2px;
+      padding: 3px;
+      background: var(--secondary);
+      border-radius: var(--rounded-pill);
+      border: 1px solid var(--border);
+    }
+
+  .mode-tabs button {
+      font: inherit;
+      font-size: 11px;
+      padding: 4px 14px;
+      border: none;
+      border-radius: var(--rounded-pill);
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+    }
+
+  .mode-tabs button.active {
+      background: var(--card);
+      color: var(--foreground);
+      box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+    }
+
+  .presence {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted-foreground);
+    }
+
+  .avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent-entity);
+      border: 1px solid var(--border);
+    }
+
+  .stage {
+      position: relative;
+      min-height: 0;
+      background: var(--card);
+    }
+
+  .viewport {
+      position: absolute;
+      inset: 0;
+      background: var(--viewport);
+    }
+
+  .viewport-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+  .left-panel {
+      position: absolute;
+      top: var(--float-inset);
+      left: var(--float-inset);
+      width: var(--left-panel-width);
+      max-height: calc(100% - var(--float-inset) * 2 - 60px);
+      z-index: 2;
+    }
+
+  .right-panel {
+      position: absolute;
+      top: var(--float-inset);
+      right: var(--float-inset);
+      width: var(--right-panel-width);
+      max-height: calc(100% - var(--float-inset) * 2);
+      z-index: 2;
+    }
+
+  .glass-panel {
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      border-radius: var(--rounded-lg);
+      box-shadow: 0 8px 32px rgb(0 0 0 / 0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: inherit;
+    }
+
+  .panel-header {
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+  .panel-body {
+      padding: var(--spacing-sm);
+      overflow: auto;
+      flex: 1;
+      min-height: 0;
+    }
+
+  .accordion-item {
+      border-bottom: 1px solid var(--border);
+    }
+
+  .accordion-trigger {
+      width: 100%;
+      text-align: left;
+      padding: 8px var(--spacing-sm);
+      background: transparent;
+      border: none;
+      font: inherit;
+      font-size: 12px;
+      color: var(--foreground);
+      cursor: pointer;
+    }
+
+  .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0;
+      gap: 8px;
+    }
+
+  .field-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted-foreground);
+    }
+
+  .field-control {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: var(--rounded-sm);
+      background: var(--input);
+      border: 1px solid var(--border);
+      color: var(--foreground);
+    }
+
+  .spawn-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-spawn);
+      margin-right: 4px;
+    }
+
+  .entity-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-entity);
+      margin-right: 4px;
+    }
+
+  .chrome-pill {
+      position: absolute;
+      bottom: var(--float-inset);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 4px;
+      padding: 6px 10px;
+      background: var(--secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-pill);
+      box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+      z-index: 2;
+    }
+
+  .chrome-pill button {
+      font: inherit;
+      font-size: 11px;
+      padding: 4px 10px;
+      border: none;
+      border-radius: var(--rounded-sm);
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+    }
+
+  .chrome-pill button.active {
+      background: var(--card);
+      color: var(--foreground);
+    }
+
+  .play-btn {
+      background: var(--play-go) !important;
+      color: var(--play-go-foreground) !important;
+      font-weight: 500;
+    }
+
+  .status-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--status-bar-height);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--spacing-md);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted-foreground);
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      z-index: 1;
+    }
+
+    /* ---- Settings / Appearance (design focus) ---- */
+  .settings-tabs {
+      display: flex;
+      gap: 4px;
+      padding: var(--spacing-sm);
+      border-bottom: 1px solid var(--border);
+    }
+
+  .settings-tabs button {
+      flex: 1;
+      font: inherit;
+      font-size: 11px;
+      padding: 4px 6px;
+      border: none;
+      border-radius: var(--rounded-sm);
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+    }
+
+  .settings-tabs button.active {
+      background: var(--card);
+      color: var(--foreground);
+    }
+
+  .appearance-section {
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--spacing-sm);
+    }
+
+  .section-label {
+      font-size: 11px;
+      color: var(--muted-foreground);
+      margin-bottom: var(--spacing-sm);
+      padding: 0 var(--spacing-sm);
+    }
+
+  .toggle-group {
+      display: flex;
+      width: calc(100% - var(--spacing-sm) * 2);
+      margin: 0 var(--spacing-sm) var(--spacing-sm);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      overflow: hidden;
+    }
+
+  .toggle-group button {
+      flex: 1;
+      font: inherit;
+      font-size: 11px;
+      padding: 6px 4px;
+      border: none;
+      background: var(--input);
+      color: var(--muted-foreground);
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+    }
+
+  .toggle-group button:last-child { border-right: none; }
+
+  .toggle-group button.active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+  .preset-grid {
+      display: flex;
+      gap: var(--spacing-sm);
+      padding: 0 var(--spacing-sm);
+    }
+
+  .preset-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: var(--spacing-sm);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-md);
+      background: var(--input);
+      cursor: pointer;
+      font: inherit;
+      font-size: 11px;
+      color: var(--foreground);
+    }
+
+  .preset-card:hover { border-color: var(--ring); }
+
+  .preset-card[aria-pressed="true"] {
+      outline: 2px solid var(--ring);
+      outline-offset: 1px;
+    }
+
+  .swatch {
+      width: 48px;
+      height: 32px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      overflow: hidden;
+    }
+
+  .swatch span:nth-child(1) { background: var(--background); }
+  .swatch span:nth-child(2) { background: var(--primary); }
+  .swatch span:nth-child(3) { background: var(--card); }
+  .swatch span:nth-child(4) { background: var(--border); }
+
+  .preset-card[data-preset="default"] .swatch span:nth-child(1) { background: oklch(0.145 0 0); }
+  .preset-card[data-preset="default"] .swatch span:nth-child(2) { background: oklch(0.922 0 0); }
+  .preset-card[data-preset="default"] .swatch span:nth-child(3) { background: oklch(0.205 0 0); }
+  .preset-card[data-preset="default"] .swatch span:nth-child(4) { background: oklch(0.35 0 0); }
+
+  .preset-card[data-preset="violet-bloom"] .swatch span:nth-child(1) { background: oklch(0.16 0.03 300); }
+  .preset-card[data-preset="violet-bloom"] .swatch span:nth-child(2) { background: oklch(0.72 0.18 300); }
+  .preset-card[data-preset="violet-bloom"] .swatch span:nth-child(3) { background: oklch(0.22 0.04 300); }
+  .preset-card[data-preset="violet-bloom"] .swatch span:nth-child(4) { background: oklch(0.4 0.06 300); }
+
+  .import-details {
+      margin: var(--spacing-sm);
+      font-size: 11px;
+    }
+
+  .import-details summary {
+      cursor: pointer;
+      color: var(--muted-foreground);
+      padding: 4px 0;
+    }
+
+  .import-details textarea {
+      width: 100%;
+      min-height: 72px;
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 6px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: var(--viewport);
+      color: var(--foreground);
+      resize: vertical;
+    }
+
+  .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 var(--spacing-sm);
+      font-size: 12px;
+    }
+
+  .mock-legend {
+      position: fixed;
+      top: var(--float-inset);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      gap: 12px;
+      padding: 6px 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-pill);
+      font-size: 10px;
+      color: var(--muted-foreground);
+      box-shadow: 0 4px 20px rgb(0 0 0 / 0.2);
+    }
+
+  .mock-legend strong { color: var(--foreground); }
+
+  .token-readout {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted-foreground);
+      padding: var(--spacing-sm);
+      border-top: 1px solid var(--border);
+      word-break: break-all;
+    }
+
+  /* ---- Room chat (multiplayer) ---- */
+  .chat-dock {
+      position: absolute;
+      right: var(--float-inset);
+      bottom: calc(var(--status-bar-height) + var(--float-inset));
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: var(--spacing-sm);
+    }
+
+  .chat-panel {
+      display: none;
+      flex-direction: column;
+      width: 300px;
+      max-height: min(360px, calc(100dvh - 180px));
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      border-radius: var(--rounded-lg);
+      box-shadow: 0 8px 32px rgb(0 0 0 / 0.28);
+      overflow: hidden;
+    }
+
+  .chat-panel.open { display: flex; }
+
+  .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--foreground);
+    }
+
+  .chat-header-meta {
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--muted-foreground);
+    }
+
+  .chat-close {
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: var(--rounded-sm);
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+  .chat-close:hover { background: var(--secondary); color: var(--foreground); }
+
+  .chat-messages {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: var(--spacing-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+  .chat-message {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      max-width: 100%;
+    }
+
+  .chat-message.mine { flex-direction: row-reverse; }
+
+  .chat-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+      background: var(--accent-entity);
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--primary-foreground);
+      display: grid;
+      place-items: center;
+    }
+
+  .chat-message.mine .chat-avatar { background: var(--primary); color: var(--primary-foreground); }
+
+  .chat-bubble-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+  .chat-message.mine .chat-bubble-wrap { align-items: flex-end; }
+
+  .chat-author {
+      font-size: 10px;
+      color: var(--muted-foreground);
+      padding: 0 4px;
+    }
+
+  .chat-bubble {
+      padding: 6px 10px;
+      border-radius: var(--rounded-md);
+      background: var(--secondary);
+      color: var(--foreground);
+      font-size: 12px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+  .chat-message.mine .chat-bubble {
+      background: color-mix(in srgb, var(--primary) 22%, var(--secondary));
+      border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+    }
+
+  .chat-time {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--muted-foreground);
+      padding: 0 4px;
+    }
+
+  .chat-composer {
+      display: flex;
+      gap: 6px;
+      padding: var(--spacing-sm);
+      border-top: 1px solid var(--border);
+      background: color-mix(in srgb, var(--card) 40%, transparent);
+    }
+
+  .chat-composer input {
+      flex: 1;
+      min-width: 0;
+      font: inherit;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: var(--rounded-pill);
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--foreground);
+    }
+
+  .chat-composer input::placeholder { color: var(--muted-foreground); }
+
+  .chat-composer input:focus {
+      outline: none;
+      border-color: var(--ring);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 25%, transparent);
+    }
+
+  .chat-send {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--primary-foreground);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+  .chat-send:hover { filter: brightness(1.08); }
+
+  .chat-send:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: none;
+    }
+
+  .chat-fab {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      border-radius: 50%;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: var(--foreground);
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgb(0 0 0 / 0.28);
+      display: grid;
+      place-items: center;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+  .chat-fab:hover {
+      background: var(--secondary);
+      box-shadow: 0 6px 24px rgb(0 0 0 / 0.32);
+    }
+
+  .chat-fab[aria-expanded="true"] {
+      background: var(--card);
+      border-color: var(--ring);
+    }
+
+  .chat-fab svg { width: 22px; height: 22px; }
+
+  .chat-unread {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: var(--rounded-pill);
+      background: var(--destructive);
+      color: white;
+      font-size: 9px;
+      font-weight: 600;
+      line-height: 16px;
+      text-align: center;
+      border: 2px solid var(--card);
+    }
+
+  .chat-unread[hidden] { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mock-legend" data-design-note="Fixed legend — not in production UI">
+    <span><strong>TRL-75</strong> design mock</span>
+    <span>+ room chat FAB</span>
+    <span id="readout-theme">theme: default</span>
+    <span id="readout-mode">mode: dark</span>
+  </div>
+
+  <div class="app">
+    <header class="doc-bar" data-design-note="Doc bar — bg-card, text-foreground">
+      <div class="scene">circuit.jsonld</div>
+      <div class="mode-tabs" data-design-note="ShellModeTabs — uses secondary/card tokens">
+        <button type="button" class="active">Edit</button>
+        <button type="button">Play</button>
+      </div>
+      <div class="presence">
+        <div class="avatar"></div>
+        <span>You</span>
+      </div>
+    </header>
+
+    <div class="stage">
+      <div class="viewport">
+        <div class="viewport-grid"></div>
+      </div>
+
+      <div class="left-panel" data-design-note="Scene inspector — glass-panel pattern">
+        <div class="glass-panel">
+          <div class="panel-header">Scene</div>
+          <div class="panel-body">
+            <div class="accordion-item">
+              <button type="button" class="accordion-trigger">Essentials</button>
+            </div>
+            <div class="accordion-item">
+              <button type="button" class="accordion-trigger">Environment</button>
+            </div>
+            <div class="field-row" style="padding: 8px var(--spacing-sm)">
+              <span class="field-label"><span class="spawn-dot"></span>spawn</span>
+              <span class="field-control" style="color: var(--accent-spawn)">marker</span>
+            </div>
+            <div class="field-row" style="padding: 0 var(--spacing-sm) 8px">
+              <span class="field-label"><span class="entity-dot"></span>entity</span>
+              <span class="field-control" style="color: var(--accent-entity)">selected</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-panel" data-design-note="Settings panel — Appearance controls live here">
+        <div class="glass-panel">
+          <div class="panel-header">Settings</div>
+          <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+            <button type="button" role="tab">Input</button>
+            <button type="button" role="tab">Camera</button>
+            <button type="button" role="tab" class="active" aria-selected="true">Shell</button>
+          </div>
+          <div class="panel-body">
+            <div class="appearance-section" data-design-note="NEW — Appearance section in Shell tab">
+              <div class="section-label">Appearance</div>
+
+              <div class="section-label" style="font-size: 10px; margin-bottom: 4px">Color mode</div>
+              <div class="toggle-group" role="group" aria-label="Color mode" id="mode-group">
+                <button type="button" data-mode="light">Light</button>
+                <button type="button" data-mode="dark" class="active">Dark</button>
+                <button type="button" data-mode="system">System</button>
+              </div>
+
+              <div class="section-label" style="font-size: 10px; margin-top: 8px; margin-bottom: 4px">Theme preset</div>
+              <div class="preset-grid" role="group" aria-label="Theme preset" id="preset-grid">
+                <button type="button" class="preset-card" data-preset="default" aria-pressed="true" aria-label="Default theme">
+                  <div class="swatch"><span></span><span></span><span></span><span></span></div>
+                  Default
+                </button>
+                <button type="button" class="preset-card" data-preset="violet-bloom" aria-pressed="false" aria-label="Violet Bloom theme">
+                  <div class="swatch"><span></span><span></span><span></span><span></span></div>
+                  Violet Bloom
+                </button>
+              </div>
+            </div>
+
+            <details class="import-details" data-design-note="Optional Phase 1 — tweakcn paste import">
+              <summary>Import tweakcn theme</summary>
+              <textarea readonly placeholder=":root {
+  --background: oklch(...);
+  --foreground: oklch(...);
+  ...
+}"></textarea>
+            </details>
+
+            <div class="check-row" style="margin-top: var(--spacing-sm)">
+              <input type="checkbox" id="stats" checked />
+              <label for="stats">Show stats HUD</label>
+            </div>
+
+            <div class="token-readout" id="token-readout">
+              html[data-theme] + .dark → CSS var cascade
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chrome-pill" data-design-note="View controls — chrome-pill utility">
+        <button type="button" class="active">Perspective</button>
+        <button type="button">Top</button>
+        <button type="button" class="play-btn">▶ Play</button>
+      </div>
+
+      <div class="status-bar" data-design-note="Status bar — card bg, muted-foreground text">
+        <span>60 fps · 12 entities · host</span>
+      </div>
+
+      <div class="chat-dock" data-design-note="RoomChat — FAB bottom-right, glass panel on expand">
+        <div class="chat-panel" id="chat-panel" role="dialog" aria-label="Room chat" aria-hidden="true">
+          <div class="chat-header">
+            <div>
+              Room chat
+              <div class="chat-header-meta">2 online · circuit</div>
+            </div>
+            <button type="button" class="chat-close" id="chat-close" aria-label="Close chat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="chat-messages" id="chat-messages" aria-live="polite">
+            <div class="chat-message">
+              <div class="chat-avatar" style="background: oklch(0.62 0.14 250)">A</div>
+              <div class="chat-bubble-wrap">
+                <span class="chat-author">Alex</span>
+                <div class="chat-bubble">Spawn point looks good — try nudging the ramp 1 cell east?</div>
+                <span class="chat-time">2:14 PM</span>
+              </div>
+            </div>
+            <div class="chat-message mine">
+              <div class="chat-avatar">Y</div>
+              <div class="chat-bubble-wrap">
+                <span class="chat-author">You</span>
+                <div class="chat-bubble">On it — gizmo snap is on.</div>
+                <span class="chat-time">2:15 PM</span>
+              </div>
+            </div>
+            <div class="chat-message">
+              <div class="chat-avatar" style="background: oklch(0.62 0.14 250)">A</div>
+              <div class="chat-bubble-wrap">
+                <span class="chat-author">Alex</span>
+                <div class="chat-bubble">Nice. Hit play when ready 🏁</div>
+                <span class="chat-time">2:15 PM</span>
+              </div>
+            </div>
+          </div>
+          <form class="chat-composer" id="chat-form">
+            <input
+              type="text"
+              id="chat-input"
+              maxlength="280"
+              placeholder="Message the room…"
+              autocomplete="off"
+              aria-label="Chat message"
+            />
+            <button type="submit" class="chat-send" id="chat-send" aria-label="Send message" disabled>
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
+                <path d="M3.4 20.4 20.8 12 3.4 3.6l2.8 7.2L16 12l-9.8 1.2-2.8 7.2z" />
+              </svg>
+            </button>
+          </form>
+        </div>
+        <button
+          type="button"
+          class="chat-fab"
+          id="chat-fab"
+          aria-label="Open room chat"
+          aria-expanded="false"
+          aria-controls="chat-panel"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+          <span class="chat-unread" id="chat-unread">1</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const html = document.documentElement;
+    const modeGroup = document.getElementById('mode-group');
+    const presetGrid = document.getElementById('preset-grid');
+    const readoutTheme = document.getElementById('readout-theme');
+    const readoutMode = document.getElementById('readout-mode');
+    const tokenReadout = document.getElementById('token-readout');
+
+    let currentMode = 'dark';
+    let currentTheme = 'default';
+    let systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+    function applyMode() {
+      const effective = currentMode === 'system'
+        ? (systemDark.matches ? 'dark' : 'light')
+        : currentMode;
+      html.classList.toggle('dark', effective === 'dark');
+      readoutMode.textContent = 'mode: ' + currentMode + (currentMode === 'system' ? ' → ' + effective : '');
+      updateReadout();
+    }
+
+    function applyTheme(theme) {
+      currentTheme = theme;
+      html.setAttribute('data-theme', theme);
+      readoutTheme.textContent = 'theme: ' + theme;
+      presetGrid.querySelectorAll('.preset-card').forEach((card) => {
+        const selected = card.dataset.preset === theme;
+        card.setAttribute('aria-pressed', String(selected));
+      });
+      updateReadout();
+    }
+
+    function updateReadout() {
+      const bg = getComputedStyle(html).getPropertyValue('--background').trim();
+      const primary = getComputedStyle(html).getPropertyValue('--primary').trim();
+      tokenReadout.textContent =
+        `data-theme="${currentTheme}" class="${html.className}" · --background: ${bg} · --primary: ${primary}`;
+    }
+
+    modeGroup.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-mode]');
+      if (!btn) return;
+      currentMode = btn.dataset.mode;
+      modeGroup.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      applyMode();
+    });
+
+    presetGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('[data-preset]');
+      if (!card) return;
+      applyTheme(card.dataset.preset);
+    });
+
+    systemDark.addEventListener('change', () => {
+      if (currentMode === 'system') applyMode();
+    });
+
+    applyTheme('default');
+    applyMode();
+
+    const chatFab = document.getElementById('chat-fab');
+    const chatPanel = document.getElementById('chat-panel');
+    const chatClose = document.getElementById('chat-close');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatUnread = document.getElementById('chat-unread');
+    let chatOpen = false;
+
+    function formatTime(date) {
+      return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
+    function scrollChatToEnd() {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function setChatOpen(open) {
+      chatOpen = open;
+      chatPanel.classList.toggle('open', open);
+      chatPanel.setAttribute('aria-hidden', String(!open));
+      chatFab.setAttribute('aria-expanded', String(open));
+      chatFab.setAttribute('aria-label', open ? 'Close room chat' : 'Open room chat');
+      if (open) {
+        chatUnread.hidden = true;
+        chatInput.focus();
+        scrollChatToEnd();
+      }
+    }
+
+    function appendMessage(text, mine = true) {
+      const row = document.createElement('div');
+      row.className = 'chat-message' + (mine ? ' mine' : '');
+      row.innerHTML = `
+        <div class="chat-avatar">${mine ? 'Y' : 'A'}</div>
+        <div class="chat-bubble-wrap">
+          <span class="chat-author">${mine ? 'You' : 'Alex'}</span>
+          <div class="chat-bubble"></div>
+          <span class="chat-time">${formatTime(new Date())}</span>
+        </div>
+      `;
+      row.querySelector('.chat-bubble').textContent = text;
+      chatMessages.appendChild(row);
+      scrollChatToEnd();
+    }
+
+    chatFab.addEventListener('click', () => setChatOpen(!chatOpen));
+    chatClose.addEventListener('click', () => setChatOpen(false));
+
+    chatInput.addEventListener('input', () => {
+      chatSend.disabled = !chatInput.value.trim();
+    });
+
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+      appendMessage(text);
+      chatInput.value = '';
+      chatSend.disabled = true;
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && chatOpen) {
+        setChatOpen(false);
+        chatFab.focus();
+      }
+    });
+
+    scrollChatToEnd();
+  </script>
+</body>
+</html>

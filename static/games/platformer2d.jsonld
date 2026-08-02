@@ -1,0 +1,78 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" }
+  },
+  "@graph": [
+    {
+      "@id": "entity:world/profile",
+      "@type": "Thing",
+      "components": {
+        "WorldProfile": {
+          "dimensions": "2d",
+          "plane": "xy",
+          "unit": "pixel",
+          "pixelsPerUnit": 64,
+          "gravity": { "x": 0, "y": -20, "z": 0 }
+        },
+        "Camera2D": {
+          "deadZoneX": 1.5,
+          "deadZoneY": 1,
+          "lookAhead": 0.8,
+          "zoom": 52
+        }
+      }
+    },
+    {
+      "@id": "entity:ground/main",
+      "@type": "Thing",
+      "conformsTo": "GroundPlane",
+      "components": {
+        "Ground": { "size": 24, "color": "#12121a" }
+      }
+    },
+    {
+      "@id": "entity:platform/floor",
+      "@type": "Thing",
+      "conformsTo": "Prop",
+      "components": {
+        "Transform": {
+          "position": { "x": 0, "y": -2, "z": 0 },
+          "scale": { "x": 12, "y": 0.5, "z": 0.2 }
+        },
+        "Render": { "mesh": "primitive:box", "color": "#3d5a80", "anchor": "center" }
+      }
+    },
+    {
+      "@id": "entity:prop/crate",
+      "@type": "Thing",
+      "conformsTo": "SpriteProp",
+      "components": {
+        "Transform": { "position": { "x": -2, "y": 0.5, "z": 0 } },
+        "Sprite": {
+          "texture": "/logo.png",
+          "frame": [0, 0, 64, 64],
+          "anchor": "bottom",
+          "sortKey": 2,
+          "color": "#7fdbca"
+        }
+      }
+    },
+    {
+      "@id": "entity:spawn/center",
+      "@type": "Thing",
+      "conformsTo": "SpawnPoint",
+      "components": {
+        "Transform": { "position": { "x": -3, "y": 0, "z": 0 } },
+        "Marker": { "kind": "spawn" }
+      }
+    },
+    {
+      "@id": "entity:light/ambient",
+      "@type": "Thing",
+      "conformsTo": "AmbientLight",
+      "components": { "Light": { "intensity": 0.85 } }
+    }
+  ]
+}

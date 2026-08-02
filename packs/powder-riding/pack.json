@@ -1,0 +1,63 @@
+{
+  "id": "powder-riding",
+  "title": "POWDER — Riding",
+  "status": "proposed",
+  "motivatedBy": "powder",
+  "description": "Board-carving locomotion, air-trick combo scoring, and rideable terrain — the reusable mechanics under an SSX-style snowboarding game.",
+  "boundary": "Nothing here is wired into engine core. These are reusable RIDING primitives, not POWDER content and not Craftpunk anything. POWDER is the standing second consumer that keeps the engine honest: if a 'primitive' only a snowboarding game could want, it's POWDER data, not a pack entry.",
+  "authoringSource": "./components.jsonld",
+  "provides": {
+    "components": [
+      {
+        "name": "Board",
+        "status": "proposed",
+        "why": "Carving state (edge angle, tilt) plus authored ride tunables (grip, sidecut, jump charge). Prototype's tunables.json maps straight onto durable fields here.",
+        "reusableBy": ["a skiing game", "a surfing / skateboarding game", "any downhill/racing ride model"]
+      },
+      {
+        "name": "TrickScore",
+        "status": "proposed",
+        "why": "Air-trick combo state machine — tracks rotation, tick points, multipliers, repeat decay; scores on landing grade. Ports the prototype's trick_scoring.js.",
+        "reusableBy": ["a skateboarding game", "a BMX / trials game", "any air-trick scoring loop"]
+      },
+      {
+        "name": "Terrain",
+        "status": "proposed",
+        "why": "Rideable surface authored as heightfield / bezier patches (the prototype's patch_course), rendered as a procedural mesh and collided against.",
+        "reusableBy": ["any outdoor/open-world game", "a golf / driving game with contoured ground"]
+      }
+    ],
+    "types": [
+      {
+        "name": "Rider",
+        "status": "proposed",
+        "why": "A player/agent with a Board + TrickScore, driven by carve locomotion instead of WASD walking.",
+        "reusableBy": ["a vehicle/racing game with a steer+drift model", "a surf/skate avatar"]
+      }
+    ],
+    "behaviors": [
+      {
+        "name": "carve",
+        "status": "proposed",
+        "enginePathWhenBuilt": "src/lib/engine/systems/behaviors/carve.ts",
+        "why": "Per-tick board locomotion: slope momentum + edge-grip steering + jump charge/pop. Ports board_physics.js pure functions over durable Board tunables.",
+        "reusableBy": ["skiing", "surfing", "any momentum-on-slopes movement"]
+      },
+      {
+        "name": "trick",
+        "status": "proposed",
+        "enginePathWhenBuilt": "src/lib/engine/systems/behaviors/trick.ts",
+        "why": "Detects air, accumulates rotation into named tricks, scores on landing. Ports trick_scoring.js.",
+        "reusableBy": ["skateboarding", "BMX", "any air-trick game"]
+      }
+    ]
+  },
+  "substrateGaps": {
+    "note": "Genuine ENGINE (tier-1) gaps POWDER surfaces. Game-agnostic — file as TRLs, not overfit, not a fork. See PORTING.md.",
+    "items": [
+      "Rapier heightfield colliders + continuous-collision (CCD) for fast bodies",
+      "Procedural terrain meshes from patch/heightfield data in the render layer",
+      "Analog input axes surfaced through the input-map system (stick carving/spin)"
+    ]
+  }
+}

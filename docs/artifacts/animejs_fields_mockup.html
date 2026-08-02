@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trellis — Anime.js Field Language (design mock)</title>
+  <!-- trellis-design-adopted: slug=animejs_fields -->
+  <style>
+    :root {
+      --viewport: #0a0a0a;
+      --viewport-grid: #161616;
+      --surface-glass: color-mix(in srgb, #1c1c1c 22%, transparent);
+      --field-well: #141414;
+      --field-well-hover: #181818;
+      --field-well-active: #1c1c1a;
+      --text: #e8e6e0;
+      --text-muted: #6f6f6f;
+      --text-dim: #4a4a4a;
+      --accent-field: #c9a227;
+      --accent-field-dim: color-mix(in srgb, #c9a227 35%, transparent);
+      --accent-field-glow: color-mix(in srgb, #c9a227 18%, transparent);
+      --border: #2a2a2a;
+      --border-subtle: #1f1f1f;
+      --border-focus: color-mix(in srgb, #c9a227 55%, #2a2a2a);
+      --right-panel-width: 320px;
+      --left-panel-width: 320px;
+      --float-inset: 12px;
+      --field-row-height: 28px;
+      --label-col: 88px;
+      --font-ui: 'Geist', system-ui, sans-serif;
+      --font-mono: 'Geist Mono', ui-monospace, monospace;
+      --radius-sm: 3px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      color: var(--text);
+      background: var(--viewport);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-color: var(--viewport);
+    }
+
+  .stage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 45%, rgb(201 162 39 / 0.04), transparent 70%);
+    pointer-events: none;
+  }
+
+    .controls {
+      position: fixed;
+      top: var(--float-inset);
+      left: var(--float-inset);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      z-index: 50;
+      max-width: 520px;
+    }
+
+    .controls button {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: lowercase;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--field-well) 90%, transparent);
+      color: var(--text-muted);
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+    }
+
+    .controls button.active {
+      color: var(--accent-field);
+      border-color: var(--border-focus);
+      box-shadow: inset 0 0 0 1px var(--accent-field-glow);
+    }
+
+    .legend {
+      position: fixed;
+      bottom: var(--float-inset);
+      left: calc(var(--left-panel-width) + var(--float-inset) * 2);
+      max-width: 340px;
+      padding: 10px 12px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+      border-radius: var(--radius-sm);
+      font-size: 10px;
+      color: var(--text-muted);
+      z-index: 50;
+      line-height: 1.5;
+    }
+
+    .legend strong {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .legend kbd {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      padding: 1px 4px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 2px;
+      color: var(--text-muted);
+    }
+
+    /* —— Glass right panel (current shell) —— */
+    .right-panel {
+      position: absolute;
+      top: 48px;
+      right: 0;
+      bottom: 0;
+      width: var(--right-panel-width);
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+      border-left: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .right-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: var(--surface-glass);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      pointer-events: none;
+    }
+
+    .inspector-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .inspector-header .title {
+      flex: 1;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+    }
+
+    .transform-bar {
+      display: flex;
+      gap: 4px;
+      padding: 6px 10px;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+      flex-shrink: 0;
+    }
+
+    .transform-bar button {
+      flex: 1;
+      height: 26px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      background: var(--field-well);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .transform-bar button.active {
+      color: var(--accent-field);
+      border-color: var(--border-focus);
+      box-shadow: inset 0 0 0 1px var(--accent-field-glow);
+    }
+
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+      padding: 0 8px;
+      flex-shrink: 0;
+    }
+
+    .panel-tab {
+      flex: 1;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 8px 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .panel-tab.active {
+      color: var(--text);
+      border-bottom-color: var(--accent-field);
+    }
+
+    .inspector-body {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 16px;
+    }
+
+    .section {
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 25%, transparent);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section-header:hover { color: var(--text); }
+
+    .section-fields {
+      padding: 0 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* —— Anime.js field language —— */
+    .field-row {
+      display: grid;
+      grid-template-columns: var(--label-col) 1fr;
+      gap: 6px;
+      align-items: center;
+      min-height: var(--field-row-height);
+    }
+
+    .field-label-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: lowercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .field-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent-field);
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+
+    .field-row.dirty .field-dot,
+    .field-row.focused .field-dot { opacity: 1; }
+
+    .field-row.focused .field-label { color: var(--text); }
+
+    .field-well {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-height: var(--field-row-height);
+      background: var(--field-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .field-well:hover { background: var(--field-well-hover); }
+
+    .field-row.focused .field-well,
+    .field-well:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: inset 0 0 0 1px var(--accent-field-glow);
+      background: var(--field-well-active);
+    }
+
+    .field-row.dirty .field-well { border-color: color-mix(in srgb, var(--accent-field) 30%, var(--border-subtle)); }
+
+    .field-value {
+      flex: 1;
+      min-width: 0;
+      padding: 0 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+      background: transparent;
+      border: none;
+      outline: none;
+      height: var(--field-row-height);
+    }
+
+    .field-row.focused .field-value,
+    .field-row.dirty .field-value { color: var(--accent-field); }
+
+    .field-axis {
+      width: 22px;
+      flex-shrink: 0;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      border-right: 1px solid var(--border-subtle);
+      line-height: var(--field-row-height);
+    }
+
+    /* Integrated slider */
+    .slider-well {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      height: var(--field-row-height);
+      padding: 0 8px 0 4px;
+    }
+
+    .slider-track {
+      position: absolute;
+      left: 8px;
+      right: 48px;
+      top: 50%;
+      height: 1px;
+      background: var(--border);
+      transform: translateY(-50%);
+    }
+
+    .slider-tick {
+      position: absolute;
+      top: 50%;
+      width: 2px;
+      height: 14px;
+      background: var(--text-muted);
+      transform: translate(-50%, -50%);
+      transition: left 80ms ease, background 120ms ease;
+      pointer-events: none;
+    }
+
+    .field-row.focused .slider-tick,
+    .field-row.dirty .slider-tick { background: var(--accent-field); }
+
+    input[type="range"].slider-input {
+      position: absolute;
+      left: 8px;
+      right: 48px;
+      width: calc(100% - 56px);
+      opacity: 0;
+      cursor: ew-resize;
+      height: var(--field-row-height);
+      margin: 0;
+    }
+
+    .slider-num {
+      width: 40px;
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      background: transparent;
+      border: none;
+      outline: none;
+    }
+
+    .field-row.focused .slider-num,
+    .field-row.dirty .slider-num { color: var(--accent-field); }
+
+    /* Select */
+    .select-well {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      height: var(--field-row-height);
+      cursor: pointer;
+    }
+
+    .select-value {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: lowercase;
+    }
+
+    .select-chevrons {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      color: var(--text-dim);
+      font-size: 7px;
+      line-height: 1;
+      margin-left: 6px;
+    }
+
+    /* Checkbox */
+    .bool-well {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 8px;
+      height: var(--field-row-height);
+      cursor: pointer;
+    }
+
+  .bool-box {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: #0e0e0e;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+    .bool-box.on {
+      border-color: var(--border-focus);
+      box-shadow: inset 0 0 0 1px var(--accent-field-glow);
+    }
+
+    .bool-box.on::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent-field);
+      border-radius: 1px;
+    }
+
+    /* Color */
+    .color-well {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 0 8px;
+      height: var(--field-row-height);
+    }
+
+    .color-hex {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .color-swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    /* Footer actions */
+    .inspector-footer {
+      display: flex;
+      gap: 4px;
+      padding: 8px 10px;
+      border-top: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+      flex-shrink: 0;
+    }
+
+    .inspector-footer button {
+      flex: 1;
+      height: 28px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      background: var(--field-well);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .inspector-footer button.primary {
+      color: var(--accent-field);
+      border-color: var(--border-focus);
+    }
+
+    /* —— “Current” style comparison (hidden by default) —— */
+    .compare-current .field-well,
+    .compare-current .slider-well,
+    .compare-current .select-well,
+    .compare-current .bool-well,
+    .compare-current .color-well {
+      border-radius: 6px;
+      border-color: color-mix(in srgb, var(--border) 80%, transparent);
+      background: color-mix(in srgb, var(--viewport) 50%, transparent);
+    }
+
+    .compare-current .field-label { text-transform: lowercase; font-size: 10px; }
+    .compare-current .field-dot { display: none; }
+    .compare-current .field-value,
+    .compare-current .slider-num { color: var(--text); }
+    .compare-current .slider-tick { display: none; }
+
+    .compare-current .transform-bar button.active {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--border) 80%, transparent);
+      box-shadow: none;
+    }
+
+    .compare-current .panel-tab.active {
+      border-bottom-color: var(--text);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .field-dot, .field-well, .slider-tick { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="controls" data-design-note="Toggle compares proposed anime field language vs current segmented inspector">
+      <button type="button" class="active" id="btn-anime" onclick="setMode('anime')">anime fields</button>
+      <button type="button" id="btn-current" onclick="setMode('current')">current fields</button>
+    </div>
+
+    <div class="legend" data-design-note="Gizmo anchor follows left panel — same as shipped shell">
+      <strong>Anime.js field language</strong>
+      Lowercase mono labels · recessed wells · gold dot = dirty · gold value on focus.<br />
+      Integrated slider tick (vertical bar) + right-aligned number.<br />
+      <kbd>↑↓</kbd> nudge numbers · drag slider · click bool row to toggle
+    </div>
+
+    <aside class="right-panel" id="panel" aria-label="Inspector mock">
+      <header class="inspector-header">
+        <span class="title">GroundPlane</span>
+        <span class="badge">main</span>
+      </header>
+
+      <div class="transform-bar" data-design-note="Phase 2: same flat mono treatment">
+        <button type="button" class="active">move <span style="opacity:.5">m</span></button>
+        <button type="button">rotate <span style="opacity:.5">r</span></button>
+        <button type="button">scale <span style="opacity:.5">s</span></button>
+      </div>
+
+      <div class="panel-tabs" role="tablist">
+        <button type="button" class="panel-tab active" role="tab" aria-selected="true">Props</button>
+        <button type="button" class="panel-tab" role="tab">Events</button>
+        <button type="button" class="panel-tab" role="tab">Schema</button>
+        <button type="button" class="panel-tab" role="tab">Graph</button>
+      </div>
+
+      <div class="inspector-body">
+        <section class="section">
+          <div class="section-header">transform</div>
+          <div class="section-fields">
+            <div class="field-row" data-field="pos-x">
+              <div class="field-label-wrap">
+                <span class="field-dot" aria-hidden="true"></span>
+                <span class="field-label">position</span>
+              </div>
+              <div class="field-well">
+                <span class="field-axis">x</span>
+                <input class="field-value" type="text" value="0" data-default="0" aria-label="position x" />
+              </div>
+            </div>
+            <div class="field-row" data-field="pos-y">
+              <div class="field-label-wrap"><span class="field-dot"></span><span class="field-label"></span></div>
+              <div class="field-well">
+                <span class="field-axis">y</span>
+                <input class="field-value" type="text" value="0" data-default="0" aria-label="position y" />
+              </div>
+            </div>
+            <div class="field-row dirty" data-field="pos-z">
+              <div class="field-label-wrap"><span class="field-dot"></span><span class="field-label"></span></div>
+              <div class="field-well">
+                <span class="field-axis">z</span>
+                <input class="field-value" type="text" value="0.5" data-default="0" aria-label="position z" />
+              </div>
+            </div>
+            <div class="field-row" data-field="scale-x">
+              <div class="field-label-wrap"><span class="field-dot"></span><span class="field-label">scale</span></div>
+              <div class="field-well">
+                <span class="field-axis">x</span>
+                <input class="field-value" type="text" value="1" data-default="1" aria-label="scale x" />
+              </div>
+            </div>
+            <div class="field-row" data-field="scale-y">
+              <div class="field-label-wrap"><span class="field-dot"></span><span class="field-label"></span></div>
+              <div class="field-well">
+                <span class="field-axis">y</span>
+                <input class="field-value" type="text" value="1" data-default="1" aria-label="scale y" />
+              </div>
+            </div>
+            <div class="field-row" data-field="scale-z">
+              <div class="field-label-wrap"><span class="field-dot"></span><span class="field-label"></span></div>
+              <div class="field-well">
+                <span class="field-axis">z</span>
+                <input class="field-value" type="text" value="1" data-default="1" aria-label="scale z" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">ground</div>
+          <div class="section-fields">
+            <div class="field-row dirty focused" data-field="size" id="size-row">
+              <div class="field-label-wrap">
+                <span class="field-dot"></span>
+                <span class="field-label">size</span>
+              </div>
+              <div class="field-well">
+                <div class="slider-well">
+                  <div class="slider-track"></div>
+                  <div class="slider-tick" id="size-tick" style="left: 35%"></div>
+                  <input type="range" class="slider-input" id="size-slider" min="1" max="100" value="20" aria-label="size" />
+                  <input type="text" class="slider-num" id="size-num" value="20" data-default="20" aria-label="size value" />
+                </div>
+              </div>
+            </div>
+            <div class="field-row" data-field="color">
+              <div class="field-label-wrap">
+                <span class="field-dot"></span>
+                <span class="field-label">color</span>
+              </div>
+              <div class="field-well">
+                <div class="color-well">
+                  <span class="color-hex">#0e0e12</span>
+                  <span class="color-swatch" style="background: #0e0e12"></span>
+                </div>
+              </div>
+            </div>
+            <div class="field-row" data-field="anchor">
+              <div class="field-label-wrap">
+                <span class="field-dot"></span>
+                <span class="field-label">anchor</span>
+              </div>
+              <div class="field-well">
+                <div class="select-well" role="button" tabindex="0" aria-label="anchor">
+                  <span class="select-value">bottom</span>
+                  <span class="select-chevrons" aria-hidden="true">▴<br>▾</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">render</div>
+          <div class="section-fields">
+            <div class="field-row" data-field="shadows" id="shadows-row">
+              <div class="field-label-wrap">
+                <span class="field-dot"></span>
+                <span class="field-label">shadows</span>
+              </div>
+              <div class="field-well">
+                <div class="bool-well" role="checkbox" aria-checked="true" tabindex="0" id="shadows-bool">
+                  <span class="bool-box on"></span>
+                  <span class="select-value">on</span>
+                </div>
+              </div>
+            </div>
+            <div class="field-row" data-field="ease">
+              <div class="field-label-wrap">
+                <span class="field-dot"></span>
+                <span class="field-label">ease</span>
+              </div>
+              <div class="field-well">
+                <div class="select-well" tabindex="0">
+                  <span class="select-value">out(3)</span>
+                  <span class="select-chevrons" aria-hidden="true">▴<br>▾</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="inspector-footer" data-design-note="Future durable edit bar — SAVE gold only when graph dirty">
+        <button type="button">revert</button>
+        <button type="button">reset</button>
+        <button type="button" class="primary">save</button>
+      </footer>
+    </aside>
+  </div>
+
+  <script>
+    const stage = document.getElementById('stage');
+    const panel = document.getElementById('panel');
+    const btnAnime = document.getElementById('btn-anime');
+    const btnCurrent = document.getElementById('btn-current');
+
+    function setMode(mode) {
+      const anime = mode === 'anime';
+      stage.classList.toggle('compare-current', !anime);
+      btnAnime.classList.toggle('active', anime);
+      btnCurrent.classList.toggle('active', !anime);
+    }
+
+    function markDirty(row, input) {
+      const def = input.dataset.default;
+      const val = input.value;
+      row.classList.toggle('dirty', def !== undefined && val !== def);
+    }
+
+    document.querySelectorAll('.field-row').forEach((row) => {
+      const input = row.querySelector('.field-value, .slider-num');
+      if (!input) return;
+      input.addEventListener('focus', () => {
+        row.classList.add('focused');
+        document.querySelectorAll('.field-row.focused').forEach((r) => {
+          if (r !== row) r.classList.remove('focused');
+        });
+      });
+      input.addEventListener('blur', () => row.classList.remove('focused'));
+      input.addEventListener('input', () => markDirty(row, input));
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const step = Number(input.step) || 0.1;
+          const n = Number(input.value) || 0;
+          input.value = String(n + (e.key === 'ArrowUp' ? step : -step));
+          markDirty(row, input);
+        }
+      });
+    });
+
+    const sizeSlider = document.getElementById('size-slider');
+    const sizeNum = document.getElementById('size-num');
+    const sizeTick = document.getElementById('size-tick');
+    const sizeRow = document.getElementById('size-row');
+
+    function syncSlider() {
+      const min = Number(sizeSlider.min);
+      const max = Number(sizeSlider.max);
+      const val = Number(sizeSlider.value);
+      const pct = ((val - min) / (max - min)) * 100;
+      sizeTick.style.left = `calc(8px + (100% - 56px) * ${pct / 100})`;
+      sizeNum.value = String(val);
+      markDirty(sizeRow, sizeNum);
+    }
+
+    sizeSlider.addEventListener('input', syncSlider);
+    sizeNum.addEventListener('input', () => {
+      sizeSlider.value = sizeNum.value;
+      syncSlider();
+    });
+
+    const shadowsBool = document.getElementById('shadows-bool');
+    const shadowsRow = document.getElementById('shadows-row');
+    shadowsBool.addEventListener('click', () => {
+      const box = shadowsBool.querySelector('.bool-box');
+      const on = box.classList.toggle('on');
+      shadowsBool.setAttribute('aria-checked', on);
+      shadowsBool.querySelector('.select-value').textContent = on ? 'on' : 'off';
+      shadowsRow.classList.toggle('dirty', !on);
+    });
+
+    document.querySelectorAll('.transform-bar button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.transform-bar button').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

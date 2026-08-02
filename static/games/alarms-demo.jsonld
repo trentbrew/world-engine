@@ -1,0 +1,65 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" },
+    "events": { "@type": "@json" }
+  },
+  "@graph": [
+    {
+      "@id": "entity:light/ambient",
+      "@type": "Thing",
+      "conformsTo": "AmbientLight",
+      "components": { "Light": { "intensity": 0.7 } }
+    },
+    {
+      "@id": "entity:light/sun",
+      "@type": "Thing",
+      "conformsTo": "DirectionalLight",
+      "components": {
+        "Light": { "intensity": 1.1 },
+        "Transform": { "position": { "x": 4, "y": 8, "z": 3 } }
+      }
+    },
+    {
+      "@id": "entity:ground/main",
+      "@type": "Thing",
+      "conformsTo": "GroundPlane",
+      "components": { "Ground": { "size": 16, "color": "#0e0e14" } }
+    },
+
+    {
+      "@id": "type:Puff",
+      "@type": "EntityType",
+      "components": ["Transform", "Render"],
+      "defaults": {
+        "Render": { "mesh": "primitive:sphere", "color": "#ffe08a" },
+        "Transform": { "scale": [0.25, 0.25, 0.25] }
+      }
+    },
+
+    {
+      "@id": "type:Fuse",
+      "@type": "EntityType",
+      "components": ["Transform", "Render"],
+      "defaults": { "Render": { "mesh": "primitive:box", "color": "#3498db" } },
+      "events": {
+        "create": [{ "alarm": 0, "in": 1.5 }],
+        "alarm0": [
+          { "set": "Render.color", "to": "#ff0000" },
+          { "destroy": "self" }
+        ],
+        "destroy": [
+          { "spawn": "type:Puff", "at": "=vec(Transform.position.x, Transform.position.y, Transform.position.z)" }
+        ]
+      }
+    },
+
+    {
+      "@id": "entity:fuse/1",
+      "@type": "Thing",
+      "conformsTo": "Fuse",
+      "components": { "Transform": { "position": { "x": 0, "y": 0.5, "z": 0 } } }
+    }
+  ]
+}

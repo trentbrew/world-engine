@@ -1,0 +1,2007 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "type:PhysBox",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Physics"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#d4d4d4",
+					"anchor": "bottom"
+				},
+				"Physics": {
+					"body": "dynamic",
+					"collider": "box",
+					"mass": 1
+				}
+			}
+		},
+		{
+			"@id": "type:PhysBall",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Physics"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#5b9fd4",
+					"anchor": "bottom"
+				},
+				"Physics": {
+					"body": "dynamic",
+					"collider": "ball",
+					"mass": 0.5,
+					"restitution": 0.72
+				}
+			}
+		},
+		{
+			"@id": "type:PitWall",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Physics"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2a2a34"
+				},
+				"Physics": {
+					"body": "fixed",
+					"collider": "box"
+				}
+			}
+		},
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Ground": {
+					"size": 32,
+					"color": "#00000000"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.5
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1.05
+				},
+				"Transform": {
+					"position": {
+						"x": 5,
+						"y": 14,
+						"z": 6
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/rim",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.05,
+						"z": -7
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/floor",
+			"@type": "Thing",
+			"conformsTo": "PitWall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": -2.6,
+						"z": 5
+					},
+					"scale": [
+						7.5,
+						0.35,
+						7.5
+					]
+				},
+				"Render": {
+					"color": "#1a1a24"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/wall-n",
+			"@type": "Thing",
+			"conformsTo": "PitWall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": -0.8,
+						"z": 9.2
+					},
+					"scale": [
+						7.8,
+						3.6,
+						0.35
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/wall-s",
+			"@type": "Thing",
+			"conformsTo": "PitWall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": -0.8,
+						"z": 0.8
+					},
+					"scale": [
+						7.8,
+						3.6,
+						0.35
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/wall-e",
+			"@type": "Thing",
+			"conformsTo": "PitWall",
+			"components": {
+				"Transform": {
+					"position": [
+						3.9,
+						-1,
+						5
+					],
+					"scale": [
+						0.35,
+						3.6,
+						7.8
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/wall-w",
+			"@type": "Thing",
+			"conformsTo": "PitWall",
+			"components": {
+				"Transform": {
+					"position": [
+						-3.9,
+						-0.8,
+						5
+					],
+					"scale": [
+						0.35,
+						3.6,
+						7.8
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ramp",
+			"@type": "Thing",
+			"conformsTo": "PitWall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.15,
+						"z": 1.2
+					},
+					"rotation": {
+						"x": 0,
+						"y": 0,
+						"z": 0.18,
+						"w": 0.984
+					},
+					"scale": [
+						3.5,
+						0.2,
+						2.2
+					]
+				},
+				"Render": {
+					"color": "#3a3a48"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-01",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -3,
+						"y": -2.425,
+						"z": 2.2
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#ff6b6b"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-02",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -2.1,
+						"y": -2.425,
+						"z": 2.2
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#ffd166"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-03",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -1.2,
+						"y": -2.425,
+						"z": 2.2
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#7fdbca"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-04",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.3,
+						"y": -2.425,
+						"z": 2.2
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#c77dff"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-05",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0.6,
+						"y": -2.425,
+						"z": 2.2
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#4ecdc4"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-06",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 1.5,
+						"y": -2.425,
+						"z": 2.2
+					},
+					"scale": [
+						0.7,
+						0.7,
+						0.7
+					]
+				},
+				"Render": {
+					"color": "#f72585"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-07",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.4,
+						"y": -2.425,
+						"z": 2.2
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#90be6d"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-08",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 3,
+						"y": -2.425,
+						"z": 2.2
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#577590"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-09",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -2.7,
+						"y": -2.425,
+						"z": 3.4
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#f9844a"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-10",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -1.8,
+						"y": -2.425,
+						"z": 3.4
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#b5179e"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-11",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.9,
+						"y": -2.425,
+						"z": 3.4
+					},
+					"scale": [
+						0.75,
+						0.75,
+						0.75
+					]
+				},
+				"Render": {
+					"color": "#48cae4"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-12",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": -2.425,
+						"z": 3.4
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#e9c46a"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-13",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0.9,
+						"y": -2.425,
+						"z": 3.4
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#ef476f"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-14",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 1.8,
+						"y": -2.425,
+						"z": 3.4
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#06d6a0"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-15",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.7,
+						"y": -2.425,
+						"z": 3.4
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#118ab2"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-16",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -3,
+						"y": -2.425,
+						"z": 4.6
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#ff9f1c"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-17",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -2.1,
+						"y": -2.425,
+						"z": 4.6
+					},
+					"scale": [
+						0.7,
+						0.7,
+						0.7
+					]
+				},
+				"Render": {
+					"color": "#2ec4b6"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-18",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -1.2,
+						"y": -2.425,
+						"z": 4.6
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#ff006e"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-19",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.3,
+						"y": -2.425,
+						"z": 4.6
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#8338ec"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-20",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0.6,
+						"y": -2.425,
+						"z": 4.6
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#fb5607"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-21",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 1.5,
+						"y": -2.425,
+						"z": 4.6
+					},
+					"scale": [
+						0.75,
+						0.75,
+						0.75
+					]
+				},
+				"Render": {
+					"color": "#3a86ff"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-22",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.4,
+						"y": -2.425,
+						"z": 4.6
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#ffbe0b"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-23",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 3,
+						"y": -2.425,
+						"z": 4.6
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#7209b7"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-24",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -2.5,
+						"y": -2.425,
+						"z": 5.8
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#560bad"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-25",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -1.5,
+						"y": -2.425,
+						"z": 5.8
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#b5179e"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-26",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.5,
+						"y": -2.425,
+						"z": 5.8
+					},
+					"scale": [
+						0.7,
+						0.7,
+						0.7
+					]
+				},
+				"Render": {
+					"color": "#4cc9f0"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-27",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0.5,
+						"y": -2.425,
+						"z": 5.8
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#f15bb5"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-28",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 1.5,
+						"y": -2.425,
+						"z": 5.8
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#fee440"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-29",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.5,
+						"y": -2.425,
+						"z": 5.8
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#00bbf9"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-30",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -2,
+						"y": -2.425,
+						"z": 7
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#9b5de5"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-31",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.8,
+						"y": -2.425,
+						"z": 7
+					},
+					"scale": [
+						0.75,
+						0.75,
+						0.75
+					]
+				},
+				"Render": {
+					"color": "#00f5d4"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-32",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0.4,
+						"y": -2.425,
+						"z": 7
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#f94144"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-33",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 1.6,
+						"y": -2.425,
+						"z": 7
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#43aa8b"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/ball-34",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.8,
+						"y": -2.425,
+						"z": 7
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#f3722c"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-01",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -3,
+						"y": -2.425,
+						"z": 2.8
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#adb5bd"
+				},
+				"Physics": {
+					"mass": 0.45,
+					"restitution": 0.55
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-02",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -1.5,
+						"y": -2.425,
+						"z": 2.8
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#dee2e6"
+				},
+				"Physics": {
+					"mass": 0.5,
+					"restitution": 0.6
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-03",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": -2.425,
+						"z": 2.8
+					},
+					"scale": [
+						0.45,
+						0.45,
+						0.45
+					]
+				},
+				"Render": {
+					"color": "#ced4da"
+				},
+				"Physics": {
+					"mass": 0.4,
+					"restitution": 0.5
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-04",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 1.5,
+						"y": -2.425,
+						"z": 2.8
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#f8f9fa"
+				},
+				"Physics": {
+					"mass": 0.55,
+					"restitution": 0.65
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-05",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 3,
+						"y": -2.425,
+						"z": 2.8
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#e9ecef"
+				},
+				"Physics": {
+					"mass": 0.45,
+					"restitution": 0.58
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-06",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -2.4,
+						"y": -2.425,
+						"z": 4
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#ffc8dd"
+				},
+				"Physics": {
+					"mass": 0.5,
+					"restitution": 0.62
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-07",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.6,
+						"y": -2.425,
+						"z": 4
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#cdb4db"
+				},
+				"Physics": {
+					"mass": 0.65,
+					"restitution": 0.52
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-08",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 1.2,
+						"y": -2.425,
+						"z": 4
+					},
+					"scale": [
+						0.45,
+						0.45,
+						0.45
+					]
+				},
+				"Render": {
+					"color": "#bde0fe"
+				},
+				"Physics": {
+					"mass": 0.4,
+					"restitution": 0.7
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-09",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.8,
+						"y": -2.425,
+						"z": 4
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#a2d2ff"
+				},
+				"Physics": {
+					"mass": 0.45,
+					"restitution": 0.6
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-10",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -3,
+						"y": -2.425,
+						"z": 5.2
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#caf0f8"
+				},
+				"Physics": {
+					"mass": 0.55,
+					"restitution": 0.58
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-11",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -1.5,
+						"y": -2.425,
+						"z": 5.2
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#ffafcc"
+				},
+				"Physics": {
+					"mass": 0.45,
+					"restitution": 0.55
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-12",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": -2.425,
+						"z": 5.2
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#ffc6ff"
+				},
+				"Physics": {
+					"mass": 0.5,
+					"restitution": 0.65
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-13",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 1.5,
+						"y": -2.425,
+						"z": 5.2
+					},
+					"scale": [
+						0.45,
+						0.45,
+						0.45
+					]
+				},
+				"Render": {
+					"color": "#bdb2ff"
+				},
+				"Physics": {
+					"mass": 0.4,
+					"restitution": 0.72
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-14",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 3,
+						"y": -2.425,
+						"z": 5.2
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#d0f4de"
+				},
+				"Physics": {
+					"mass": 0.65,
+					"restitution": 0.5
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-15",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -2.2,
+						"y": -2.425,
+						"z": 6.4
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#fefae0"
+				},
+				"Physics": {
+					"mass": 0.45,
+					"restitution": 0.6
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-16",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.4,
+						"y": -2.425,
+						"z": 6.4
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#faedcd"
+				},
+				"Physics": {
+					"mass": 0.5,
+					"restitution": 0.55
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-17",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 1.4,
+						"y": -2.425,
+						"z": 6.4
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#e9edc9"
+				},
+				"Physics": {
+					"mass": 0.55,
+					"restitution": 0.68
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/cube-18",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.8,
+						"y": -2.425,
+						"z": 6.4
+					},
+					"scale": [
+						0.45,
+						0.45,
+						0.45
+					]
+				},
+				"Render": {
+					"color": "#ccd5ae"
+				},
+				"Physics": {
+					"mass": 0.4,
+					"restitution": 0.62
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/stack-01-base",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.2,
+						"y": -2.425,
+						"z": 6.8
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#495057"
+				},
+				"Physics": {
+					"mass": 0.7,
+					"restitution": 0.45
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/stack-01-mid",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.2,
+						"y": -1.825,
+						"z": 6.8
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#868e96"
+				},
+				"Physics": {
+					"mass": 0.55,
+					"restitution": 0.68
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/stack-01-top",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.2,
+						"y": -1.275,
+						"z": 6.8
+					},
+					"scale": [
+						0.45,
+						0.45,
+						0.45
+					]
+				},
+				"Render": {
+					"color": "#adb5bd"
+				},
+				"Physics": {
+					"mass": 0.35,
+					"restitution": 0.75
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/stack-02-base",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.1,
+						"y": -2.425,
+						"z": 3.8
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#264653"
+				},
+				"Physics": {
+					"mass": 0.75,
+					"restitution": 0.7
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/stack-02-top",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.1,
+						"y": -1.775,
+						"z": 3.8
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#2a9d8f"
+				},
+				"Physics": {
+					"mass": 0.5,
+					"restitution": 0.72
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-01",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -2.8,
+						"y": 3.5,
+						"z": 3.5
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#ff9f1c"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-02",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -1.8,
+						"y": 5,
+						"z": 4.5
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#2ec4b6"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-03",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.6,
+						"y": 4,
+						"z": 3.8
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#ff006e"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-04",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0.8,
+						"y": 6,
+						"z": 5.5
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#8338ec"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-05",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2,
+						"y": 3.8,
+						"z": 4.2
+					},
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					]
+				},
+				"Render": {
+					"color": "#fb5607"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-06",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.8,
+						"y": 5.2,
+						"z": 6
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#ffbe0b"
+				},
+				"Physics": {
+					"mass": 0.4,
+					"restitution": 0.75
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-07",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -0.5,
+						"y": 6.5,
+						"z": 6.2
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#3a86ff"
+				},
+				"Physics": {
+					"mass": 0.45,
+					"restitution": 0.8
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-08",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 1.2,
+						"y": 4.5,
+						"z": 7
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#06d6a0"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-09",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -2.2,
+						"y": 5.5,
+						"z": 6.5
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#e63946"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-10",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0.3,
+						"y": 3.2,
+						"z": 5.8
+					},
+					"scale": [
+						0.45,
+						0.45,
+						0.45
+					]
+				},
+				"Render": {
+					"color": "#457b9d"
+				},
+				"Physics": {
+					"mass": 0.35,
+					"restitution": 0.78
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-11",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 2.6,
+						"y": 6.2,
+						"z": 3.6
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#f4a261"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-12",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -1,
+						"y": 4.8,
+						"z": 7.2
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#8ac926"
+				},
+				"Physics": {
+					"mass": 0.4,
+					"restitution": 0.7
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-13",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": [
+						1.8,
+						5.8,
+						4.8
+					],
+					"scale": [
+						0.65,
+						0.65,
+						0.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					]
+				},
+				"Render": {
+					"color": "#bc6ff1"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-14",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -2.6,
+						"y": 4.2,
+						"z": 5
+					},
+					"scale": [
+						0.6,
+						0.6,
+						0.6
+					]
+				},
+				"Render": {
+					"color": "#ff595e"
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-15",
+			"@type": "Thing",
+			"conformsTo": "PhysBox",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0.6,
+						"y": 7,
+						"z": 4
+					},
+					"scale": [
+						0.55,
+						0.55,
+						0.55
+					]
+				},
+				"Render": {
+					"color": "#1982c4"
+				},
+				"Physics": {
+					"mass": 0.45,
+					"restitution": 0.82
+				}
+			}
+		},
+		{
+			"@id": "entity:pit/rain-16",
+			"@type": "Thing",
+			"conformsTo": "PhysBall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 3,
+						"y": 4.8,
+						"z": 5.4
+					},
+					"scale": [
+						0.5,
+						0.5,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#6a4c93"
+				}
+			}
+		}
+	]
+}

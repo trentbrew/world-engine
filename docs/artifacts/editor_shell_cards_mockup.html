@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="default" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trellis — Editor Shell Docked Bottom Pane (TRL design mock)</title>
+  <!-- trellis-design-adopted: slug=editor_shell_cards revision=2 -->
+  <style>
+    :root {
+      --background: oklch(0.145 0 0);
+      --foreground: oklch(0.985 0 0);
+      --secondary: oklch(0.269 0 0);
+      --muted-foreground: oklch(0.708 0 0);
+      --primary: oklch(0.922 0 0);
+      --primary-foreground: oklch(0.205 0 0);
+      --border: oklch(1 0 0 / 10%);
+      --viewport: oklch(0.1 0 0);
+      --viewport-grid: oklch(0.18 0 0);
+      --accent-entity: oklch(0.65 0 0);
+      --accent-spawn: oklch(0.75 0 0);
+      --surface-glass: color-mix(in srgb, var(--secondary) 68%, transparent);
+      --surface-glass-panel: color-mix(in srgb, var(--surface-glass) 22%, transparent);
+      --font-ui: 'Geist', system-ui, sans-serif;
+      --font-mono: 'Geist Mono', ui-monospace, monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --left-panel-width: 280px;
+      --right-panel-width: 320px;
+      --doc-bar-height: 48px;
+      --bottom-collapsed: 36px;
+      --bottom-expanded: 168px;
+      --bottom-height: var(--bottom-collapsed);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--foreground);
+      background: var(--viewport);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    /* Shared docked panel shell — left, right, doc bar, bottom */
+    .panel-shell {
+      position: relative;
+      isolation: isolate;
+      background: transparent;
+      border-radius: 0;
+      pointer-events: auto;
+      overflow: hidden;
+    }
+    .panel-shell::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: var(--surface-glass-panel);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+      pointer-events: none;
+    }
+
+    /* —— Grid shell (proposed) —— */
+    .shell {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
+      grid-template-rows: var(--doc-bar-height) 1fr var(--bottom-height);
+      pointer-events: none;
+      transition: grid-template-rows 200ms ease;
+    }
+
+    .doc-bar {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+    }
+    .doc-bar::before { border-radius: 0; border-bottom: none; }
+
+    .side-left {
+      grid-column: 1;
+      grid-row: 2 / -1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+    }
+    .side-right {
+      grid-column: 3;
+      grid-row: 2 / -1;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+    }
+
+    .bottom-pane {
+      grid-column: 2;
+      grid-row: 3;
+      display: flex;
+      flex-direction: column-reverse;
+      border-top: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+    }
+    .bottom-pane::before {
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .viewport-cell {
+      grid-column: 2;
+      grid-row: 2;
+      position: relative;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    /* Viewport scene */
+    .viewport-scene {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-color: var(--viewport);
+    }
+    .viewport-scene::after {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border: 1px solid color-mix(in srgb, var(--border) 20%, transparent);
+      border-radius: 2px;
+      box-shadow: inset 0 0 40px rgb(0 0 0 / 0.25);
+      pointer-events: none;
+    }
+    .duck {
+      position: absolute; left: 54%; top: 36%; width: 64px; height: 56px;
+      border: 2px solid #e8c547; border-radius: 50% 50% 45% 45%; opacity: 0.8;
+      transform: translate(-50%,-50%);
+    }
+
+    /* —— Floating palette (current / legacy) —— */
+    .float-palette {
+      display: none;
+      position: fixed;
+      z-index: 25;
+      bottom: 14px;
+      left: calc(var(--left-panel-width) + 28px);
+      right: calc(var(--right-panel-width) + 28px);
+      flex-direction: column-reverse;
+      border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 16px 44px color-mix(in srgb, var(--background) 55%, transparent);
+      overflow: hidden;
+      pointer-events: auto;
+    }
+    .float-palette::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: color-mix(in srgb, var(--surface-glass) 55%, transparent);
+      backdrop-filter: blur(20px);
+    }
+    body.mode-legacy .float-palette { display: flex; }
+    body.mode-legacy .bottom-pane { display: none; }
+    body.mode-legacy .shell {
+      grid-template-rows: var(--doc-bar-height) 1fr 0px;
+    }
+
+    /* —— Shared panel innards —— */
+    .doc-start { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .logo { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, var(--primary), #666); }
+    .scene-name { font-weight: 600; }
+    .doc-center { position: absolute; left: 50%; transform: translateX(-50%); }
+    .mode-tabs {
+      display: flex; background: color-mix(in srgb, var(--foreground) 6%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      border-radius: 999px; padding: 3px; gap: 2px;
+    }
+    .mode-tabs button {
+      font: 600 11px inherit; padding: 5px 16px; border: 0; border-radius: 999px;
+      background: transparent; color: var(--muted-foreground); cursor: pointer;
+    }
+    .mode-tabs button.active { background: var(--primary); color: var(--primary-foreground); }
+    .doc-end { flex: 1; display: flex; justify-content: flex-end; gap: 6px; }
+    .av { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--background); margin-left: -6px; background: #6a8cff; }
+
+    .panel-tabs {
+      display: flex; padding: 0 10px;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      flex-shrink: 0;
+    }
+    .panel-tab {
+      font: 600 11px inherit; padding: 10px 12px 9px; border: 0; background: none;
+      color: var(--muted-foreground); cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .panel-tab.active { color: var(--foreground); border-bottom-color: var(--accent-entity); }
+
+    .panel-body { flex: 1; overflow: auto; padding: 8px 10px; }
+    .entity-item {
+      display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+      border-radius: var(--radius-sm); font-size: 12px; cursor: pointer;
+    }
+    .entity-item.selected { background: color-mix(in srgb, var(--accent-entity) 12%, transparent); color: var(--accent-entity); }
+    .dot { width: 8px; height: 8px; border-radius: 2px; background: #666; }
+    .dot.spawn { background: var(--accent-spawn); }
+
+    .inspector-hdr {
+      padding: 10px 12px; border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      font-weight: 600;
+    }
+    .field-row {
+      display: grid; grid-template-columns: 72px 1fr; gap: 8px; padding: 4px 12px; font-size: 12px;
+    }
+    .field-row label { color: var(--muted-foreground); font-size: 11px; }
+    .field-row input {
+      height: 26px; padding: 0 6px; border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      border-radius: var(--radius-sm); background: color-mix(in srgb, var(--viewport) 50%, transparent);
+      color: var(--foreground); font: 400 11px var(--font-mono);
+    }
+
+    /* Bottom pane handle + body */
+    .pane-handle {
+      display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 14px;
+      border: 0; background: transparent; color: var(--muted-foreground);
+      font: 600 11px inherit; cursor: pointer; text-align: left;
+      border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+    }
+    .pane-handle .ttl { color: var(--foreground); }
+    .pane-handle kbd {
+      margin-left: auto; font: 600 10px var(--font-mono);
+      border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+      border-radius: 4px; padding: 2px 6px;
+    }
+    .resize-edge {
+      position: absolute; top: 0; left: 0; right: 0; height: 5px; cursor: ns-resize; z-index: 2;
+    }
+
+    .pane-body { overflow: hidden; }
+    .pills { display: flex; gap: 6px; padding: 10px 12px 8px; }
+    .pill {
+      font: 600 10px var(--font-mono); color: var(--muted-foreground);
+      background: color-mix(in srgb, var(--foreground) 5%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      border-radius: 999px; padding: 3px 10px; cursor: pointer;
+    }
+    .pill.active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+    .strip { display: flex; gap: 8px; padding: 0 12px 10px; overflow-x: auto; }
+    .asset-card {
+      flex: none; width: 92px; padding: 8px;
+      border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      border-radius: var(--radius-md);
+      background: color-mix(in srgb, var(--foreground) 4%, transparent);
+    }
+    .asset-thumb {
+      height: 48px; border-radius: 6px; margin-bottom: 6px;
+      background: color-mix(in srgb, var(--background) 50%, transparent);
+      display: grid; place-items: center; font-size: 18px;
+    }
+    .asset-name { font: 500 10px var(--font-mono); }
+
+    /* Behavior route (object) */
+    .behavior-body { padding: 10px 12px 12px; }
+    .schedule {
+      display: flex; gap: 4px; margin-bottom: 10px; padding: 6px;
+      background: color-mix(in srgb, var(--viewport) 60%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+      border-radius: var(--radius-sm);
+    }
+    .clip-block {
+      flex: none; width: 48px; height: 28px; border-radius: 4px;
+      background: color-mix(in srgb, var(--accent-entity) 25%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent-entity) 40%, transparent);
+      font: 600 9px var(--font-mono); display: grid; place-items: center;
+    }
+    .lane {
+      display: flex; align-items: center; gap: 8px; padding: 6px 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 25%, transparent);
+      font: 500 11px var(--font-mono); color: var(--muted-foreground);
+    }
+    .lane b { color: var(--foreground); font-weight: 600; }
+
+    .route-content { display: none; }
+    .route-content.active { display: block; }
+
+    /* Mock controls */
+    .mock-bar {
+      position: fixed; top: 56px; left: 50%; transform: translateX(-50%);
+      z-index: 100; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
+      padding: 6px 8px; max-width: 90vw;
+      background: color-mix(in srgb, var(--background) 92%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+      border-radius: 999px; backdrop-filter: blur(16px);
+      pointer-events: auto;
+    }
+    .mock-bar button {
+      font: 600 10px var(--font-mono); padding: 5px 12px; border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      background: transparent; color: var(--muted-foreground); cursor: pointer;
+    }
+    .mock-bar button.active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+    .mock-bar .sep { width: 1px; background: var(--border); margin: 2px 2px; }
+
+    .callout {
+      position: fixed; z-index: 99; max-width: 240px; padding: 8px 10px;
+      font: 500 10px var(--font-ui); line-height: 1.45; color: var(--muted-foreground);
+      background: color-mix(in srgb, var(--background) 90%, transparent);
+      border: 1px dashed color-mix(in srgb, var(--primary) 35%, var(--border));
+      border-radius: var(--radius-sm); pointer-events: none;
+    }
+    .callout strong { display: block; color: var(--foreground); margin-bottom: 3px; }
+    .callout.c1 {
+      left: calc(var(--left-panel-width) + 12px);
+      bottom: calc(var(--bottom-height) + 12px);
+    }
+    body.mode-legacy .callout.c1 { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .shell { transition: none; }
+    }
+  </style>
+</head>
+<body class="mode-docked">
+
+  <!-- Proposed: grid shell -->
+  <div class="shell" id="shell">
+    <header class="doc-bar panel-shell">
+      <div class="doc-start">
+        <div class="logo"></div>
+        <div class="scene-name">Sandbox</div>
+      </div>
+      <div class="doc-center">
+        <div class="mode-tabs"><button class="active">Edit</button><button>Play</button></div>
+      </div>
+      <div class="doc-end"><div class="av"></div><div class="av" style="background:#e85d8a;margin-left:-6px"></div></div>
+    </header>
+
+    <aside class="side-left panel-shell" aria-label="Workbench">
+      <div class="panel-tabs">
+        <button class="panel-tab">Scene</button>
+        <button class="panel-tab active">Objects</button>
+        <button class="panel-tab">Assets</button>
+        <button class="panel-tab">Settings</button>
+      </div>
+      <div class="panel-body">
+        <div class="entity-item"><span class="dot"></span>GroundPlane</div>
+        <div class="entity-item"><span class="dot spawn"></span>SpawnPoint</div>
+        <div class="entity-item selected"><span class="dot"></span>GroundPlane</div>
+        <div class="entity-item"><span class="dot" style="background:#d47a9a"></span>Prop</div>
+      </div>
+    </aside>
+
+    <div class="viewport-cell">
+      <div class="viewport-scene"><div class="duck"></div></div>
+    </div>
+
+    <aside class="side-right panel-shell" aria-label="Inspector">
+      <div class="inspector-hdr">GroundPlane <span style="font-weight:400;color:var(--muted-foreground);font-size:11px">ground/1</span></div>
+      <div class="panel-tabs">
+        <button class="panel-tab active">Props</button>
+        <button class="panel-tab">Events</button>
+        <button class="panel-tab">Schema</button>
+      </div>
+      <div class="panel-body">
+        <div class="field-row"><label>Size</label><input value="20" /></div>
+        <div class="field-row"><label>Color</label><input value="#0e0e12" /></div>
+      </div>
+    </aside>
+
+    <section class="bottom-pane panel-shell" aria-label="Bottom action pane" data-design-note="Generic bottom slot — same glass-panel-shell as side panels">
+      <div class="resize-edge" title="Resize bottom pane"></div>
+
+      <!-- Scene route: Palette -->
+      <div class="route-content active" id="route-scene">
+        <button type="button" class="pane-handle" onclick="toggleBottom()">
+          <span id="chev">⌃</span>
+          <span class="ttl">Palette</span>
+          <span>drag an asset onto the scene</span>
+          <kbd>/</kbd>
+        </button>
+        <div class="pane-body" id="pane-body">
+          <div class="pills">
+            <button class="pill active">All</button>
+            <button class="pill">Rigged</button>
+            <button class="pill">Models</button>
+            <button class="pill">Primitives</button>
+          </div>
+          <div class="strip">
+            <div class="asset-card"><div class="asset-thumb">📦</div><div class="asset-name">barrel.glb</div></div>
+            <div class="asset-card"><div class="asset-thumb">🧍</div><div class="asset-name">mannequin</div></div>
+            <div class="asset-card"><div class="asset-thumb">◻</div><div class="asset-name">Box</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Object route: Behavior -->
+      <div class="route-content" id="route-object">
+        <button type="button" class="pane-handle" onclick="toggleBottom()">
+          <span>⌃</span>
+          <span class="ttl">Behavior</span>
+          <span>clips + event lanes</span>
+        </button>
+        <div class="pane-body" id="pane-body-behavior">
+          <div class="behavior-body">
+            <div class="schedule">
+              <div class="clip-block">idle</div>
+              <div class="clip-block">walk</div>
+              <div class="clip-block">wave</div>
+            </div>
+            <div class="lane"><b>alarm0</b> → play clip · loop</div>
+            <div class="lane"><b>alarm1</b> → on trigger · once</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Legacy: floating card palette -->
+  <div class="float-palette" aria-label="Scene palette (legacy floating card)">
+    <button type="button" class="pane-handle" style="border-top:0">
+      <span>⌃</span><span class="ttl">Palette</span><span>floating card — different glass</span><kbd>/</kbd>
+    </button>
+  </div>
+
+  <div class="mock-bar" role="group" aria-label="Mock controls">
+    <button class="active" id="btn-docked" onclick="setLayout('docked')">Docked bottom pane</button>
+    <button id="btn-legacy" onclick="setLayout('legacy')">Floating palette (current)</button>
+    <span class="sep"></span>
+    <button class="active" id="btn-scene" onclick="setRoute('scene')">Scene → Palette</button>
+    <button id="btn-object" onclick="setRoute('object')">Object → Behavior</button>
+  </div>
+
+  <div class="callout c1" id="callout">
+    <strong>Flush + same glass</strong>
+    No inset or radius on outer shell. Bottom pane shares <code>surface-glass-panel</code> with side panels. Inner asset cards stay rounded.
+  </div>
+
+  <script>
+    let expanded = false;
+    function setLayout(mode) {
+      document.body.className = 'mode-' + mode;
+      document.getElementById('btn-docked').classList.toggle('active', mode === 'docked');
+      document.getElementById('btn-legacy').classList.toggle('active', mode === 'legacy');
+    }
+    function setRoute(route) {
+      document.getElementById('route-scene').classList.toggle('active', route === 'scene');
+      document.getElementById('route-object').classList.toggle('active', route === 'object');
+      document.getElementById('btn-scene').classList.toggle('active', route === 'scene');
+      document.getElementById('btn-object').classList.toggle('active', route === 'object');
+      if (route === 'object' && !expanded) toggleBottom();
+    }
+    function toggleBottom() {
+      expanded = !expanded;
+      const h = expanded ? 'var(--bottom-expanded)' : 'var(--bottom-collapsed)';
+      document.documentElement.style.setProperty('--bottom-height', h);
+      document.getElementById('chev').textContent = expanded ? '⌄' : '⌃';
+      const pb = document.getElementById('pane-body');
+      const pbb = document.getElementById('pane-body-behavior');
+      if (pb) pb.style.display = expanded ? '' : 'none';
+      if (pbb) pbb.style.display = expanded ? '' : 'none';
+    }
+    toggleBottom();
+    document.querySelectorAll('.panel-tab, .pill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        btn.closest('.panel-tabs, .pills')?.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

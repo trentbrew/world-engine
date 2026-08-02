@@ -1,0 +1,96 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" },
+    "events": { "@type": "@json" }
+  },
+  "@graph": [
+    {
+      "@id": "entity:light/ambient",
+      "@type": "Thing",
+      "conformsTo": "AmbientLight",
+      "components": { "Light": { "intensity": 0.7 } }
+    },
+    {
+      "@id": "entity:light/sun",
+      "@type": "Thing",
+      "conformsTo": "DirectionalLight",
+      "components": {
+        "Light": { "intensity": 1.1 },
+        "Transform": { "position": { "x": 4, "y": 8, "z": 3 } }
+      }
+    },
+    {
+      "@id": "entity:ground/main",
+      "@type": "Thing",
+      "conformsTo": "GroundPlane",
+      "components": { "Ground": { "size": 16, "color": "#0e0e14" } }
+    },
+    {
+      "@id": "entity:spawn/start",
+      "@type": "Thing",
+      "conformsTo": "SpawnPoint",
+      "components": { "Transform": { "position": { "x": 0, "y": 0.05, "z": -2 } } }
+    },
+
+    {
+      "@id": "type:Player",
+      "@type": "EntityType",
+      "components": ["Transform", "Render", "Player", "Physics", "Jump"],
+      "events": {
+        "keydown": [
+          {
+            "key": "e",
+            "do": [{ "score": 1 }, { "sfx": "Bing" }]
+          }
+        ]
+      }
+    },
+
+    {
+      "@id": "type:Fuse",
+      "@type": "EntityType",
+      "components": ["Transform", "Render"],
+      "defaults": {
+        "Render": { "mesh": "primitive:box", "color": "#3498db" }
+      }
+    },
+
+    {
+      "@id": "type:ResetSwitch",
+      "@type": "EntityType",
+      "components": ["Transform", "Render"],
+      "defaults": {
+        "Render": { "mesh": "primitive:box", "color": "#95a5a6" },
+        "Transform": { "scale": [0.4, 0.4, 0.4] }
+      },
+      "events": {
+        "keydown": [
+          {
+            "key": "r",
+            "do": [
+              {
+                "with": "Fuse",
+                "do": [{ "set": "Render.color", "to": "#3498db" }]
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "@id": "entity:fuse/1",
+      "@type": "Thing",
+      "conformsTo": "Fuse",
+      "components": { "Transform": { "position": { "x": -2, "y": 0.5, "z": 0 } } }
+    },
+    {
+      "@id": "entity:switch/1",
+      "@type": "Thing",
+      "conformsTo": "ResetSwitch",
+      "components": { "Transform": { "position": { "x": 2, "y": 0.5, "z": 0 } } }
+    }
+  ]
+}

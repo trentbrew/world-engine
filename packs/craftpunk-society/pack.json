@@ -1,0 +1,54 @@
+{
+  "id": "craftpunk-society",
+  "title": "Craftpunk — Society",
+  "status": "proposed",
+  "motivatedBy": "craftpunk",
+  "description": "Primitives for a tended, co-inhabited commons: shared civic space, nature on its own clock, AI neighbors with standing, and reputation that flows from care.",
+  "boundary": "Nothing here is wired into engine core. A primitive is promoted to code in engine/ only when a SECOND, unrelated world needs it. Until then this manifest names the boundary so Craftpunk-shaped logic never leaks into the kernel.",
+  "authoringSource": "./components.jsonld",
+  "provides": {
+    "components": [
+      {
+        "name": "Commons",
+        "status": "proposed",
+        "why": "Marks an entity as shared civic space with a liveliness/upkeep level that decays without tending and rises with care.",
+        "reusableBy": ["a village-sim where a town square thrives or empties", "a co-op base-builder scoring shared upkeep over loot"]
+      },
+      {
+        "name": "Cultivable",
+        "status": "proposed",
+        "why": "A patch of nature on a seasonal clock — grows, ripens, and can be neglected or over-harvested; some change is slow or irreversible.",
+        "reusableBy": ["a farming game", "a terraforming / restoration game"]
+      },
+      {
+        "name": "Conversant",
+        "status": "proposed",
+        "why": "Gives a character standing as a neighbor: persistent memory, own upkeep, and disposition toward others — the hook for cohabitation drama, not a vending machine.",
+        "reusableBy": ["a social-sim with relationships", "a narrative RPG with companions who remember"]
+      },
+      {
+        "name": "Reputation",
+        "status": "proposed",
+        "why": "A durable standing value that accrues from tending the commons and neighbors rather than from accumulation or combat.",
+        "reusableBy": ["a trading game with trust", "a faction-standing RPG"]
+      }
+    ],
+    "types": [
+      {
+        "name": "Steward",
+        "status": "proposed",
+        "why": "A player/agent whose scarce resource is attention (finite care spent per session across self, commons, and neighbors).",
+        "reusableBy": ["a management game about triage", "a caretaker/roguelite about spending a limited daily action budget"]
+      }
+    ],
+    "behaviors": [
+      {
+        "name": "decayAndTend",
+        "status": "proposed",
+        "enginePathWhenBuilt": "src/lib/engine/systems/behaviors/decayAndTend.ts",
+        "why": "The upkeep loop: Commons/Cultivable liveliness drifts down over time and rises on a tend action. Code-backed; write it only when a second world needs the same loop.",
+        "reusableBy": ["any upkeep/maintenance game", "a tamagotchi-like care loop"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte Skeleton — Asset Placement (TRL-55 design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --viewport: #1c1c1c;
+      --surface: #252525;
+      --surface-raised: #2e2e2e;
+      --surface-overlay: #363636;
+      --surface-glass: color-mix(in srgb, var(--surface-overlay) 72%, transparent);
+      --text: #e4e4e4;
+      --text-muted: #949494;
+      --accent-entity: #5b9fd4;
+      --accent-placement-muted: color-mix(in srgb, #5b9fd4 22%, transparent);
+      --accent-placement-border: color-mix(in srgb, #5b9fd4 55%, #a3a3a3);
+      --ghost-wireframe: #5b9fd4;
+      --ghost-fill: color-mix(in srgb, #5b9fd4 18%, #1c1c1c);
+      --cell-highlight: color-mix(in srgb, #5b9fd4 20%, transparent);
+      --cell-highlight-border: color-mix(in srgb, #5b9fd4 65%, transparent);
+      --border: #3d3d3d;
+      --border-focus: #a3a3a3;
+      --float-inset: 16px;
+      --panel-width: 240px;
+      --view-controls-height: 48px;
+      --rounded-sm: 4px;
+      --rounded-lg: 12px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: #0a0a0a;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    /* ── Mock chrome ── */
+    .mock-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: #111;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+    }
+
+    .mock-bar strong { font-weight: 500; color: var(--text); }
+    .mock-bar span { color: var(--text-muted); }
+
+    .state-toggle {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .state-btn {
+      font: 500 10px/1 "JetBrains Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .state-btn.active {
+      border-color: var(--accent-entity);
+      color: var(--accent-entity);
+      background: var(--accent-placement-muted);
+    }
+
+    .state-btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+
+    .legend {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      z-index: 100;
+      max-width: 280px;
+      padding: 10px 12px;
+      background: var(--surface-glass);
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      border-radius: var(--rounded-lg);
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .legend kbd {
+      font: 500 9px/1 "JetBrains Mono", monospace;
+      padding: 2px 4px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: var(--surface-raised);
+      color: var(--text);
+    }
+
+    /* ── Stage ── */
+    .stage {
+      position: relative;
+      height: 100%;
+      padding-top: 40px;
+    }
+
+    .viewport {
+      position: absolute;
+      inset: 40px 0 0 0;
+      background: var(--viewport);
+      overflow: hidden;
+    }
+
+    .viewport-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(color-mix(in srgb, var(--border) 40%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--border) 40%, transparent) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-position: center center;
+      transform: perspective(800px) rotateX(58deg) scale(1.4);
+      transform-origin: center 65%;
+      opacity: 0.55;
+    }
+
+    .viewport-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 40%, transparent 20%, rgb(0 0 0 / 0.45) 100%);
+      pointer-events: none;
+    }
+
+    /* Cell highlight */
+    .cell-highlight {
+      position: absolute;
+      left: 52%;
+      top: 48%;
+      width: 40px;
+      height: 40px;
+      transform: translate(-50%, -50%) perspective(800px) rotateX(58deg);
+      background: var(--cell-highlight);
+      border: 1px dashed var(--cell-highlight-border);
+      border-radius: 2px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+
+    .viewport[data-state="placing-shape"] .cell-highlight,
+    .viewport[data-state="placing-model"] .cell-highlight {
+      opacity: 1;
+    }
+
+    /* Ghost mesh */
+    .ghost-wrap {
+      position: absolute;
+      left: 52%;
+      top: 44%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+
+    .viewport[data-state="placing-shape"] .ghost-wrap,
+    .viewport[data-state="placing-model"] .ghost-wrap {
+      opacity: 1;
+    }
+
+    .ghost-box {
+      width: 36px;
+      height: 36px;
+      border: 2px solid var(--ghost-wireframe);
+      background: var(--ghost-fill);
+      box-shadow: 0 0 0 1px rgb(0 0 0 / 0.3);
+    }
+
+    .ghost-box.wireframe {
+      background: transparent;
+      border-style: dashed;
+    }
+
+    .ghost-duck {
+      width: 32px;
+      height: 28px;
+      border: 2px dashed var(--ghost-wireframe);
+      border-radius: 50% 50% 40% 40%;
+      background: var(--ghost-fill);
+      position: relative;
+    }
+
+    .ghost-duck::before {
+      content: "";
+      position: absolute;
+      top: 6px;
+      left: -6px;
+      width: 10px;
+      height: 8px;
+      border: 2px dashed var(--ghost-wireframe);
+      border-radius: 50%;
+      background: var(--ghost-fill);
+    }
+
+    .viewport[data-state="placing-shape"] .ghost-duck { display: none; }
+    .viewport[data-state="placing-model"] .ghost-box { display: none; }
+    .viewport[data-state="idle"] .ghost-wrap,
+    .viewport[data-state="pick-mode"] .ghost-wrap { display: none; }
+
+    /* Placement banner */
+    .placement-banner {
+      position: absolute;
+      top: var(--float-inset);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      padding: 6px 14px;
+      border-radius: var(--rounded-sm);
+      background: var(--surface-glass);
+      border: 1px solid color-mix(in srgb, var(--accent-entity) 40%, var(--border));
+      font-size: 11px;
+      color: var(--accent-entity);
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 120ms ease;
+    }
+
+    .viewport[data-state="placing-shape"] .placement-banner,
+    .viewport[data-state="placing-model"] .placement-banner {
+      opacity: 1;
+    }
+
+    /* Left panel */
+    .left-panel {
+      position: absolute;
+      top: calc(40px + var(--float-inset));
+      left: var(--float-inset);
+      width: var(--panel-width);
+      max-height: min(80vh, calc(100dvh - 40px - var(--float-inset) * 2 - var(--view-controls-height)));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      border-radius: var(--rounded-lg);
+      box-shadow: 0 4px 24px rgb(0 0 0 / 0.28);
+      z-index: 20;
+    }
+
+    .panel-tabs {
+      display: flex;
+      flex-shrink: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      padding: 0 var(--spacing-sm);
+    }
+
+    .panel-tab {
+      flex: 1;
+      font: 500 12px/1 inherit;
+      padding: 10px 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .panel-tab.active { color: var(--text); border-bottom-color: var(--text-muted); }
+
+    .panel-header {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-label {
+      font: 500 11px/1 inherit;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .pick-hint {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--accent-entity);
+    }
+
+    .panel-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .accordion-header {
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    }
+
+    .accordion-trigger {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px var(--spacing-md);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font: 500 10px/1 "JetBrains Mono", monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: left;
+    }
+
+    .accordion-body { padding: 0 var(--spacing-md) var(--spacing-sm); }
+
+    .shapes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .shape-tile {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 6px;
+      border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      border-radius: var(--rounded-sm);
+      background: color-mix(in srgb, var(--viewport) 35%, transparent);
+      cursor: pointer;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--text);
+      text-align: left;
+    }
+
+    .shape-tile:hover {
+      border-color: color-mix(in srgb, var(--border-focus) 70%, var(--border));
+      background: color-mix(in srgb, var(--surface-raised) 70%, transparent);
+    }
+
+    .shape-tile.armed {
+      border-color: var(--accent-placement-border);
+      background: var(--accent-placement-muted);
+    }
+
+    .shape-tile:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+
+    .shape-tile:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .shape-thumb {
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--rounded-sm);
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      background: color-mix(in srgb, var(--viewport) 55%, transparent);
+    }
+
+    .thumb-box {
+      width: 22px;
+      height: 22px;
+      background: #d4d4d4;
+      border-radius: 2px;
+    }
+
+    .thumb-sphere {
+      width: 22px;
+      height: 22px;
+      background: #d4d4d4;
+      border-radius: 50%;
+    }
+
+    .thumb-capsule {
+      width: 14px;
+      height: 26px;
+      background: #d4d4d4;
+      border-radius: 999px;
+    }
+
+    .shape-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .model-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 6px;
+      margin-top: 4px;
+      border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      border-radius: var(--rounded-sm);
+      background: color-mix(in srgb, var(--viewport) 35%, transparent);
+      cursor: pointer;
+    }
+
+    .model-card.armed {
+      border-color: var(--accent-placement-border);
+      background: var(--accent-placement-muted);
+    }
+
+    .model-thumb {
+      height: 72px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--rounded-sm);
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      background: #1c1c1c;
+      font-size: 28px;
+    }
+
+    .model-meta {
+      font: 10px/1.3 "JetBrains Mono", monospace;
+    }
+
+    .model-size { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+
+    .viewport[data-state="pick-mode"] .shape-tile,
+    .viewport[data-state="pick-mode"] .model-card {
+      pointer-events: none;
+      opacity: 0.55;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="mock-bar">
+    <strong>TRL-55</strong>
+    <span>Asset placement — design mock</span>
+    <div class="state-toggle" role="tablist" aria-label="Mock state">
+      <button type="button" class="state-btn active" data-state="idle">Idle</button>
+      <button type="button" class="state-btn" data-state="placing-shape">Placing shape</button>
+      <button type="button" class="state-btn" data-state="placing-model">Placing model</button>
+      <button type="button" class="state-btn" data-state="pick-mode">Pick mode</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="viewport" id="viewport" data-state="idle" data-design-note="Raycast + snap drive ghost position">
+      <div class="viewport-grid"></div>
+      <div class="viewport-vignette"></div>
+
+      <div class="placement-banner" role="status" aria-live="polite">
+        Click to place · <kbd>Esc</kbd> to cancel
+      </div>
+
+      <div class="cell-highlight" data-design-note="1×1 cell at ui.grid.cellSize"></div>
+
+      <div class="ghost-wrap">
+        <div class="ghost-box wireframe" data-design-note="Primitive ghost — MeshBasicMaterial wireframe"></div>
+        <div class="ghost-duck" data-design-note="Model ghost — bbox until glTF loads"></div>
+      </div>
+    </div>
+
+    <aside class="left-panel" aria-label="Assets panel mock">
+      <div class="panel-tabs">
+        <div class="panel-tab">Scene</div>
+        <div class="panel-tab">Objects</div>
+        <div class="panel-tab active">Assets</div>
+      </div>
+
+      <div class="panel-header">
+        <div class="header-row">
+          <div class="section-label">Assets</div>
+        </div>
+        <p class="pick-hint hidden" id="pick-hint">Pick an asset for the selected field</p>
+      </div>
+
+      <div class="panel-scroll">
+        <!-- SHAPES — always first, no + -->
+        <div class="accordion-header">
+          <button type="button" class="accordion-trigger">▾ Shapes</button>
+        </div>
+        <div class="accordion-body">
+          <div class="shapes-grid" data-design-note="Static catalog — 3 columns">
+            <button type="button" class="shape-tile" id="tile-box" aria-label="Place box on scene">
+              <div class="shape-thumb"><div class="thumb-box"></div></div>
+              <span class="shape-label">Box</span>
+            </button>
+            <button type="button" class="shape-tile" id="tile-sphere" aria-label="Place sphere on scene">
+              <div class="shape-thumb"><div class="thumb-sphere"></div></div>
+              <span class="shape-label">Sphere</span>
+            </button>
+            <button type="button" class="shape-tile" id="tile-capsule" aria-label="Place capsule on scene">
+              <div class="shape-thumb"><div class="thumb-capsule"></div></div>
+              <span class="shape-label">Capsule</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- MODELS -->
+        <div class="accordion-header">
+          <button type="button" class="accordion-trigger">▾ Models</button>
+        </div>
+        <div class="accordion-body">
+          <button type="button" class="model-card" id="tile-model" aria-label="Place barrel.glb on scene">
+            <div class="model-thumb">🦆</div>
+            <div class="model-meta">
+              <div>barrel.glb</div>
+              <div class="model-size">117.7 KB</div>
+            </div>
+          </button>
+        </div>
+
+        <div class="accordion-header">
+          <button type="button" class="accordion-trigger">▸ Textures</button>
+        </div>
+        <div class="accordion-header">
+          <button type="button" class="accordion-trigger">▸ Audio</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="legend">
+    <strong data-design-note="Legend">Interaction notes</strong><br />
+    Click shape → arm placement → move over viewport → ghost + cell highlight follow snap → click commits Prop.<br />
+    Models use same flow with <code>anchor: bottom</code>. Pick mode disables placement tiles.<br />
+    Toggle states above to preview UI modes.
+  </div>
+
+  <script>
+    const viewport = document.getElementById('viewport');
+    const pickHint = document.getElementById('pick-hint');
+    const tileBox = document.getElementById('tile-box');
+    const tileModel = document.getElementById('tile-model');
+    const stateBtns = document.querySelectorAll('.state-btn');
+
+    function setState(state) {
+      viewport.dataset.state = state;
+      stateBtns.forEach((btn) => btn.classList.toggle('active', btn.dataset.state === state));
+      pickHint.classList.toggle('hidden', state !== 'pick-mode');
+
+      tileBox.classList.toggle('armed', state === 'placing-shape');
+      tileModel.classList.toggle('armed', state === 'placing-model');
+
+      document.querySelectorAll('.shape-tile').forEach((t) => {
+        t.disabled = state === 'pick-mode';
+      });
+    }
+
+    stateBtns.forEach((btn) => {
+      btn.addEventListener('click', () => setState(btn.dataset.state));
+    });
+
+    tileBox.addEventListener('click', () => setState('placing-shape'));
+    tileModel.addEventListener('click', () => setState('placing-model'));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && viewport.dataset.state !== 'idle' && viewport.dataset.state !== 'pick-mode') {
+        setState('idle');
+      }
+    });
+  </script>
+</body>
+</html>

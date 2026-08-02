@@ -1,0 +1,183 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "type:Slope",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Physics"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#e8eef5"
+				},
+				"Physics": {
+					"body": "fixed",
+					"collider": "box"
+				}
+			}
+		},
+		{
+			"@id": "type:Kicker",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Physics"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cddbe8"
+				},
+				"Physics": {
+					"body": "fixed",
+					"collider": "box"
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.7
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1.1
+				},
+				"Transform": {
+					"position": {
+						"x": 10,
+						"y": 16,
+						"z": 4
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:slope/main",
+			"@type": "Thing",
+			"conformsTo": "Slope",
+			"comment": "Long fixed surface tilted ~14deg about X so it descends along -Z.",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					],
+					"rotation": [
+						0.122,
+						0,
+						0,
+						0.993
+					],
+					"scale": [
+						14,
+						0.5,
+						48
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:kicker/first",
+			"@type": "Thing",
+			"conformsTo": "Kicker",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						2,
+						-6
+					],
+					"rotation": [
+						0.2,
+						0,
+						0,
+						0.98
+					],
+					"scale": [
+						4,
+						0.4,
+						3
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:kicker/left",
+			"@type": "Thing",
+			"conformsTo": "Kicker",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -4.5,
+						"y": 4,
+						"z": -16
+					},
+					"rotation": {
+						"x": 0.22,
+						"y": 0,
+						"z": 0,
+						"w": 0.975
+					},
+					"scale": [
+						3.5,
+						0.4,
+						3
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/dropin",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"comment": "Top of the run — the rider drops in here.",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						6.5,
+						-13
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				},
+				"Marker": {
+					"kind": "spawn"
+				}
+			}
+		}
+	]
+}

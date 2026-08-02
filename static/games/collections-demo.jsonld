@@ -1,0 +1,196 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "component:Profile",
+			"@type": "ComponentSchema",
+			"fields": {
+				"displayName": {
+					"t": "string",
+					"default": ""
+				},
+				"role": {
+					"t": "string",
+					"default": ""
+				},
+				"bio": {
+					"t": "string",
+					"default": ""
+				},
+				"rival": {
+					"t": "ref",
+					"of": {
+						"kind": "record",
+						"collection": "Hero"
+					}
+				},
+				"portrait": {
+					"t": "ref",
+					"of": {
+						"kind": "asset"
+					}
+				}
+			}
+		},
+		{
+			"@id": "component:Beat",
+			"@type": "ComponentSchema",
+			"fields": {
+				"title": {
+					"t": "string",
+					"default": ""
+				},
+				"summary": {
+					"t": "string",
+					"default": ""
+				},
+				"protagonist": {
+					"t": "ref",
+					"of": {
+						"kind": "record",
+						"collection": "Hero"
+					}
+				}
+			}
+		},
+		{
+			"@id": "type:Hero",
+			"@type": "EntityType",
+			"collection": true,
+			"collectionMeta": {
+				"icon": "user",
+				"plural": "Heroes"
+			},
+			"components": [
+				"Profile"
+			]
+		},
+		{
+			"@id": "type:StoryBeat",
+			"@type": "EntityType",
+			"collection": true,
+			"collectionMeta": {
+				"plural": "Story Beats"
+			},
+			"components": [
+				"Beat"
+			]
+		},
+		{
+			"@id": "record:hero/alba",
+			"conformsTo": "Hero",
+			"components": {
+				"Profile": {
+					"displayName": "Alba",
+					"role": "Rider",
+					"bio": "A snowboarder chasing the first line down every peak.",
+					"rival": "record:hero/koa"
+				}
+			}
+		},
+		{
+			"@id": "record:hero/koa",
+			"conformsTo": "Hero",
+			"components": {
+				"Profile": {
+					"displayName": "Koa",
+					"role": "Rival",
+					"bio": "Never lost a race — until Alba showed up.",
+					"rival": "record:hero/alba"
+				}
+			}
+		},
+		{
+			"@id": "record:storybeat/intro",
+			"conformsTo": "StoryBeat",
+			"components": {
+				"Beat": {
+					"title": "First Descent",
+					"summary": "Alba and Koa meet at the summit lift.",
+					"protagonist": "record:hero/alba"
+				}
+			}
+		},
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Ground": {
+					"size": 20,
+					"color": "#0e0e12"
+				},
+				"Transform": {
+					"position": [
+						0.6913292201668844,
+						0,
+						3.012395719966221
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.6
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 0.9
+				},
+				"Transform": {
+					"position": {
+						"x": 4,
+						"y": 8,
+						"z": 6
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/center",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0,
+						"z": 0
+					}
+				},
+				"Marker": {
+					"kind": "spawn"
+				}
+			}
+		}
+	]
+}

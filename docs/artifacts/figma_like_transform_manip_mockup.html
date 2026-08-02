@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Trellis — Figma-like transform manip (3D design mock)</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+	<style>
+		:root {
+			--background: #0a0a0a;
+			--surface: #141418;
+			--card: #141418;
+			--foreground: #e8e8ec;
+			--muted-foreground: #888894;
+			--border: #2a2a32;
+			--accent-field: #e8a838;
+			--radius-md: 10px;
+			--radius-pill: 999px;
+			--font-sans: "IBM Plex Sans", system-ui, sans-serif;
+			--font-mono: "IBM Plex Mono", ui-monospace, monospace;
+			--float-inset: 12px;
+		}
+		* { box-sizing: border-box; }
+		html, body { margin: 0; height: 100%; overflow: hidden; background: var(--background); color: var(--foreground); font-family: var(--font-sans); font-size: 13px; }
+		#viewport { position: fixed; inset: 0; }
+		#viewport canvas { display: block; width: 100%; height: 100%; }
+
+		.glass {
+			background: color-mix(in srgb, var(--card) 55%, transparent);
+			border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+			border-radius: var(--radius-md);
+			backdrop-filter: blur(18px);
+			-webkit-backdrop-filter: blur(18px);
+			box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+		}
+
+		.hud-top {
+			position: fixed; z-index: 20;
+			top: var(--float-inset); left: 50%; transform: translateX(-50%);
+			display: flex; align-items: center; gap: 8px;
+			padding: 6px 8px;
+		}
+		.mode-toggle {
+			display: inline-flex; gap: 2px; padding: 2px;
+			background: color-mix(in srgb, var(--surface) 70%, transparent);
+			border-radius: var(--radius-pill);
+		}
+		.mode-toggle button {
+			appearance: none; border: 0; cursor: pointer;
+			height: 28px; padding: 0 12px; border-radius: var(--radius-pill);
+			background: transparent; color: var(--muted-foreground);
+			font: 500 11px/1 var(--font-sans);
+		}
+		.mode-toggle button[aria-pressed="true"] {
+			background: color-mix(in srgb, var(--foreground) 12%, transparent);
+			color: var(--foreground);
+		}
+		.tool-row {
+			display: none; align-items: center; gap: 2px;
+			padding-left: 6px; border-left: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+		}
+		.tool-row.visible { display: inline-flex; }
+		.tool-row button {
+			appearance: none; border: 0; cursor: pointer;
+			height: 28px; padding: 0 10px; border-radius: var(--radius-pill);
+			background: transparent; color: var(--muted-foreground);
+			font: 500 11px/1 var(--font-sans);
+		}
+		.tool-row button[aria-pressed="true"] {
+			background: color-mix(in srgb, var(--accent-field) 22%, transparent);
+			color: var(--foreground);
+		}
+		.tool-row kbd {
+			margin-left: 4px; font: 500 10px/1 var(--font-mono);
+			opacity: 0.7;
+		}
+
+		.legend {
+			position: fixed; z-index: 20;
+			left: var(--float-inset); bottom: var(--float-inset);
+			width: min(380px, calc(100vw - 24px));
+			padding: 14px 16px;
+		}
+		.legend h1 { margin: 0 0 4px; font: 600 13px/1.3 var(--font-sans); }
+		.legend p { margin: 0 0 10px; color: var(--muted-foreground); font-size: 12px; line-height: 1.45; }
+		.legend ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+		.legend li {
+			display: grid; grid-template-columns: 72px 1fr; gap: 8px;
+			font-size: 12px; line-height: 1.35;
+		}
+		.legend .verb {
+			font: 700 10px/1.2 var(--font-mono);
+			letter-spacing: 0.04em; text-transform: uppercase;
+			color: var(--accent-field); padding-top: 2px;
+		}
+		.legend .hint { color: var(--muted-foreground); }
+		.legend .hint strong { color: var(--foreground); font-weight: 500; }
+
+		.status {
+			position: fixed; z-index: 20;
+			right: var(--float-inset); bottom: var(--float-inset);
+			padding: 10px 12px; min-width: 168px;
+			font: 500 11px/1.4 var(--font-mono);
+			color: var(--muted-foreground);
+		}
+		.status .row { display: flex; justify-content: space-between; gap: 16px; }
+		.status .val { color: var(--foreground); }
+
+		.cursor-label {
+			position: fixed; z-index: 30; pointer-events: none;
+			padding: 3px 7px; border-radius: 6px;
+			background: color-mix(in srgb, var(--card) 85%, transparent);
+			border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+			font: 500 10px/1 var(--font-mono);
+			color: var(--foreground);
+			transform: translate(14px, 14px);
+			opacity: 0; transition: opacity 80ms ease;
+		}
+		.cursor-label.on { opacity: 1; }
+
+		.note {
+			position: fixed; z-index: 20;
+			top: var(--float-inset); right: var(--float-inset);
+			padding: 8px 10px; max-width: 240px;
+			font-size: 11px; line-height: 1.4; color: var(--muted-foreground);
+		}
+		.note strong { color: var(--foreground); font-weight: 500; }
+	</style>
+</head>
+<body>
+	<div id="viewport" aria-label="3D transform mock viewport"></div>
+
+	<div class="hud-top glass" role="toolbar" aria-label="Manipulator mode">
+		<div class="mode-toggle">
+			<button type="button" id="btn-figma" aria-pressed="true">Figma-like</button>
+			<button type="button" id="btn-classic" aria-pressed="false">Classic gizmo</button>
+		</div>
+		<div class="tool-row" id="classic-tools" aria-hidden="true">
+			<button type="button" data-tool="translate" aria-pressed="true">Move <kbd>M</kbd></button>
+			<button type="button" data-tool="rotate" aria-pressed="false">Rotate <kbd>R</kbd></button>
+			<button type="button" data-tool="scale" aria-pressed="false">Scale <kbd>S</kbd></button>
+		</div>
+	</div>
+
+	<aside class="note glass">
+		<strong>Perspective 3D</strong> — drag empty space to orbit · scroll zoom · front corners only (≤4).
+	</aside>
+
+	<aside class="legend glass">
+		<h1>Selection manip — Figma feel in 3D</h1>
+		<p id="legend-blurb">One selection state. Cursor + hover target pick the verb.</p>
+		<ul>
+			<li><span class="verb">Move</span><span class="hint"><strong>Drag body</strong> — ground-plane slide</span></li>
+			<li><span class="verb">Uniform</span><span class="hint"><strong>Corner handle</strong> — proportional scale</span></li>
+			<li><span class="verb">Stretch</span><span class="hint"><strong>Edge</strong> = 2-axis · <strong>Face</strong> = 1-axis</span></li>
+			<li><span class="verb">Rotate</span><span class="hint"><strong>Just outside a corner</strong> — ring + rotate cursor</span></li>
+		</ul>
+	</aside>
+
+	<div class="status glass">
+		<div class="row"><span>hover</span><span class="val" id="st-hover">—</span></div>
+		<div class="row"><span>gesture</span><span class="val" id="st-gesture">idle</span></div>
+		<div class="row"><span>snap</span><span class="val" id="st-snap">off</span></div>
+	</div>
+
+	<div class="cursor-label" id="cursor-label"></div>
+
+	<script type="importmap">
+	{
+		"imports": {
+			"three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+			"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+		}
+	}
+	</script>
+	<script type="module">
+		import * as THREE from 'three';
+		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+		import { TransformControls } from 'three/addons/controls/TransformControls.js';
+
+		const root = document.getElementById('viewport');
+		const stHover = document.getElementById('st-hover');
+		const stGesture = document.getElementById('st-gesture');
+		const stSnap = document.getElementById('st-snap');
+		const cursorLabel = document.getElementById('cursor-label');
+		const legendBlurb = document.getElementById('legend-blurb');
+		const classicTools = document.getElementById('classic-tools');
+		const btnFigma = document.getElementById('btn-figma');
+		const btnClassic = document.getElementById('btn-classic');
+
+		// Custom cursors — make rotate / stretch / uniform obvious
+		const svgCursor = (svg) =>
+			`url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}") 12 12, crosshair`;
+		const CURSOR = {
+			move: 'move',
+			uniform: svgCursor(
+				`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+					<path d="M4 4h5M4 4v5M4 4l6 6M20 20h-5M20 20v-5M20 20l-6-6M20 4h-5M20 4v5M20 4l-6 6M4 20h5M4 20v-5M4 20l6-6" stroke="#e8e8ec" stroke-width="1.6" stroke-linecap="round"/>
+				</svg>`
+			),
+			stretch: svgCursor(
+				`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+					<path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4" stroke="#e8a838" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>`
+			),
+			rotate: svgCursor(
+				`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+					<path d="M20 12a8 8 0 1 1-2.2-5.5" stroke="#e8a838" stroke-width="1.8" stroke-linecap="round"/>
+					<path d="M20 4v5h-5" stroke="#e8a838" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>`
+			),
+			default: 'default',
+		};
+
+		const HANDLE_BASE = 0.12;
+		const ROTATE_PX = 30;
+		const HANDLE_PX = 13;
+		const EDGE_PX = 10;
+		const SNAP = 0.12;
+
+		let manipMode = 'figma';
+		let classicTool = 'translate';
+		let selected = null;
+		/** @type {null | 'body' | 'uniform' | 'edge' | 'face' | 'rotate'} */
+		let hoverKind = null;
+		let hoverCorner = null;
+		let hoverEdge = null; // { axis:'x'|'y'|'z', a, b, mid, sFixed }
+		let hoverFace = null; // { axis:'x'|'y'|'z', sign:±1, center }
+		let gesture = null;
+		let dragStart = null;
+
+		const scene = new THREE.Scene();
+		scene.background = new THREE.Color(0x08080a);
+
+		const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+		camera.position.set(10, 8, 10);
+
+		const renderer = new THREE.WebGLRenderer({ antialias: true });
+		renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+		root.appendChild(renderer.domElement);
+
+		const orbit = new OrbitControls(camera, renderer.domElement);
+		orbit.target.set(0, 0.5, 0);
+		orbit.minPolarAngle = 0.12;
+		orbit.maxPolarAngle = Math.PI / 2 - 0.08;
+		orbit.enableDamping = true;
+		orbit.dampingFactor = 0.08;
+		orbit.update();
+
+		scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+		const key = new THREE.DirectionalLight(0xffffff, 1);
+		key.position.set(5, 10, 5);
+		scene.add(key);
+		scene.add(new THREE.GridHelper(20, 20, 0x2a2a36, 0x1a1a22));
+
+		function makeBox(color, pos, scale = [1, 1, 1]) {
+			const mesh = new THREE.Mesh(
+				new THREE.BoxGeometry(1, 1, 1),
+				new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.05 })
+			);
+			mesh.position.set(pos[0], scale[1] / 2, pos[2]);
+			mesh.scale.set(scale[0], scale[1], scale[2]);
+			mesh.userData.kind = 'prop';
+			scene.add(mesh);
+			return mesh;
+		}
+
+		const props = [
+			makeBox(0x3b82f6, [-2.5, 0, -1.2], [1.2, 1.2, 1.2]),
+			makeBox(0xe8a838, [1.6, 0, 0.4], [1, 1, 1]),
+			makeBox(0xef4444, [0.2, 0, 2.4], [0.9, 0.9, 0.9]),
+			makeBox(0xff6b6b, [-1.5, 0, 0.8], [1, 1, 1]),
+		];
+
+		const player = new THREE.Group();
+		player.userData.kind = 'prop';
+		const torso = new THREE.Mesh(
+			new THREE.CapsuleGeometry(0.28, 0.7, 4, 8),
+			new THREE.MeshStandardMaterial({ color: 0xc4c4cc, roughness: 0.5 })
+		);
+		torso.position.y = 0.85;
+		player.add(torso);
+		player.position.set(-0.6, 0, -2.2);
+		scene.add(player);
+		props.push(player);
+
+		// --- Selection overlay ---
+		const overlay = new THREE.Group();
+		overlay.visible = false;
+		scene.add(overlay);
+
+		const boxHelper = new THREE.Box3Helper(new THREE.Box3(), 0xffffff);
+		boxHelper.material.depthTest = false;
+		boxHelper.renderOrder = 10;
+		overlay.add(boxHelper);
+
+		const handleMats = {
+			idle: new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false }),
+			hot: new THREE.MeshBasicMaterial({ color: 0xe8a838, depthTest: false }),
+		};
+
+		const corners = [];
+		for (const sy of [-1, 1])
+			for (const sz of [-1, 1])
+				for (const sx of [-1, 1]) corners.push({ sx, sy, sz });
+
+		const handles = corners.map((c) => {
+			const h = new THREE.Mesh(
+				new THREE.BoxGeometry(HANDLE_BASE, HANDLE_BASE, HANDLE_BASE),
+				handleMats.idle
+			);
+			h.userData.corner = c;
+			h.renderOrder = 11;
+			overlay.add(h);
+			return h;
+		});
+
+		const rotateRing = new THREE.Mesh(
+			new THREE.RingGeometry(0.1, 0.2, 28),
+			new THREE.MeshBasicMaterial({
+				color: 0xe8a838,
+				side: THREE.DoubleSide,
+				depthTest: false,
+				transparent: true,
+				opacity: 0,
+			})
+		);
+		rotateRing.renderOrder = 12;
+		overlay.add(rotateRing);
+
+		// Face hover tint
+		const faceHighlight = new THREE.Mesh(
+			new THREE.PlaneGeometry(1, 1),
+			new THREE.MeshBasicMaterial({
+				color: 0xe8a838,
+				transparent: true,
+				opacity: 0,
+				side: THREE.DoubleSide,
+				depthTest: false,
+			})
+		);
+		faceHighlight.renderOrder = 9;
+		overlay.add(faceHighlight);
+
+		// Edge hover line
+		const edgeHighlight = new THREE.Line(
+			new THREE.BufferGeometry(),
+			new THREE.LineBasicMaterial({ color: 0xe8a838, depthTest: false, linewidth: 2 })
+		);
+		edgeHighlight.visible = false;
+		edgeHighlight.renderOrder = 13;
+		overlay.add(edgeHighlight);
+
+		const guideMat = new THREE.LineBasicMaterial({
+			color: 0xef4444,
+			depthTest: false,
+			transparent: true,
+			opacity: 0.85,
+		});
+		const guideX = new THREE.Line(new THREE.BufferGeometry(), guideMat);
+		const guideZ = new THREE.Line(new THREE.BufferGeometry(), guideMat);
+		guideX.visible = guideZ.visible = false;
+		scene.add(guideX, guideZ);
+
+		function setGuide(line, a, b) {
+			line.geometry.dispose();
+			line.geometry = new THREE.BufferGeometry().setFromPoints([a, b]);
+			line.visible = true;
+		}
+
+		const tcontrols = new TransformControls(camera, renderer.domElement);
+		tcontrols.setSize(0.85);
+		tcontrols.visible = false;
+		tcontrols.enabled = false;
+		tcontrols.addEventListener('dragging-changed', (e) => {
+			orbit.enabled = !e.value;
+			stGesture.textContent = e.value ? classicTool : 'idle';
+		});
+		scene.add(tcontrols.getHelper());
+
+		const raycaster = new THREE.Raycaster();
+		const pointer = new THREE.Vector2();
+		const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+		const hit = new THREE.Vector3();
+		const box = new THREE.Box3();
+		const size = new THREE.Vector3();
+		const center = new THREE.Vector3();
+		const _v = new THREE.Vector3();
+
+		function worldBox(obj) {
+			box.setFromObject(obj);
+			box.getSize(size);
+			box.getCenter(center);
+			return { box: box.clone(), size: size.clone(), center: center.clone() };
+		}
+
+		function cornerWorld(wb, c) {
+			return new THREE.Vector3(
+				wb.center.x + c.sx * wb.size.x * 0.5,
+				wb.center.y + c.sy * wb.size.y * 0.5,
+				wb.center.z + c.sz * wb.size.z * 0.5
+			);
+		}
+
+		function camFaceSigns(wb) {
+			const cam = camera.position;
+			return {
+				x: cam.x >= wb.center.x ? 1 : -1,
+				y: cam.y >= wb.center.y ? 1 : -1,
+				z: cam.z >= wb.center.z ? 1 : -1,
+			};
+		}
+
+		/** Front corners only: require 2+ faces toward camera → ≤4 handles. */
+		function cornerIsFront(wb, c) {
+			const f = camFaceSigns(wb);
+			let n = 0;
+			if (c.sx === f.x) n++;
+			if (c.sy === f.y) n++;
+			if (c.sz === f.z) n++;
+			return n >= 2;
+		}
+
+		function projectPx(world) {
+			_v.copy(world).project(camera);
+			const rect = renderer.domElement.getBoundingClientRect();
+			return {
+				x: (_v.x * 0.5 + 0.5) * rect.width,
+				y: (-_v.y * 0.5 + 0.5) * rect.height,
+			};
+		}
+
+		function handleWorldSize(at) {
+			return Math.max(0.07, camera.position.distanceTo(at) * 0.016);
+		}
+
+		/** Visible AABB edges (at least one endpoint is a front corner, or edge on a front face). */
+		function listEdges(wb) {
+			const edges = [];
+			// 12 edges: vary one axis
+			const signs = [-1, 1];
+			for (const sy of signs)
+				for (const sz of signs) {
+					edges.push({
+						axis: 'x',
+						a: { sx: -1, sy, sz },
+						b: { sx: 1, sy, sz },
+					});
+				}
+			for (const sx of signs)
+				for (const sz of signs) {
+					edges.push({
+						axis: 'y',
+						a: { sx, sy: -1, sz },
+						b: { sx, sy: 1, sz },
+					});
+				}
+			for (const sx of signs)
+				for (const sy of signs) {
+					edges.push({
+						axis: 'z',
+						a: { sx, sy, sz: -1 },
+						b: { sx, sy, sz: 1 },
+					});
+				}
+			return edges
+				.map((e) => {
+					const wa = cornerWorld(wb, e.a);
+					const wb2 = cornerWorld(wb, e.b);
+					const mid = wa.clone().add(wb2).multiplyScalar(0.5);
+					const front =
+						cornerIsFront(wb, e.a) ||
+						cornerIsFront(wb, e.b) ||
+						// edge lies on a camera-facing face
+						(e.axis !== 'x' && e.a.sx === camFaceSigns(wb).x) ||
+						(e.axis !== 'y' && e.a.sy === camFaceSigns(wb).y) ||
+						(e.axis !== 'z' && e.a.sz === camFaceSigns(wb).z);
+					return { ...e, wa, wb: wb2, mid, front };
+				})
+				.filter((e) => e.front);
+		}
+
+		function listFaces(wb) {
+			const f = camFaceSigns(wb);
+			const faces = [
+				{ axis: 'x', sign: f.x },
+				{ axis: 'y', sign: f.y },
+				{ axis: 'z', sign: f.z },
+			];
+			return faces.map((face) => {
+				const c = wb.center.clone();
+				const half = wb.size.clone().multiplyScalar(0.5);
+				if (face.axis === 'x') c.x += face.sign * half.x;
+				if (face.axis === 'y') c.y += face.sign * half.y;
+				if (face.axis === 'z') c.z += face.sign * half.z;
+				return { ...face, center: c, half };
+			});
+		}
+
+		function layoutOverlay() {
+			if (!selected) {
+				overlay.visible = false;
+				return;
+			}
+			const wb = worldBox(selected);
+			boxHelper.box.copy(wb.box);
+
+			for (const h of handles) {
+				const c = h.userData.corner;
+				const visible = cornerIsFront(wb, c);
+				h.visible = visible;
+				if (!visible) continue;
+				const p = cornerWorld(wb, c);
+				h.position.copy(p);
+				h.scale.setScalar(handleWorldSize(p) / HANDLE_BASE);
+				const hot =
+					hoverKind === 'uniform' &&
+					hoverCorner &&
+					hoverCorner.sx === c.sx &&
+					hoverCorner.sy === c.sy &&
+					hoverCorner.sz === c.sz;
+				h.material = hot ? handleMats.hot : handleMats.idle;
+			}
+
+			rotateRing.quaternion.copy(camera.quaternion);
+
+			// Face highlight
+			if (hoverKind === 'face' && hoverFace) {
+				const { axis, sign, center: fc, half } = hoverFace;
+				faceHighlight.position.copy(fc);
+				faceHighlight.rotation.set(0, 0, 0);
+				if (axis === 'x') {
+					faceHighlight.rotation.y = Math.PI / 2;
+					faceHighlight.scale.set(half.z * 2, half.y * 2, 1);
+				} else if (axis === 'y') {
+					faceHighlight.rotation.x = -Math.PI / 2;
+					faceHighlight.scale.set(half.x * 2, half.z * 2, 1);
+				} else {
+					faceHighlight.scale.set(half.x * 2, half.y * 2, 1);
+				}
+				// nudge toward camera so it sits on the face
+				faceHighlight.material.opacity = 0.18;
+			} else {
+				faceHighlight.material.opacity = 0;
+			}
+
+			// Edge highlight
+			if (hoverKind === 'edge' && hoverEdge) {
+				edgeHighlight.geometry.dispose();
+				edgeHighlight.geometry = new THREE.BufferGeometry().setFromPoints([
+					hoverEdge.wa,
+					hoverEdge.wb,
+				]);
+				edgeHighlight.visible = true;
+			} else {
+				edgeHighlight.visible = false;
+			}
+
+			overlay.visible = manipMode === 'figma';
+		}
+
+		function select(obj) {
+			selected = obj;
+			for (const p of props) {
+				if (p.isMesh && p.material?.emissive) p.material.emissive.setHex(0x000000);
+			}
+			if (obj?.isMesh && obj.material?.emissive) obj.material.emissive.setHex(0x111118);
+			layoutOverlay();
+			if (manipMode === 'classic' && obj) {
+				tcontrols.attach(obj);
+				tcontrols.visible = true;
+				tcontrols.enabled = true;
+				tcontrols.setMode(classicTool);
+			} else {
+				tcontrols.detach();
+				tcontrols.visible = false;
+				tcontrols.enabled = false;
+			}
+		}
+
+		function setManipMode(next) {
+			manipMode = next;
+			btnFigma.setAttribute('aria-pressed', String(next === 'figma'));
+			btnClassic.setAttribute('aria-pressed', String(next === 'classic'));
+			classicTools.classList.toggle('visible', next === 'classic');
+			classicTools.setAttribute('aria-hidden', String(next !== 'classic'));
+			legendBlurb.textContent =
+				next === 'figma'
+					? 'One selection state. Cursor + hover target pick the verb.'
+					: 'Classic path: pick Move / Rotate / Scale, then drag the axis gizmo.';
+			select(selected);
+		}
+
+		function setClassicTool(tool) {
+			classicTool = tool;
+			for (const b of classicTools.querySelectorAll('button')) {
+				b.setAttribute('aria-pressed', String(b.dataset.tool === tool));
+			}
+			if (manipMode === 'classic') tcontrols.setMode(tool);
+		}
+
+		btnFigma.addEventListener('click', () => setManipMode('figma'));
+		btnClassic.addEventListener('click', () => setManipMode('classic'));
+		classicTools.addEventListener('click', (e) => {
+			const btn = e.target.closest('button[data-tool]');
+			if (btn) setClassicTool(btn.dataset.tool);
+		});
+
+		window.addEventListener('keydown', (e) => {
+			if (manipMode !== 'classic') return;
+			const k = e.key.toLowerCase();
+			if (k === 'm') setClassicTool('translate');
+			if (k === 'r') setClassicTool('rotate');
+			if (k === 's') setClassicTool('scale');
+		});
+
+		function ndcFromEvent(e) {
+			const rect = renderer.domElement.getBoundingClientRect();
+			pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+			pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+		}
+
+		function clientFromEvent(e) {
+			const rect = renderer.domElement.getBoundingClientRect();
+			return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+		}
+
+		function groundPoint(e) {
+			ndcFromEvent(e);
+			raycaster.setFromCamera(pointer, camera);
+			if (!raycaster.ray.intersectPlane(groundPlane, hit)) return null;
+			return hit.clone();
+		}
+
+		function resolveProp(obj) {
+			let cur = obj;
+			while (cur && !props.includes(cur) && cur.parent && cur.parent !== scene) cur = cur.parent;
+			return props.includes(cur) ? cur : null;
+		}
+
+		function distPointToSegment2d(p, a, b) {
+			const abx = b.x - a.x;
+			const aby = b.y - a.y;
+			const len2 = abx * abx + aby * aby || 1;
+			let t = ((p.x - a.x) * abx + (p.y - a.y) * aby) / len2;
+			t = Math.max(0, Math.min(1, t));
+			const qx = a.x + abx * t;
+			const qy = a.y + aby * t;
+			return Math.hypot(p.x - qx, p.y - qy);
+		}
+
+		function pickHover(e) {
+			hoverKind = null;
+			hoverCorner = null;
+			hoverEdge = null;
+			hoverFace = null;
+			rotateRing.material.opacity = 0;
+
+			if (manipMode !== 'figma' || !selected || gesture) return;
+
+			const client = clientFromEvent(e);
+			const wb = worldBox(selected);
+
+			// 1) Front corners — uniform / rotate
+			let bestCorner = null;
+			let bestCornerD = Infinity;
+			for (const c of corners) {
+				if (!cornerIsFront(wb, c)) continue;
+				const wp = cornerWorld(wb, c);
+				const sp = projectPx(wp);
+				const d = Math.hypot(client.x - sp.x, client.y - sp.y);
+				if (d < bestCornerD) {
+					bestCornerD = d;
+					bestCorner = { c, wp, sp };
+				}
+			}
+
+			if (bestCorner && bestCornerD <= HANDLE_PX) {
+				hoverKind = 'uniform';
+				hoverCorner = bestCorner.c;
+				return;
+			}
+
+			if (bestCorner && bestCornerD > HANDLE_PX && bestCornerD <= HANDLE_PX + ROTATE_PX) {
+				hoverKind = 'rotate';
+				hoverCorner = bestCorner.c;
+				rotateRing.position.copy(bestCorner.wp);
+				rotateRing.scale.setScalar(handleWorldSize(bestCorner.wp) * 12);
+				rotateRing.material.opacity = 0.95;
+				return;
+			}
+
+			// 2) Edges — 2-axis stretch (no persistent handles; hover only)
+			let bestEdge = null;
+			let bestEdgeD = Infinity;
+			for (const edge of listEdges(wb)) {
+				const sa = projectPx(edge.wa);
+				const sb = projectPx(edge.wb);
+				const d = distPointToSegment2d(client, sa, sb);
+				if (d < bestEdgeD) {
+					bestEdgeD = d;
+					bestEdge = edge;
+				}
+			}
+			if (bestEdge && bestEdgeD <= EDGE_PX) {
+				hoverKind = 'edge';
+				hoverEdge = bestEdge;
+				return;
+			}
+
+			// 3) Front faces — 1-axis stretch only near face *center*
+			//    (keeps most of the body free for move)
+			const faces = listFaces(wb);
+			let bestFace = null;
+			let bestFaceD = Infinity;
+			for (const face of faces) {
+				const sp = projectPx(face.center);
+				const d = Math.hypot(client.x - sp.x, client.y - sp.y);
+				if (d < bestFaceD && d <= 26) {
+					bestFaceD = d;
+					bestFace = face;
+				}
+			}
+			if (bestFace) {
+				hoverKind = 'face';
+				hoverFace = bestFace;
+				return;
+			}
+
+			// 4) Body — anything else on the mesh
+			ndcFromEvent(e);
+			raycaster.setFromCamera(pointer, camera);
+			const hits = raycaster.intersectObjects(
+				selected.isMesh ? [selected] : selected.children.filter((c) => c.isMesh),
+				true
+			);
+			if (hits.length && resolveProp(hits[0].object) === selected) {
+				hoverKind = 'body';
+			}
+		}
+
+		function updateCursorUI(e) {
+			const map = {
+				body: { cursor: CURSOR.move, label: 'move' },
+				uniform: { cursor: CURSOR.uniform, label: 'scale · uniform' },
+				edge: { cursor: CURSOR.stretch, label: 'stretch · edge' },
+				face: { cursor: CURSOR.stretch, label: 'stretch · face' },
+				rotate: { cursor: CURSOR.rotate, label: 'rotate' },
+			};
+			const m = map[hoverKind];
+			renderer.domElement.style.cursor = m ? m.cursor : CURSOR.default;
+			if (m && manipMode === 'figma') {
+				cursorLabel.textContent = m.label;
+				cursorLabel.style.left = `${e.clientX}px`;
+				cursorLabel.style.top = `${e.clientY}px`;
+				cursorLabel.classList.add('on');
+			} else {
+				cursorLabel.classList.remove('on');
+			}
+			stHover.textContent = hoverKind ?? '—';
+			layoutOverlay();
+		}
+
+		function applySnaps(obj) {
+			const wb = worldBox(obj);
+			let snapped = false;
+			guideX.visible = false;
+			guideZ.visible = false;
+			for (const other of props) {
+				if (other === obj) continue;
+				const ob = worldBox(other);
+				if (Math.abs(wb.center.x - ob.center.x) < SNAP) {
+					obj.position.x += ob.center.x - wb.center.x;
+					setGuide(
+						guideZ,
+						new THREE.Vector3(ob.center.x, 0.05, -10),
+						new THREE.Vector3(ob.center.x, 0.05, 10)
+					);
+					snapped = true;
+				}
+				if (Math.abs(wb.center.z - ob.center.z) < SNAP) {
+					obj.position.z += ob.center.z - wb.center.z;
+					setGuide(
+						guideX,
+						new THREE.Vector3(-10, 0.05, ob.center.z),
+						new THREE.Vector3(10, 0.05, ob.center.z)
+					);
+					snapped = true;
+				}
+			}
+			stSnap.textContent = snapped ? 'guide' : 'off';
+		}
+
+		function beginGesture(kind, e) {
+			const wb = worldBox(selected);
+			gesture = kind;
+			dragStart = {
+				point: groundPoint(e),
+				client: clientFromEvent(e),
+				pos: selected.position.clone(),
+				scale: selected.scale.clone(),
+				rotY: selected.rotation.y,
+				center: wb.center.clone(),
+				size: wb.size.clone(),
+				corner: hoverCorner,
+				edge: hoverEdge,
+				face: hoverFace,
+			};
+			orbit.enabled = false;
+			stGesture.textContent = gesture;
+		}
+
+		function applyScaleKeepOpposite(c, scaleX, scaleY, scaleZ, start) {
+			const oldHalf = {
+				x: start.size.x * 0.5,
+				y: start.size.y * 0.5,
+				z: start.size.z * 0.5,
+			};
+			const ratio = {
+				x: scaleX / start.scale.x,
+				y: scaleY / start.scale.y,
+				z: scaleZ / start.scale.z,
+			};
+			const newHalf = {
+				x: oldHalf.x * ratio.x,
+				y: oldHalf.y * ratio.y,
+				z: oldHalf.z * ratio.z,
+			};
+			const fixed = new THREE.Vector3(
+				start.center.x - c.sx * oldHalf.x,
+				start.center.y - c.sy * oldHalf.y,
+				start.center.z - c.sz * oldHalf.z
+			);
+			const newCenter = new THREE.Vector3(
+				fixed.x + c.sx * newHalf.x,
+				fixed.y + c.sy * newHalf.y,
+				fixed.z + c.sz * newHalf.z
+			);
+			selected.scale.set(scaleX, scaleY, scaleZ);
+			selected.position.x = start.pos.x + (newCenter.x - start.center.x);
+			selected.position.y = Math.max(0, start.pos.y + (newCenter.y - start.center.y));
+			selected.position.z = start.pos.z + (newCenter.z - start.center.z);
+		}
+
+		renderer.domElement.addEventListener('pointermove', (e) => {
+			if (gesture && selected && dragStart) {
+				const gp = groundPoint(e);
+				const client = clientFromEvent(e);
+
+				if (gesture === 'move' && gp && dragStart.point) {
+					selected.position.x = dragStart.pos.x + (gp.x - dragStart.point.x);
+					selected.position.z = dragStart.pos.z + (gp.z - dragStart.point.z);
+					applySnaps(selected);
+				} else if (gesture === 'uniform' && gp && dragStart.point && dragStart.corner) {
+					const c = dragStart.corner;
+					const dx = gp.x - dragStart.point.x;
+					const dz = gp.z - dragStart.point.z;
+					const dyScreen = (dragStart.client.y - client.y) * 0.01;
+					const rawX = Math.max(0.25, dragStart.scale.x + dx * c.sx * 2);
+					const rawY = Math.max(0.25, dragStart.scale.y + dyScreen * c.sy * 2);
+					const rawZ = Math.max(0.25, dragStart.scale.z + dz * c.sz * 2);
+					const f = Math.max(
+						rawX / dragStart.scale.x,
+						rawY / dragStart.scale.y,
+						rawZ / dragStart.scale.z
+					);
+					applyScaleKeepOpposite(
+						c,
+						dragStart.scale.x * f,
+						dragStart.scale.y * f,
+						dragStart.scale.z * f,
+						dragStart
+					);
+					stSnap.textContent = 'uniform';
+				} else if (gesture === 'edge' && gp && dragStart.point && dragStart.edge) {
+					const edge = dragStart.edge;
+					const dx = gp.x - dragStart.point.x;
+					const dz = gp.z - dragStart.point.z;
+					const dyScreen = (dragStart.client.y - client.y) * 0.01;
+					// Stretch the two axes perpendicular to the edge; plant the opposite sides.
+					let sx = dragStart.scale.x;
+					let sy = dragStart.scale.y;
+					let sz = dragStart.scale.z;
+					const plant = { sx: 0, sy: 0, sz: 0 };
+					if (edge.axis === 'x') {
+						// vary Y,Z — use fixed signs from edge.a
+						sy = Math.max(0.25, dragStart.scale.y + dyScreen * edge.a.sy * 2);
+						sz = Math.max(0.25, dragStart.scale.z + dz * edge.a.sz * 2);
+						plant.sy = edge.a.sy;
+						plant.sz = edge.a.sz;
+					} else if (edge.axis === 'y') {
+						sx = Math.max(0.25, dragStart.scale.x + dx * edge.a.sx * 2);
+						sz = Math.max(0.25, dragStart.scale.z + dz * edge.a.sz * 2);
+						plant.sx = edge.a.sx;
+						plant.sz = edge.a.sz;
+					} else {
+						sx = Math.max(0.25, dragStart.scale.x + dx * edge.a.sx * 2);
+						sy = Math.max(0.25, dragStart.scale.y + dyScreen * edge.a.sy * 2);
+						plant.sx = edge.a.sx;
+						plant.sy = edge.a.sy;
+					}
+					applyScaleKeepOpposite(plant, sx, sy, sz, dragStart);
+					stSnap.textContent = 'edge';
+				} else if (gesture === 'face' && gp && dragStart.point && dragStart.face) {
+					const face = dragStart.face;
+					let sx = dragStart.scale.x;
+					let sy = dragStart.scale.y;
+					let sz = dragStart.scale.z;
+					const plant = { sx: 0, sy: 0, sz: 0 };
+					if (face.axis === 'x') {
+						const dx = gp.x - dragStart.point.x;
+						sx = Math.max(0.25, dragStart.scale.x + dx * face.sign * 2);
+						plant.sx = face.sign;
+					} else if (face.axis === 'y') {
+						const dyScreen = (dragStart.client.y - client.y) * 0.012;
+						sy = Math.max(0.25, dragStart.scale.y + dyScreen * face.sign * 2);
+						plant.sy = face.sign;
+					} else {
+						const dz = gp.z - dragStart.point.z;
+						sz = Math.max(0.25, dragStart.scale.z + dz * face.sign * 2);
+						plant.sz = face.sign;
+					}
+					applyScaleKeepOpposite(plant, sx, sy, sz, dragStart);
+					stSnap.textContent = 'face';
+				} else if (gesture === 'rotate' && gp && dragStart.point) {
+					const a0 = Math.atan2(
+						dragStart.point.x - dragStart.center.x,
+						dragStart.point.z - dragStart.center.z
+					);
+					const a1 = Math.atan2(gp.x - dragStart.center.x, gp.z - dragStart.center.z);
+					selected.rotation.y = dragStart.rotY + (a1 - a0);
+				}
+
+				layoutOverlay();
+				stGesture.textContent = gesture;
+				return;
+			}
+
+			if (manipMode === 'figma') {
+				pickHover(e);
+				updateCursorUI(e);
+				orbit.enableRotate = !hoverKind;
+			}
+		});
+
+		renderer.domElement.addEventListener('pointerdown', (e) => {
+			if (e.button !== 0) return;
+
+			if (manipMode === 'classic') {
+				ndcFromEvent(e);
+				raycaster.setFromCamera(pointer, camera);
+				const hits = raycaster.intersectObjects(props, true);
+				if (hits.length) {
+					const obj = resolveProp(hits[0].object);
+					if (obj) select(obj);
+				} else if (!tcontrols.dragging) select(null);
+				return;
+			}
+
+			pickHover(e);
+			if (hoverKind && selected) {
+				const kind = hoverKind === 'body' ? 'move' : hoverKind;
+				beginGesture(kind, e);
+				renderer.domElement.setPointerCapture(e.pointerId);
+				return;
+			}
+
+			ndcFromEvent(e);
+			raycaster.setFromCamera(pointer, camera);
+			const hits = raycaster.intersectObjects(props, true);
+			if (hits.length) {
+				const obj = resolveProp(hits[0].object);
+				if (obj) {
+					select(obj);
+					hoverKind = 'body';
+					beginGesture('move', e);
+					renderer.domElement.setPointerCapture(e.pointerId);
+					return;
+				}
+			} else {
+				select(null);
+			}
+			pickHover(e);
+			updateCursorUI(e);
+		});
+
+		renderer.domElement.addEventListener('pointerup', (e) => {
+			if (!gesture) {
+				orbit.enableRotate = true;
+				return;
+			}
+			gesture = null;
+			dragStart = null;
+			orbit.enabled = true;
+			orbit.enableRotate = true;
+			guideX.visible = false;
+			guideZ.visible = false;
+			stSnap.textContent = 'off';
+			stGesture.textContent = 'idle';
+			try {
+				renderer.domElement.releasePointerCapture(e.pointerId);
+			} catch {}
+			pickHover(e);
+			updateCursorUI(e);
+		});
+
+		function resize() {
+			const w = root.clientWidth;
+			const h = Math.max(root.clientHeight, 1);
+			camera.aspect = w / h;
+			camera.updateProjectionMatrix();
+			renderer.setSize(w, h);
+		}
+		resize();
+		window.addEventListener('resize', resize);
+
+		select(props[1]);
+		setManipMode('figma');
+
+		(function tick() {
+			requestAnimationFrame(tick);
+			orbit.update();
+			if (selected && manipMode === 'figma') layoutOverlay();
+			renderer.render(scene, camera);
+		})();
+	</script>
+</body>
+</html>

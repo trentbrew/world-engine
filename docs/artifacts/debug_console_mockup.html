@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte Skeleton — Debug Console (UI-DEBUGCONSOLE design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: oklch(0.145 0 0);
+      --foreground: oklch(0.985 0 0);
+      --card: oklch(0.205 0 0);
+      --muted-foreground: oklch(0.708 0 0);
+      --primary: oklch(0.922 0 0);
+      --secondary: oklch(0.269 0 0);
+      --border: oklch(1 0 0 / 10%);
+      --ring: oklch(0.556 0 0);
+      --viewport: oklch(0.1 0 0);
+      --viewport-grid: oklch(0.18 0 0);
+      --success: oklch(0.696 0.17 162.48);
+      --destructive: oklch(0.704 0.191 22.216);
+      --log-warn: oklch(0.75 0.12 85);
+      --float-inset: 12px;
+      --spacing-sm: 8px;
+      --rounded-sm: 6px;
+      --rounded-lg: 14px;
+      --rounded-pill: 999px;
+      --doc-bar-height: 32px;
+      --doc-bar-pad-y: 8px;
+      --view-controls-height: 76px;
+      --font-ui: 'Geist', system-ui, sans-serif;
+      --font-mono: 'Geist Mono', ui-monospace, monospace;
+      --stage-inset: 8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      font-size: 12px;
+      color: var(--foreground);
+      background: var(--card);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .legend {
+      position: fixed;
+      top: var(--float-inset);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-pill);
+      font-size: 11px;
+      color: var(--muted-foreground);
+    }
+
+    .legend button {
+      font: inherit;
+      padding: 4px 10px;
+      border-radius: var(--rounded-pill);
+      border: 1px solid var(--border);
+      background: var(--secondary);
+      color: var(--foreground);
+      cursor: pointer;
+    }
+
+    .legend button.active { background: var(--primary); color: var(--background); }
+
+    .app-shell {
+      height: 100%;
+      padding: var(--stage-inset);
+    }
+
+    .app-chrome {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-lg);
+      overflow: hidden;
+      background: var(--card);
+    }
+
+    .doc-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: calc(var(--doc-bar-height) + var(--doc-bar-pad-y) * 2);
+      padding: var(--doc-bar-pad-y) var(--spacing-sm);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .doc-bar .title { font-weight: 500; font-size: 12px; }
+    .doc-bar .sub { font-size: 10px; color: var(--muted-foreground); font-family: var(--font-mono); }
+
+    .mode-tabs {
+      display: flex;
+      gap: 2px;
+      padding: 2px;
+      border-radius: var(--rounded-pill);
+      border: 1px solid var(--border);
+      background: var(--secondary);
+    }
+
+    .mode-tabs span {
+      padding: 4px 12px;
+      border-radius: var(--rounded-pill);
+      font-size: 11px;
+      color: var(--muted-foreground);
+    }
+
+    .mode-tabs span.on {
+      background: var(--card);
+      color: var(--foreground);
+    }
+
+    .viewport {
+      position: relative;
+      flex: 1;
+      background: var(--viewport);
+      min-height: 0;
+    }
+
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .view-controls {
+      position: absolute;
+      bottom: var(--float-inset);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: var(--rounded-pill);
+      border: 1px solid var(--border);
+      background: var(--card);
+      font-size: 11px;
+      color: var(--muted-foreground);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .view-controls .on { color: var(--foreground); font-weight: 500; }
+
+  /* ---- Debug console ---- */
+    .debug-console {
+      position: absolute;
+      right: var(--float-inset);
+      bottom: calc(var(--float-inset) + var(--view-controls-height) + var(--spacing-sm));
+      z-index: 6;
+      font-size: 12px;
+    }
+
+    .debug-pill {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      height: 32px;
+      padding: 0 10px 0 8px;
+      border-radius: var(--rounded-pill);
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--foreground);
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgb(0 0 0 / 0.24);
+      font-family: inherit;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .debug-pill.visible { display: inline-flex; }
+
+    .debug-pill:hover { background: var(--secondary); }
+
+    .debug-pill .icon { width: 14px; height: 14px; opacity: 0.85; flex-shrink: 0; }
+    .debug-pill .tab-name { color: var(--muted-foreground); }
+    .debug-pill .metric { font-family: var(--font-mono); font-weight: 500; }
+    .debug-pill .chev { width: 14px; height: 14px; opacity: 0.5; margin-left: 2px; }
+
+    .debug-panel {
+      display: none;
+      flex-direction: column;
+      width: 300px;
+      height: 220px;
+      border-radius: var(--rounded-lg);
+      border: 1px solid var(--border);
+      background: var(--card);
+      box-shadow: 0 8px 24px rgb(0 0 0 / 0.28);
+      overflow: hidden;
+    }
+
+    .debug-panel.visible {
+      display: flex;
+    }
+
+    .panel-tabs {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      padding: 0 4px 0 var(--spacing-sm);
+      flex-shrink: 0;
+    }
+
+    .panel-tab {
+      flex: 1;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 8px 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .panel-tab.active {
+      color: var(--foreground);
+      border-bottom-color: var(--primary);
+    }
+
+    .collapse-btn {
+      width: 28px;
+      height: 28px;
+      margin: 4px 4px 4px 0;
+      border: none;
+      border-radius: var(--rounded-sm);
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .collapse-btn:hover { background: var(--secondary); color: var(--foreground); }
+
+    .panel-body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 10px 12px;
+    }
+
+    /* Input tab */
+    .input-tab header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .hud-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted-foreground);
+    }
+
+    .source-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: var(--rounded-pill);
+      border: 1px solid var(--border);
+      color: var(--foreground);
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stick-well {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--viewport) 60%, var(--background));
+    }
+
+    .stick-dot {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      margin: -6px 0 0 -6px;
+      border-radius: 50%;
+      background: var(--foreground);
+      left: 62%;
+      top: 38%;
+    }
+
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(3, 20px);
+      grid-template-rows: repeat(2, 20px);
+      gap: 3px;
+    }
+
+    .key {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--muted-foreground);
+    }
+
+    .key.on { background: var(--foreground); color: var(--viewport); }
+    .key.w { grid-column: 2; }
+    .key.a { grid-column: 1; grid-row: 2; }
+    .key.s { grid-column: 2; grid-row: 2; }
+    .key.d { grid-column: 3; grid-row: 2; }
+
+    .mag-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .mag-track {
+      flex: 1;
+      height: 3px;
+      border-radius: var(--rounded-pill);
+      background: var(--secondary);
+      overflow: hidden;
+    }
+
+    .mag-fill { height: 100%; width: 42%; background: var(--foreground); }
+
+    .mag-val { font-family: var(--font-mono); font-size: 10px; color: var(--muted-foreground); }
+
+    /* Stats tab */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 12px;
+    }
+
+    .stat-row .label { font-size: 10px; color: var(--muted-foreground); }
+    .stat-row .val { font-family: var(--font-mono); font-size: 11px; font-weight: 500; }
+
+    /* Sync tab */
+    .sync-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .sync-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .sync-row .k { color: var(--muted-foreground); font-size: 11px; }
+    .sync-row .v { font-family: var(--font-mono); font-size: 11px; text-align: right; }
+
+    .badge-live {
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    /* Logs tab */
+    .logs-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .logs-toolbar button {
+      font: inherit;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: var(--secondary);
+      color: var(--muted-foreground);
+      cursor: pointer;
+    }
+
+    .logs-toolbar button.on { color: var(--foreground); border-color: var(--primary); }
+
+    .log-lines {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      line-height: 1.55;
+      color: var(--muted-foreground);
+    }
+
+    .log-lines .warn { color: var(--log-warn); }
+    .log-lines .err { color: var(--destructive); }
+    .log-lines .ts { opacity: 0.45; margin-right: 6px; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .no-footer-note {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: var(--muted-foreground);
+      font-size: 11px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    [data-design-note] {
+      outline: 1px dashed oklch(0.65 0.15 250 / 0.5);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="legend" data-design-note="Mock controls — not in product UI">
+    <span>State:</span>
+    <button type="button" id="btnCollapsed" class="active">Collapsed</button>
+    <button type="button" id="btnExpanded">Expanded</button>
+  </div>
+
+  <div class="app-shell">
+    <div class="app-chrome" data-design-note="Unified chrome — no footer status bar">
+      <header class="doc-bar">
+        <div>
+          <div class="title">Physics Lab</div>
+          <div class="sub">timothy</div>
+        </div>
+        <div class="mode-tabs">
+          <span>Edit</span>
+          <span class="on">Play</span>
+        </div>
+        <div class="sub">avatars · share</div>
+      </header>
+
+      <div class="viewport">
+        <div class="grid-bg"></div>
+        <p class="no-footer-note">Viewport only — status bar removed from chrome footer</p>
+
+        <div class="view-controls" data-design-note="Center bottom — dock sits above this row">
+          <span>Orthographic</span>
+          <span>·</span>
+          <span class="on">Perspective</span>
+        </div>
+
+        <div class="debug-console" data-design-note="DebugConsole — bottom-right, above view controls">
+          <button type="button" class="debug-pill visible" id="pill" aria-expanded="false">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 5 4-9"/></svg>
+            <span class="tab-name" id="pillTab">Stats</span>
+            <span>·</span>
+            <span class="metric" id="pillMetric">tick 4908</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
+          </button>
+
+          <div class="debug-panel" id="panel" role="region" aria-label="Developer HUD">
+            <div class="panel-tabs" role="tablist">
+              <button type="button" class="panel-tab" data-tab="input" role="tab">Input</button>
+              <button type="button" class="panel-tab active" data-tab="stats" role="tab" aria-selected="true">Stats</button>
+              <button type="button" class="panel-tab" data-tab="sync" role="tab">Sync</button>
+              <button type="button" class="panel-tab" data-tab="logs" role="tab">Logs</button>
+              <button type="button" class="collapse-btn" id="collapseBtn" title="Collapse" aria-label="Collapse">−</button>
+            </div>
+
+            <div class="panel-body">
+              <div class="tab-panel" data-panel="input" role="tabpanel">
+                <div class="input-tab">
+                  <header>
+                    <span class="hud-label">Input</span>
+                    <span class="source-badge">keyboard</span>
+                  </header>
+                  <div class="input-row">
+                    <div class="stick-well"><div class="stick-dot"></div></div>
+                    <div class="keys">
+                      <span class="key w on">W</span>
+                      <span class="key a">A</span>
+                      <span class="key s on">S</span>
+                      <span class="key d">D</span>
+                    </div>
+                  </div>
+                  <div class="mag-row">
+                    <div class="mag-track"><div class="mag-fill"></div></div>
+                    <span class="mag-val">0.42</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-panel active" data-panel="stats" role="tabpanel">
+                <div class="stat-grid">
+                  <div class="stat-row"><div class="label">Entities</div><div class="val">7</div></div>
+                  <div class="stat-row"><div class="label">Tick</div><div class="val">4908</div></div>
+                  <div class="stat-row"><div class="label">Peers</div><div class="val">2</div></div>
+                  <div class="stat-row"><div class="label">Role</div><div class="val">viewer</div></div>
+                  <div class="stat-row"><div class="label">Transport</div><div class="val">relay</div></div>
+                  <div class="stat-row"><div class="label">Projection</div><div class="val">Persp</div></div>
+                  <div class="stat-row"><div class="label">Controller</div><div class="val">none</div></div>
+                  <div class="stat-row"><div class="label">Zoom</div><div class="val">100%</div></div>
+                </div>
+              </div>
+
+              <div class="tab-panel" data-panel="sync" role="tabpanel">
+                <div class="sync-list">
+                  <div class="sync-row"><span class="k">Room</span><span class="v">timothy</span></div>
+                  <div class="sync-row"><span class="k">Transport</span><span class="v">relay</span></div>
+                  <div class="sync-row"><span class="k">Role</span><span class="v">viewer · not host</span></div>
+                  <div class="sync-row"><span class="k">Peers</span><span class="v">2 connected</span></div>
+                  <div class="sync-row"><span class="k">Durable</span><span class="v badge-live">live</span></div>
+                </div>
+              </div>
+
+              <div class="tab-panel" data-panel="logs" role="tabpanel">
+                <div class="logs-toolbar">
+                  <button type="button" class="on" id="pinBtn">Pin scroll</button>
+                  <button type="button">Clear</button>
+                </div>
+                <div class="log-lines">
+                  <div><span class="ts">12:04:01</span>[world] loaded physics.jsonld</div>
+                  <div><span class="ts">12:04:02</span>session connected · relay</div>
+                  <div class="warn"><span class="ts">12:04:05</span>warn: peer transform lag 120ms</div>
+                  <div><span class="ts">12:04:08</span>tick 4900 · sim running</div>
+                  <div class="err"><span class="ts">12:04:09</span>error: asset 404 /models/foo.glb</div>
+                  <div><span class="ts">12:04:11</span>player spawned entity:player/303a</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const pill = document.getElementById('pill');
+    const panel = document.getElementById('panel');
+    const collapseBtn = document.getElementById('collapseBtn');
+    const btnCollapsed = document.getElementById('btnCollapsed');
+    const btnExpanded = document.getElementById('btnExpanded');
+    const pillTab = document.getElementById('pillTab');
+    const pillMetric = document.getElementById('pillMetric');
+
+    const metrics = {
+      input: { tab: 'Input', metric: '0.42' },
+      stats: { tab: 'Stats', metric: 'tick 4908' },
+      sync: { tab: 'Sync', metric: '2 peers' },
+      logs: { tab: 'Logs', metric: '3 new' }
+    };
+
+    function setExpanded(expanded) {
+      pill.classList.toggle('visible', !expanded);
+      panel.classList.toggle('visible', expanded);
+      pill.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      btnCollapsed.classList.toggle('active', !expanded);
+      btnExpanded.classList.toggle('active', expanded);
+    }
+
+    pill.addEventListener('click', () => setExpanded(true));
+    collapseBtn.addEventListener('click', () => setExpanded(false));
+    btnCollapsed.addEventListener('click', () => setExpanded(false));
+    btnExpanded.addEventListener('click', () => setExpanded(true));
+
+    document.querySelectorAll('.panel-tab[data-tab]').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const name = tab.dataset.tab;
+        document.querySelectorAll('.panel-tab[data-tab]').forEach((t) => {
+          t.classList.toggle('active', t === tab);
+          t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+        });
+        document.querySelectorAll('.tab-panel').forEach((p) => {
+          p.classList.toggle('active', p.dataset.panel === name);
+        });
+        const m = metrics[name];
+        pillTab.textContent = m.tab;
+        pillMetric.textContent = m.metric;
+      });
+    });
+  </script>
+</body>
+</html>

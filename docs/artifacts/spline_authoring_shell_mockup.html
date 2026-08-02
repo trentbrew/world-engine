@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte Skeleton — Spline Authoring Shell (TRL-28 design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --viewport: #0c0c10;
+      --viewport-grid: #1a1524;
+      --surface: #131318;
+      --surface-raised: #1a1a22;
+      --surface-overlay: #22222c;
+      --surface-glass: color-mix(in srgb, var(--surface-overlay) 68%, transparent);
+      --text: #ececf2;
+      --text-muted: #8b8b9c;
+      --text-mono: #a8a8bc;
+      --primary: #7b6df0;
+      --primary-foreground: #f4f2ff;
+      --primary-muted: color-mix(in srgb, var(--primary) 18%, transparent);
+      --accent-play: #7b6df0;
+      --accent-play-foreground: #f4f2ff;
+      --accent-selection: #5b9fd4;
+      --border: #2a2a38;
+      --border-focus: #7b6df0;
+      --doc-bar-height: 36px;
+      --tool-pill-height: 44px;
+      --left-panel-width: 240px;
+      --right-panel-width: 280px;
+      --view-bar-height: 36px;
+      --float-inset: 12px;
+      --rounded-sm: 6px;
+      --rounded-md: 10px;
+      --rounded-lg: 14px;
+      --rounded-pill: 999px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--viewport);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: var(--doc-bar-height) 1fr;
+      height: 100%;
+    }
+
+    /* Doc bar */
+    .doc-bar {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 0 var(--spacing-md);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      z-index: 30;
+    }
+
+    .doc-tabs {
+      display: flex;
+      align-items: stretch;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .doc-tab {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 0 14px;
+      height: var(--doc-bar-height);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+    }
+
+    .doc-tab:hover { color: var(--text); }
+    .doc-tab.active {
+      color: var(--text);
+      border-bottom-color: var(--primary);
+    }
+    .doc-tab:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+
+    .doc-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .score-chip {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--accent-selection);
+      background: var(--primary-muted);
+      border-radius: var(--rounded-sm);
+      padding: 2px 8px;
+    }
+
+    /* Viewport */
+    .stage {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .viewport-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .viewport-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 55%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 70%);
+      pointer-events: none;
+    }
+
+    .glass {
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+      box-shadow: 0 8px 32px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.04);
+    }
+
+    /* Tool pill — center top */
+    .tool-pill-wrap {
+      position: absolute;
+      top: var(--float-inset);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 25;
+      transition: opacity 180ms, transform 180ms;
+    }
+
+    .tool-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: var(--tool-pill-height);
+      padding: 0 6px;
+      border-radius: var(--rounded-pill);
+    }
+
+    .tool-btn {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: var(--rounded-sm);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tool-btn:hover { color: var(--text); background: color-mix(in srgb, var(--surface-overlay) 40%, transparent); }
+    .tool-btn.active { color: var(--primary); background: var(--primary-muted); }
+    .tool-btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+    .tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .tool-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+
+    .play-btn {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      height: 32px;
+      min-width: 88px;
+      padding: 0 16px;
+      border: none;
+      border-radius: var(--rounded-pill);
+      background: var(--accent-play);
+      color: var(--accent-play-foreground);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 4px;
+    }
+
+    .play-btn:hover { filter: brightness(1.08); }
+    .play-btn.playing {
+      background: var(--surface-overlay);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .play-btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+
+    .icon { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* Side panels */
+    .panel {
+      position: absolute;
+      top: var(--float-inset);
+      z-index: 20;
+      border-radius: var(--rounded-lg);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100% - var(--float-inset) * 2 - var(--view-bar-height) - var(--spacing-md));
+      overflow: hidden;
+      transition: opacity 180ms, transform 180ms;
+    }
+
+    .left-panel {
+      left: var(--float-inset);
+      width: var(--left-panel-width);
+    }
+
+    .right-panel {
+      right: var(--float-inset);
+      width: var(--right-panel-width);
+    }
+
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      padding: 0 var(--spacing-sm);
+    }
+
+    .panel-tab {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .panel-tab.active {
+      color: var(--text);
+      border-bottom-color: var(--primary);
+    }
+
+    .panel-search {
+      padding: var(--spacing-sm);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    }
+
+    .panel-search input {
+      width: 100%;
+      font-family: inherit;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 80%, transparent);
+      color: var(--text);
+    }
+
+    .panel-search input:focus {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 0;
+      border-color: var(--primary);
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--spacing-sm);
+      min-height: 0;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .tree-group {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 4px var(--spacing-sm);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tree-row {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      padding: 6px var(--spacing-sm) 6px 20px;
+      border-radius: var(--rounded-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tree-row:hover { background: color-mix(in srgb, var(--surface-overlay) 35%, transparent); color: var(--text); }
+    .tree-row.selected { background: var(--primary-muted); color: var(--text); }
+
+    .type-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .type-dot.ground { background: #6b7280; }
+    .type-dot.spawn { background: var(--accent-selection); }
+    .type-dot.prop { background: var(--primary); }
+
+    .asset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-sm);
+    }
+
+    .asset-card {
+      padding: var(--spacing-sm);
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 60%, transparent);
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .asset-card:hover { border-color: var(--primary); color: var(--text); }
+
+    .panel-footer {
+      padding: var(--spacing-sm);
+      border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    }
+
+    .btn-outline {
+      width: 100%;
+      font-family: inherit;
+      font-size: 12px;
+      padding: 6px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .btn-outline:hover { border-color: var(--primary); }
+
+    /* Right panel inspector */
+    .inspector-header {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .accordion {
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+    }
+
+    .accordion-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px var(--spacing-md);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .accordion-head:hover { background: color-mix(in srgb, var(--surface-overlay) 25%, transparent); }
+
+    .accordion-body {
+      padding: 0 var(--spacing-md) 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .toggle {
+      width: 32px;
+      height: 18px;
+      border-radius: var(--rounded-pill);
+      background: var(--border);
+      border: none;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .toggle.on { background: var(--primary); }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: white;
+      transition: transform 120ms;
+    }
+    .toggle.on::after { transform: translateX(14px); }
+
+    /* View bar */
+    .view-bar-wrap {
+      position: absolute;
+      bottom: calc(var(--float-inset) + 36px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 22;
+    }
+
+    .view-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      height: var(--view-bar-height);
+      padding: 0 6px 0 10px;
+      border-radius: var(--rounded-pill);
+    }
+
+    .gizmo {
+      width: 28px;
+      height: 28px;
+      position: relative;
+      opacity: 0.7;
+    }
+
+    .gizmo::before, .gizmo::after {
+      content: "";
+      position: absolute;
+      background: currentColor;
+    }
+
+    .gizmo { color: var(--text-muted); }
+
+    .segmented {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      overflow: hidden;
+    }
+
+    .seg-btn {
+      font-family: inherit;
+      font-size: 11px;
+      padding: 4px 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .seg-btn.active { background: var(--primary-muted); color: var(--text); }
+    .seg-btn:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+
+    /* Stats HUD */
+    .stats-hud {
+      position: absolute;
+      bottom: var(--float-inset);
+      right: var(--float-inset);
+      z-index: 17;
+      padding: 6px 12px;
+      border-radius: var(--rounded-lg);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Popover */
+    .popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      background: var(--surface-overlay);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-md);
+      padding: 12px;
+      display: none;
+      z-index: 26;
+      box-shadow: 0 8px 32px rgb(0 0 0 / 0.5);
+    }
+
+    .popover.open { display: block; animation: pop 120ms ease; }
+
+    @keyframes pop {
+      from { opacity: 0; transform: translateX(-50%) scale(0.96); }
+      to { opacity: 1; transform: translateX(-50%) scale(1); }
+    }
+
+    .popover-title {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    /* Play mode */
+    .app.playing .left-panel,
+    .app.playing .right-panel {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+    }
+
+    .mode-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: color 180ms;
+    }
+
+    .app.playing .mode-hint { color: var(--primary); opacity: 0.6; }
+
+    /* Legend */
+    .legend {
+      position: fixed;
+      bottom: var(--float-inset);
+      left: var(--float-inset);
+      z-index: 100;
+      font-size: 10px;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      padding: 8px 10px;
+      max-width: 220px;
+      line-height: 1.5;
+    }
+
+    .legend strong { color: var(--primary); display: block; margin-bottom: 4px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .panel, .tool-pill-wrap, .mode-hint { transition: none; }
+      .popover.open { animation: none; }
+    }
+
+    @media (max-width: 767px) {
+      .left-panel, .right-panel { display: none; }
+      .legend { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app" data-design-note="Root shell — toggles .playing class on play mode">
+    <!-- Doc bar -->
+    <header class="doc-bar" data-design-note="Absorbs GameMenubar — game tabs replace top-right menubar">
+      <div class="doc-tabs" role="tablist" aria-label="Games">
+        <button class="doc-tab" role="tab" aria-selected="false">world.jsonld</button>
+        <button class="doc-tab active" role="tab" aria-selected="true">collect.jsonld</button>
+        <button class="doc-tab" role="tab" aria-selected="false">orbit.jsonld</button>
+        <button class="doc-tab" role="tab" aria-selected="false">tower.jsonld</button>
+      </div>
+      <div class="doc-meta">
+        <span class="score-chip">★ 12</span>
+        <span>100%</span>
+      </div>
+    </header>
+
+    <main class="stage">
+      <div class="viewport-grid"></div>
+      <div class="viewport-glow"></div>
+      <p class="mode-hint" id="modeHint">Edit mode</p>
+
+      <!-- Center tool pill -->
+      <div class="tool-pill-wrap" data-design-note="Spline-like center cluster — replaces docked toolbar + ControlsPill placement">
+        <div class="tool-pill glass">
+          <button class="tool-btn" id="camBtn" aria-label="Camera" aria-expanded="false" aria-controls="camPop" title="Camera">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          </button>
+          <button class="tool-btn" id="navBtn" aria-label="Navigation" aria-expanded="false" aria-controls="navPop" title="Navigation">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+          </button>
+          <span class="tool-divider" aria-hidden="true"></span>
+          <button class="tool-btn" disabled title="Coming soon">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+          </button>
+          <button class="play-btn" id="playBtn" aria-pressed="false">
+            <svg class="icon" viewBox="0 0 24 24" id="playIcon"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/></svg>
+            <span id="playLabel">Play</span>
+          </button>
+        </div>
+        <div class="popover" id="camPop" role="dialog" aria-label="Camera">
+          <div class="popover-title">Camera</div>
+          <div class="segmented" style="width:100%;margin-bottom:8px">
+            <button class="seg-btn active">Orbit</button>
+            <button class="seg-btn">Follow</button>
+          </div>
+          <button class="btn-outline" style="width:100%">Reset view</button>
+        </div>
+        <div class="popover" id="navPop" role="dialog" aria-label="Navigation">
+          <div class="popover-title">Navigation</div>
+          <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">Orbit speed</label>
+          <input type="range" style="width:100%;accent-color:var(--primary);margin-bottom:8px" value="50" />
+          <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">Invert Y</label>
+          <button class="toggle on" aria-pressed="true" style="margin-bottom:0"></button>
+        </div>
+      </div>
+
+      <!-- Left panel -->
+      <aside class="panel left-panel glass" data-design-note="Replaces WorldRail icon pill + conditional sidebar">
+        <div class="panel-tabs" role="tablist">
+          <button class="panel-tab active" id="tabObjects" role="tab" aria-selected="true">Objects</button>
+          <button class="panel-tab" id="tabAssets" role="tab" aria-selected="false">Assets</button>
+        </div>
+        <div class="panel-search" id="searchWrap">
+          <input type="search" placeholder="Search objects…" aria-label="Search objects" />
+        </div>
+        <div class="panel-body" id="objectsBody">
+          <div class="tree-group">▾ Scene</div>
+          <div class="tree-row" data-entity="ground"><span class="type-dot ground"></span>ground</div>
+          <div class="tree-row selected" data-entity="player/1"><span class="type-dot spawn"></span>player/1</div>
+          <div class="tree-row" data-entity="coin/1"><span class="type-dot prop"></span>coin/1</div>
+          <div class="tree-row" data-entity="coin/2"><span class="type-dot prop"></span>coin/2</div>
+          <div class="tree-row" data-entity="coin/3"><span class="type-dot prop"></span>coin/3</div>
+        </div>
+        <div class="panel-body" id="assetsBody" hidden>
+          <div class="section-label">Primitives</div>
+          <div class="asset-grid">
+            <div class="asset-card">box</div>
+            <div class="asset-card">sphere</div>
+            <div class="asset-card">cylinder</div>
+            <div class="asset-card">plane</div>
+          </div>
+        </div>
+        <div class="panel-footer" id="addFooter">
+          <button class="btn-outline">+ Add entity</button>
+        </div>
+      </aside>
+
+      <!-- Right panel -->
+      <aside class="panel right-panel glass" id="rightPanel" data-design-note="Scene when deselected; Entity when selected — always visible in edit">
+        <div class="inspector-header" id="inspectorTitle">player/1</div>
+        <div id="entityInspector">
+          <div class="accordion">
+            <div class="accordion-head">Transform</div>
+            <div class="accordion-body">
+              <div class="field-row"><span>position</span><span style="font-family:JetBrains Mono,monospace;font-size:11px">0, 0.5, 0</span></div>
+              <div class="field-row"><span>scale</span><span style="font-family:JetBrains Mono,monospace;font-size:11px">1, 1, 1</span></div>
+            </div>
+          </div>
+          <div class="accordion">
+            <div class="accordion-head">Player</div>
+            <div class="accordion-body">
+              <div class="field-row"><span>speed</span><span>4</span></div>
+              <div class="field-row"><span>color</span><span style="color:var(--primary)">#7b6df0</span></div>
+            </div>
+          </div>
+          <div class="accordion">
+            <div class="accordion-head">Render</div>
+            <div class="accordion-body">
+              <div class="field-row"><span>mesh</span><span style="font-family:JetBrains Mono,monospace;font-size:11px">primitive:box</span></div>
+            </div>
+          </div>
+        </div>
+        <div id="sceneInspector" hidden>
+          <div class="accordion">
+            <div class="accordion-head">Viewport</div>
+            <div class="accordion-body">
+              <div class="field-row"><span>Background</span><span style="font-family:JetBrains Mono,monospace;font-size:11px">#0c0c10</span></div>
+            </div>
+          </div>
+          <div class="accordion">
+            <div class="accordion-head">Play camera</div>
+            <div class="accordion-body">
+              <div class="segmented" style="width:100%">
+                <button class="seg-btn active">Follow</button>
+                <button class="seg-btn">Orbit</button>
+              </div>
+            </div>
+          </div>
+          <div class="accordion">
+            <div class="accordion-head">Grid</div>
+            <div class="accordion-body">
+              <div class="field-row"><span>Show grid</span><button class="toggle on" aria-pressed="true"></button></div>
+            </div>
+          </div>
+          <div class="accordion">
+            <div class="accordion-head">Simulation</div>
+            <div class="accordion-body">
+              <div class="field-row"><span>Gravity</span><button class="toggle on" aria-pressed="true"></button></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- View bar -->
+      <div class="view-bar-wrap" data-design-note="Bottom-center — Spline ortho/persp + gizmo stub">
+        <div class="view-bar glass">
+          <div class="gizmo" aria-hidden="true" title="Axis gizmo (stub)"></div>
+          <div class="segmented" role="tablist" aria-label="Projection">
+            <button class="seg-btn active" role="tab" aria-selected="true">Perspective</button>
+            <button class="seg-btn" role="tab" aria-selected="false">Orthographic</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-hud glass" data-design-note="Unchanged telemetry role">
+        60 fps · 7 entities · 1 peer
+      </div>
+    </main>
+  </div>
+
+  <div class="legend">
+    <strong>TRL-28 design mock</strong>
+    Click Play · select tree rows · toggle Objects/Assets · camera/nav popovers
+  </div>
+
+  <script>
+    const app = document.getElementById('app');
+    const playBtn = document.getElementById('playBtn');
+    const playLabel = document.getElementById('playLabel');
+    const playIcon = document.getElementById('playIcon');
+    const modeHint = document.getElementById('modeHint');
+    const tabObjects = document.getElementById('tabObjects');
+    const tabAssets = document.getElementById('tabAssets');
+    const objectsBody = document.getElementById('objectsBody');
+    const assetsBody = document.getElementById('assetsBody');
+    const searchWrap = document.getElementById('searchWrap');
+    const addFooter = document.getElementById('addFooter');
+    const inspectorTitle = document.getElementById('inspectorTitle');
+    const entityInspector = document.getElementById('entityInspector');
+    const sceneInspector = document.getElementById('sceneInspector');
+    const camBtn = document.getElementById('camBtn');
+    const navBtn = document.getElementById('navBtn');
+    const camPop = document.getElementById('camPop');
+    const navPop = document.getElementById('navPop');
+
+    let playing = false;
+    let selectedEntity = 'player/1';
+
+    function closePopovers() {
+      camPop.classList.remove('open');
+      navPop.classList.remove('open');
+      camBtn.setAttribute('aria-expanded', 'false');
+      navBtn.setAttribute('aria-expanded', 'false');
+      camBtn.classList.remove('active');
+      navBtn.classList.remove('active');
+    }
+
+    function togglePopover(btn, pop, otherPop) {
+      const open = pop.classList.toggle('open');
+      otherPop.classList.remove('open');
+      btn.setAttribute('aria-expanded', String(open));
+      btn.classList.toggle('active', open);
+      const otherBtn = btn === camBtn ? navBtn : camBtn;
+      otherBtn.setAttribute('aria-expanded', 'false');
+      otherBtn.classList.remove('active');
+    }
+
+    playBtn.addEventListener('click', () => {
+      playing = !playing;
+      app.classList.toggle('playing', playing);
+      playBtn.classList.toggle('playing', playing);
+      playBtn.setAttribute('aria-pressed', String(playing));
+      playLabel.textContent = playing ? 'Stop' : 'Play';
+      playIcon.innerHTML = playing
+        ? '<rect x="6" y="6" width="12" height="12" fill="currentColor" stroke="none"/>'
+        : '<polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/>';
+      modeHint.textContent = playing ? 'Playing' : 'Edit mode';
+      if (playing) closePopovers();
+    });
+
+    camBtn.addEventListener('click', () => togglePopover(camBtn, camPop, navPop));
+    navBtn.addEventListener('click', () => togglePopover(navBtn, navPop, camPop));
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.tool-pill-wrap')) closePopovers();
+    });
+
+    tabObjects.addEventListener('click', () => {
+      tabObjects.classList.add('active');
+      tabAssets.classList.remove('active');
+      tabObjects.setAttribute('aria-selected', 'true');
+      tabAssets.setAttribute('aria-selected', 'false');
+      objectsBody.hidden = false;
+      assetsBody.hidden = true;
+      searchWrap.hidden = false;
+      addFooter.hidden = false;
+    });
+
+    tabAssets.addEventListener('click', () => {
+      tabAssets.classList.add('active');
+      tabObjects.classList.remove('active');
+      tabAssets.setAttribute('aria-selected', 'true');
+      tabObjects.setAttribute('aria-selected', 'false');
+      objectsBody.hidden = true;
+      assetsBody.hidden = false;
+      searchWrap.hidden = true;
+      addFooter.hidden = true;
+    });
+
+    function showInspector(entityId) {
+      selectedEntity = entityId;
+      document.querySelectorAll('.tree-row').forEach(r => {
+        r.classList.toggle('selected', r.dataset.entity === entityId);
+      });
+      if (entityId) {
+        inspectorTitle.textContent = entityId;
+        entityInspector.hidden = false;
+        sceneInspector.hidden = true;
+      } else {
+        inspectorTitle.textContent = 'Scene';
+        entityInspector.hidden = true;
+        sceneInspector.hidden = false;
+      }
+    }
+
+    document.querySelectorAll('.tree-row').forEach(row => {
+      row.addEventListener('click', () => showInspector(row.dataset.entity));
+    });
+
+    document.querySelector('.stage').addEventListener('click', (e) => {
+      if (e.target.closest('.panel, .tool-pill-wrap, .view-bar-wrap, .stats-hud, .popover')) return;
+      showInspector(null);
+    });
+
+    document.querySelectorAll('.seg-btn').forEach((btn, i, all) => {
+      btn.addEventListener('click', () => {
+        const parent = btn.closest('.segmented');
+        parent.querySelectorAll('.seg-btn').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.matches('input, textarea')) return;
+      if (e.key === 'p' || e.key === 'P') playBtn.click();
+      if (e.key === 'Escape') {
+        if (camPop.classList.contains('open') || navPop.classList.contains('open')) closePopovers();
+        else if (playing) playBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>

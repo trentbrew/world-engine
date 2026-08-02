@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trellis — Editor contexts Scene · Object (TRL design mock)</title>
+  <!-- trellis-design-adopted: slug=object_behavior_drawer revision=2 -->
+  <!-- source: https://claude.ai/code/artifact/aa0e55c7-353a-4bdc-ab30-c3385913a313 -->
+<style>
+	:root {
+		--ground: #08080c; --recess: #060609; --panel: #121218; --panel2: #17171e; --raise: #1e1e28;
+		--line: #282833; --line2: #34343f; --ink: #e9e9f1; --dim: #8b8b9a; --faint: #55555f;
+		--accent: #33d6c2; --accent-ink: #04211d;
+		--loco: #6ea8ff; --action: #f5a623; --combat: #ff6f6f; --social: #b98cff; --emote: #ff9ecb; --magic: #57d9a3; --pose: #8b8b9a;
+		--sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+		--mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+	}
+	@media (prefers-color-scheme: light) {
+		:root { --ground: #dedee4; --recess: #d3d3db; --panel: #f5f5f8; --panel2: #fbfbfd; --raise: #ffffff;
+			--line: #d6d6de; --line2: #c6c6d0; --ink: #191922; --dim: #5b5b69; --faint: #9a9aa6;
+			--accent: #0cab99; --accent-ink: #ffffff;
+			--loco: #2f6fe0; --action: #c67c05; --combat: #d94141; --social: #7d4fe0; --emote: #d15a97; --magic: #1f9e78; }
+	}
+	:root[data-theme="dark"] { --ground: #08080c; --recess: #060609; --panel: #121218; --panel2: #17171e; --raise: #1e1e28;
+		--line: #282833; --line2: #34343f; --ink: #e9e9f1; --dim: #8b8b9a; --faint: #55555f;
+		--accent: #33d6c2; --accent-ink: #04211d;
+		--loco: #6ea8ff; --action: #f5a623; --combat: #ff6f6f; --social: #b98cff; --emote: #ff9ecb; --magic: #57d9a3; }
+	:root[data-theme="light"] { --ground: #dedee4; --recess: #d3d3db; --panel: #f5f5f8; --panel2: #fbfbfd; --raise: #ffffff;
+		--line: #d6d6de; --line2: #c6c6d0; --ink: #191922; --dim: #5b5b69; --faint: #9a9aa6;
+		--accent: #0cab99; --accent-ink: #ffffff;
+		--loco: #2f6fe0; --action: #c67c05; --combat: #d94141; --social: #7d4fe0; --emote: #d15a97; --magic: #1f9e78; }
+
+	* { box-sizing: border-box; }
+	body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 13px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+	.shell { height: 100vh; min-height: 640px; display: grid; grid-template-rows: 44px 1fr; grid-template-columns: 56px 1fr; background: var(--panel); overflow: hidden; }
+
+	/* top bar spans both cols */
+	.topbar { grid-column: 1 / 3; display: flex; align-items: center; gap: 14px; padding: 0 14px; background: var(--panel); border-bottom: 1px solid var(--line); z-index: 5; }
+	.brand { width: 18px; height: 18px; border-radius: 5px; background: conic-gradient(from 210deg, var(--accent), var(--social), var(--accent)); }
+	.crumbs { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+	.crumbs .sep { color: var(--faint); font-weight: 400; }
+	.crumbs .ctx { color: var(--dim); }
+	.crumbs .ctx.here { color: var(--ink); }
+	.crumbs .badge { font: 600 10px var(--mono); color: var(--dim); border: 1px solid var(--line); padding: 3px 5px; border-radius: 5px; }
+	.modes { margin: 0 auto; display: flex; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
+	.modes button { font: 500 12px var(--sans); color: var(--dim); background: none; border: 0; padding: 5px 14px; border-radius: 6px; cursor: pointer; }
+	.modes button[aria-pressed="true"] { background: var(--raise); color: var(--ink); }
+	.iconbtn { width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel2); color: var(--dim); cursor: pointer; font-size: 13px; display: grid; place-items: center; }
+
+	/* --- LEFT RAIL = router (contexts) --- */
+	.rail { grid-row: 2; grid-column: 1; background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; padding: 8px 0; gap: 3px; }
+	.rail .spacer { flex: 1; }
+	.railbtn { width: 44px; height: 46px; border: 0; background: none; color: var(--dim); cursor: pointer; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; position: relative; }
+	.railbtn svg { width: 19px; height: 19px; }
+	.railbtn .rl { font: 600 8px var(--sans); letter-spacing: .02em; }
+	.railbtn:hover { color: var(--ink); background: var(--panel2); }
+	.railbtn[aria-current="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+	.railbtn[aria-current="true"]::before { content: ""; position: absolute; left: -8px; top: 11px; bottom: 11px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
+
+	/* --- main work area (swaps per context) --- */
+	.work { grid-row: 2; grid-column: 2; min-height: 0; min-width: 0; }
+	.context { height: 100%; display: none; }
+	.context.on { display: grid; }
+
+	/* shared panel bits */
+	.panel { background: var(--panel); display: flex; flex-direction: column; min-height: 0; }
+	.ptabs { flex: none; display: flex; gap: 2px; padding: 8px 8px 0; border-bottom: 1px solid var(--line); }
+	.ptabs button { font: 600 11px var(--sans); color: var(--dim); background: none; border: 0; border-bottom: 2px solid transparent; padding: 6px 9px 8px; cursor: pointer; }
+	.ptabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+	.psub { display: none; flex: 1; min-height: 0; overflow-y: auto; }
+	.psub.on { display: block; }
+	.phead { font: 600 10px var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--faint); padding: 10px 12px 6px; }
+
+	/* inset viewport — depth by containment, not float */
+	.viewport { position: relative; margin: 8px; border-radius: 10px; border: 1px solid var(--line2); height: 100%;
+		background: radial-gradient(120% 90% at 50% 5%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%), var(--recess);
+		box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 6%, transparent), inset 0 0 60px -20px #000; overflow: hidden; }
+	.grid { position: absolute; inset: 0; background-image: linear-gradient(color-mix(in srgb,var(--ink) 5%,transparent) 1px,transparent 1px), linear-gradient(90deg,color-mix(in srgb,var(--ink) 5%,transparent) 1px,transparent 1px); background-size: 30px 30px; mask-image: radial-gradient(80% 75% at 50% 45%, #000 25%, transparent 88%); }
+	.vptools { position: absolute; top: 10px; left: 10px; display: flex; gap: 4px; }
+	.vptools .t { font: 600 10px var(--mono); color: var(--dim); background: color-mix(in srgb, var(--panel) 82%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 4px 7px; backdrop-filter: blur(6px); }
+	.vptools .t.on { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+	.vpcorner { position: absolute; right: 10px; bottom: 10px; font: 500 10px var(--mono); color: var(--faint); }
+
+	/* puppet */
+	.puppet { background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 35%, var(--panel))); clip-path: polygon(38% 0,62% 0,68% 16%,60% 30%,74% 55%,66% 78%,74% 100%,56% 100%,50% 74%,44% 100%,26% 100%,34% 78%,26% 55%,40% 30%,32% 16%); animation: bob 3.1s ease-in-out infinite; }
+	@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+	.tag { display: inline-flex; gap: 6px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 4px 10px 4px 7px; font: 500 11px var(--sans); box-shadow: 0 6px 18px -10px #000; }
+	.tag .dot { width: 7px; height: 7px; border-radius: 50%; }
+	.tag .now { font: 600 10px var(--mono); color: var(--accent); }
+
+	/* rows / fields / tree */
+	.tree { padding: 4px 6px; }
+	.node { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: var(--dim); }
+	.node:hover { background: var(--panel2); color: var(--ink); }
+	.node[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 13%, transparent); color: var(--ink); }
+	.node .ic { width: 7px; height: 7px; border-radius: 2px; flex: none; }
+	.node .nm { font: 500 12px var(--sans); }
+	.node .ty { margin-left: auto; font: 600 9px var(--mono); color: var(--faint); }
+	.field { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 6px 12px; padding: 7px 9px; background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; }
+	.field .k { color: var(--dim); font-size: 11px; }
+	.field .v { font: 500 12px var(--mono); }
+	.field .v.accent { color: var(--accent); }
+	.compband { font: 600 10px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin: 12px 12px 2px; display: flex; align-items: center; gap: 8px; }
+	.compband::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+	/* ===== SCENE CONTEXT ===== */
+	#scene { grid-template-columns: 216px 1fr 232px; }
+	#scene .left { border-right: 1px solid var(--line); }
+	#scene .right { border-left: 1px solid var(--line); }
+	.searchbar { margin: 8px 10px; padding: 7px 10px; background: var(--panel2); border: 1px solid var(--line); border-radius: 7px; color: var(--faint); font: 500 11px var(--sans); }
+	.scene-center { position: relative; }
+	#scene .vpcorner { bottom: 46px; }
+
+	/* Palette — transient bottom shelf: browse + drag assets onto the scene */
+	.palette { position: absolute; left: 16px; right: 16px; bottom: 16px; z-index: 8;
+		display: flex; flex-direction: column-reverse;
+		background: color-mix(in srgb, var(--panel) 86%, transparent); backdrop-filter: blur(14px);
+		border: 1px solid var(--line2); border-radius: 11px; box-shadow: 0 16px 44px -18px #000; overflow: hidden; }
+	.palette-handle { display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px 14px;
+		background: none; border: 0; color: var(--dim); cursor: pointer; font: 600 11px var(--sans); border-top: 1px solid transparent; }
+	.palette[data-open="true"] .palette-handle { border-top-color: var(--line); }
+	.palette-handle .chev { display: inline-block; transition: transform .18s; color: var(--accent); }
+	.palette[data-open="true"] .chev { transform: rotate(180deg); }
+	.palette-handle .kbd { margin-left: auto; font: 600 10px var(--mono); color: var(--faint); border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; }
+	.palette-body { display: none; }
+	.palette[data-open="true"] .palette-body { display: block; }
+	.pcats { display: flex; gap: 5px; padding: 10px 12px 8px; }
+	.ppill { font: 600 10px var(--mono); color: var(--dim); background: var(--panel2); border: 1px solid var(--line); border-radius: 20px; padding: 3px 10px; cursor: pointer; }
+	.ppill[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+	.pstrip { display: flex; gap: 8px; padding: 0 12px 12px; overflow-x: auto; }
+	.pcard { flex: none; width: 92px; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px;
+		padding: 8px; cursor: grab; display: flex; flex-direction: column; gap: 6px; touch-action: none; }
+	.pcard:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+	.pcard:active { cursor: grabbing; }
+	.pthumb { height: 50px; border-radius: 6px; background: var(--recess); display: grid; place-items: center;
+		box-shadow: inset 0 0 24px -12px #000; }
+	.pcard .pn { font: 500 10px var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.pcard .pb { align-self: flex-start; font: 600 8px var(--sans); letter-spacing: .03em; padding: 2px 5px; border-radius: 3px; }
+	.pb-char { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+	.pb-prop { color: var(--dim); background: var(--raise); }
+	.plegend { padding: 0 12px 11px; font: 500 10px var(--mono); color: var(--faint); }
+
+	.mini { width: 20px; height: 32px; }
+	.mini-char { background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 35%, var(--panel)));
+		clip-path: polygon(38% 0,62% 0,68% 16%,60% 30%,74% 55%,66% 78%,74% 100%,56% 100%,50% 74%,44% 100%,26% 100%,34% 78%,26% 55%,40% 30%,32% 16%); }
+	.mini-box { width: 26px; height: 26px; border-radius: 4px; background: linear-gradient(180deg, var(--action), color-mix(in srgb, var(--action) 40%, var(--panel))); }
+	.mini-sphere { width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--loco), color-mix(in srgb, var(--loco) 30%, var(--panel))); }
+	.mini-capsule { width: 19px; height: 31px; border-radius: 10px; background: linear-gradient(180deg, var(--social), color-mix(in srgb, var(--social) 35%, var(--panel))); }
+
+	.dragghost { position: fixed; z-index: 50; pointer-events: none; transform: translate(-50%, -60%);
+		display: flex; gap: 8px; align-items: center; padding: 6px 11px 6px 8px; background: var(--panel);
+		border: 1px solid var(--accent); border-radius: 9px; font: 600 11px var(--mono); box-shadow: 0 12px 34px -8px #000; }
+	.dragghost .mini { width: 14px; height: 22px; }
+	.dropring { position: absolute; width: 56px; height: 17px; border: 1.5px solid var(--accent); border-radius: 50%;
+		transform: translate(-50%, -50%); pointer-events: none; z-index: 7; box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent); }
+	.placed { position: absolute; transform: translate(-50%, -86%); z-index: 4; pointer-events: none; filter: drop-shadow(0 8px 10px rgba(0,0,0,.5)); }
+	.placed .mini { width: 26px; height: 42px; }
+	.placed .mini-box, .placed .mini-sphere { width: 32px; height: 32px; }
+	.toast { position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%); z-index: 20;
+		background: var(--panel); border: 1px solid var(--line2); border-radius: 8px; padding: 8px 13px;
+		font: 500 12px var(--sans); box-shadow: 0 12px 30px -8px #000; transition: opacity .3s; }
+
+	/* ===== OBJECT CONTEXT ===== */
+	#object { grid-template-columns: 214px 1fr 232px; grid-template-rows: 1fr 172px; }
+	#object .left { grid-row: 1 / 3; border-right: 1px solid var(--line); }
+	#object .stage { grid-row: 1; grid-column: 2; position: relative; }
+	#object .right { grid-row: 1; grid-column: 3; border-left: 1px solid var(--line); }
+	#object .behavior { grid-row: 2; grid-column: 2 / 4; border-top: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; min-height: 0; }
+
+	/* clip library */
+	.libtabs { display: flex; gap: 4px; padding: 9px 10px 4px; flex-wrap: wrap; }
+	.libtabs button { font: 600 10px var(--mono); color: var(--dim); background: var(--panel2); border: 1px solid var(--line); border-radius: 20px; padding: 3px 9px; cursor: pointer; }
+	.libtabs button[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+	.cliplist { padding: 4px 8px 10px; display: flex; flex-direction: column; gap: 5px; }
+	.clip { text-align: left; background: var(--panel2); border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+	.clip:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+	.clip[aria-current="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--panel2)); }
+	.clip .sw { width: 7px; height: 7px; border-radius: 2px; flex: none; }
+	.clip .cn { font: 500 12px var(--mono); }
+	.clip .dur { margin-left: auto; font: 500 10px var(--mono); color: var(--faint); font-variant-numeric: tabular-nums; }
+	.clip .bdg { font: 600 8px var(--sans); padding: 2px 4px; border-radius: 3px; }
+	.b-loop { color: var(--loco); background: color-mix(in srgb, var(--loco) 16%, transparent); }
+	.b-rm { color: var(--action); background: color-mix(in srgb, var(--action) 18%, transparent); }
+
+	/* playback inspector */
+	.pb-clip { font: 600 15px var(--mono); color: var(--accent); word-break: break-all; margin: 4px 12px 0; }
+	.pb-meta { font: 500 11px var(--mono); color: var(--dim); margin: 3px 12px 8px; }
+	.ctl { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 9px 12px; }
+	.ctl .k { color: var(--dim); font-size: 12px; }
+	.range { -webkit-appearance: none; appearance: none; width: 118px; height: 4px; border-radius: 3px; background: var(--line); }
+	.range::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+	.switch { width: 34px; height: 19px; border-radius: 11px; background: var(--line); border: 0; position: relative; cursor: pointer; }
+	.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: var(--ink); transition: transform .15s; }
+	.switch[aria-checked="true"] { background: var(--accent); }
+	.switch[aria-checked="true"]::after { transform: translateX(15px); background: var(--accent-ink); }
+
+	/* behavior region: timeline + event lanes */
+	.beh-h { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 6px; }
+	.beh-h .t { font: 600 10px var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--faint); }
+	.beh-h .transport { display: flex; align-items: center; gap: 8px; font: 500 11px var(--mono); color: var(--dim); }
+	.beh-h .transport button { background: none; border: 0; color: var(--ink); cursor: pointer; }
+	.beh-body { display: grid; grid-template-columns: 1fr 300px; gap: 14px; padding: 0 12px 10px; min-height: 0; }
+	.track { position: relative; height: 26px; border-radius: 5px; overflow: hidden; display: flex; }
+	.seg { height: 100%; display: flex; align-items: center; padding-left: 8px; font: 600 10px var(--mono); border-right: 1px solid var(--recess); white-space: nowrap; overflow: hidden; }
+	.seg.idle { background: color-mix(in srgb, var(--loco) 26%, var(--panel)); }
+	.seg.dance { background: color-mix(in srgb, var(--social) 32%, var(--panel)); }
+	.playhead { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--accent); box-shadow: 0 0 8px var(--accent); z-index: 3; }
+	.axis { position: relative; height: 13px; margin-top: 3px; font: 500 9px var(--mono); color: var(--faint); }
+	.axis span { position: absolute; transform: translateX(-50%); }
+	.lanes { display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
+	.lane { display: grid; grid-template-columns: 66px 1fr; gap: 8px; align-items: center; }
+	.trig { display: flex; align-items: center; gap: 6px; padding: 5px 7px; background: var(--panel2); border: 1px solid var(--line); border-radius: 5px; font: 600 10px var(--mono); }
+	.trig .kd { width: 6px; height: 6px; border-radius: 50%; }
+	.k-life { background: var(--social); } .k-alarm { background: var(--action); }
+	.acts { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+	.act { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; background: var(--raise); border: 1px solid var(--line); border-radius: 5px; font: 500 10px var(--mono); }
+	.act .op { color: var(--accent); font-weight: 600; }
+	.act .to { color: var(--faint); }
+	.seq { color: var(--faint); }
+	.addact { padding: 5px 8px; border: 1px dashed var(--line); border-radius: 5px; background: none; color: var(--dim); cursor: pointer; font: 500 10px var(--sans); }
+	.addact:hover { border-color: var(--accent); color: var(--accent); }
+
+	.footer { grid-column: 1 / 3; }
+	:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+	@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="shell">
+	<div class="topbar">
+		<div class="brand"></div>
+		<div class="crumbs">
+			<span class="ctx" id="cr-scene">Sandbox</span><span class="sep">/</span><span class="ctx here" id="cr-here">Object · guard</span>
+			<span class="badge">3D</span>
+		</div>
+		<div class="modes"><button aria-pressed="true">Edit</button><button aria-pressed="false">Play</button></div>
+		<button class="iconbtn" id="theme" title="Toggle theme" aria-label="Toggle theme">◐</button>
+	</div>
+
+	<!-- LEFT RAIL: context router -->
+	<nav class="rail" aria-label="Workspaces">
+		<button class="railbtn" data-ctx="scene" aria-current="false" title="Scene">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"></path><path d="M12 12v9M4 7.5l8 4.5 8-4.5"></path></svg>
+			<span class="rl">Scene</span>
+		</button>
+		<button class="railbtn" data-ctx="object" title="Object" aria-current="true">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="6.5" r="3"></circle><path d="M6.5 21v-1.5a5.5 5.5 0 0 1 11 0V21"></path><path d="M12 9.5v6M9 12h6"></path></svg>
+			<span class="rl">Object</span>
+		</button>
+		<button class="railbtn" data-ctx="_" title="Assets" aria-current="false">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l9 5-9 5-9-5 9-5z"></path><path d="M3 12l9 5 9-5M3 16l9 5 9-5"></path></svg>
+			<span class="rl">Assets</span>
+		</button>
+		<button class="railbtn" data-ctx="_" title="Graph" aria-current="false">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="2.3"></circle><circle cx="18" cy="8.5" r="2.3"></circle><circle cx="9.5" cy="18" r="2.3"></circle><path d="M7.7 7.2l8.3 1.1M8.4 16.2l8-6.4"></path></svg>
+			<span class="rl">Graph</span>
+		</button>
+		<div class="spacer"></div>
+		<button class="railbtn" data-ctx="_" title="Settings" aria-current="false">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2l-.4-2.6h-4l-.4 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2l.4 2.6h4l.4-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"></path></svg>
+			<span class="rl">Config</span>
+		</button>
+	</nav>
+
+	<div class="work">
+		<!-- ============ SCENE CONTEXT ============ -->
+		<div class="context" id="scene">
+			<aside class="panel left" aria-label="Scene panel">
+				<div class="ptabs" role="tablist">
+					<button role="tab" aria-selected="true" data-sub="objects">Objects</button>
+					<button role="tab" aria-selected="false" data-sub="rooms">Rooms</button>
+					<button role="tab" aria-selected="false" data-sub="types">Types</button>
+				</div>
+				<div class="psub on" data-sub="objects">
+					<div class="searchbar">Search objects…</div>
+					<div class="phead">Scene · 8 entities</div>
+					<div class="tree" id="entitytree"><div class="node" aria-selected="true"><span class="ic" style="background:var(--accent)"></span><span class="nm">guard</span><span class="ty">Character</span></div><div class="node" aria-selected="false"><span class="ic" style="background:var(--accent)"></span><span class="nm">walker</span><span class="ty">Character</span></div><div class="node" aria-selected="false"><span class="ic" style="background:var(--accent)"></span><span class="nm">roller</span><span class="ty">Character</span></div><div class="node" aria-selected="false"><span class="ic" style="background:var(--action)"></span><span class="nm">barrel</span><span class="ty">Prop</span></div><div class="node" aria-selected="false"><span class="ic" style="background:var(--loco)"></span><span class="nm">ground</span><span class="ty">GroundPlane</span></div><div class="node" aria-selected="false"><span class="ic" style="background:var(--action)"></span><span class="nm">sun</span><span class="ty">DirectionalLight</span></div><div class="node" aria-selected="false"><span class="ic" style="background:var(--action)"></span><span class="nm">ambient</span><span class="ty">AmbientLight</span></div><div class="node" aria-selected="false"><span class="ic" style="background:var(--social)"></span><span class="nm">spawn</span><span class="ty">SpawnPoint</span></div></div>
+				</div>
+				<div class="psub" data-sub="rooms"><div class="phead">Rooms</div><div class="tree"><div class="node"><span class="ic" style="background:var(--accent)"></span><span class="nm">animated-npc-demo</span><span class="ty">host</span></div><div class="node"><span class="ic" style="background:var(--faint)"></span><span class="nm">lobby</span></div></div></div>
+				<div class="psub" data-sub="types"><div class="phead">Entity types</div><div class="tree"><div class="node"><span class="ic" style="background:var(--social)"></span><span class="nm">Character</span><span class="ty">3</span></div><div class="node"><span class="ic" style="background:var(--action)"></span><span class="nm">Prop</span><span class="ty">1</span></div><div class="node"><span class="ic" style="background:var(--loco)"></span><span class="nm">SpawnPoint</span></div></div></div>
+			</aside>
+
+			<div class="panel scene-center"><div class="viewport" id="scene-vp">
+				<div class="grid"></div>
+				<div class="vptools"><span class="t on">Move</span><span class="t">Rotate</span><span class="t">Scale</span><span class="t" style="margin-left:8px">Grid</span><span class="t">Cam</span></div>
+				<div style="position:absolute;left:38%;top:52%;transform:translate(-50%,-50%);text-align:center"><div class="puppet" style="width:40px;height:80px"></div><div class="tag" style="margin-top:10px"><span class="dot" style="background:var(--accent)"></span><b>guard</b> · <span class="now">Idle_Loop</span></div></div>
+				<div style="position:absolute;left:60%;top:46%;transform:translate(-50%,-50%);opacity:.85"><div class="puppet" style="width:34px;height:68px;animation-duration:1.2s"></div></div>
+				<div style="position:absolute;left:26%;top:62%;transform:translate(-50%,-50%);opacity:.85"><div class="puppet" style="width:34px;height:68px;animation-duration:1.8s"></div></div>
+				<div style="position:absolute;left:74%;top:64%;width:34px;height:40px;border-radius:8px;background:linear-gradient(180deg,var(--action),color-mix(in srgb,var(--action) 40%,var(--panel)))"></div>
+				<div class="vpcorner">world · 1u = 1m · perspective</div>
+			</div>
+			<div class="palette" id="palette" data-open="true">
+				<button class="palette-handle" id="phandle" aria-expanded="true">
+					<span class="chev">▴</span> Palette <span style="color:var(--faint);font-weight:500">· drag an asset onto the scene</span>
+					<span class="kbd">/</span>
+				</button>
+				<div class="palette-body">
+					<div class="pcats" id="pcats"><button class="ppill" aria-pressed="true">All</button><button class="ppill" aria-pressed="false">Rigged</button><button class="ppill" aria-pressed="false">Models</button><button class="ppill" aria-pressed="false">Primitives</button></div>
+					<div class="pstrip" id="pstrip"><div class="pcard"><div class="pthumb"><div class="mini mini-char"></div></div><span class="pn">mannequin</span><span class="pb pb-char">Character</span></div><div class="pcard"><div class="pthumb"><div class="mini mini-char"></div></div><span class="pn">xbot</span><span class="pb pb-char">Character</span></div><div class="pcard"><div class="pthumb"><div class="mini mini-box"></div></div><span class="pn">barrel</span><span class="pb pb-prop">Prop</span></div><div class="pcard"><div class="pthumb"><div class="mini mini-box"></div></div><span class="pn">box</span><span class="pb pb-prop">Prop</span></div><div class="pcard"><div class="pthumb"><div class="mini mini-sphere"></div></div><span class="pn">sphere</span><span class="pb pb-prop">Prop</span></div><div class="pcard"><div class="pthumb"><div class="mini mini-capsule"></div></div><span class="pn">capsule</span><span class="pb pb-prop">Prop</span></div></div>
+					<div class="plegend">rigged → drops as an animated <b style="color:var(--accent)">Character</b> · static mesh or primitive → <b>Prop</b></div>
+				</div>
+			</div>
+			</div>
+
+			<aside class="panel right" aria-label="Inspector">
+				<div class="ptabs" role="tablist">
+					<button role="tab" aria-selected="true">Props</button>
+					<button role="tab" aria-selected="false">Events</button>
+					<button role="tab" aria-selected="false">Graph</button>
+					<button role="tab" aria-selected="false">JSON</button>
+				</div>
+				<div class="psub on" style="display:block">
+					<div class="phead">guard · Character</div>
+					<div class="compband">Transform</div>
+					<div class="field"><span class="k">position</span><span class="v">0, 0, 0</span></div>
+					<div class="compband">SkinnedMesh</div>
+					<div class="field"><span class="k">mesh</span><span class="v">mannequin.glb</span></div>
+					<div class="field"><span class="k">anchor</span><span class="v">bottom</span></div>
+					<div class="compband">Mesh3DAnimator</div>
+					<div class="field"><span class="k">clip</span><span class="v accent">Idle_Loop</span></div>
+					<div class="field"><span class="k">catalog</span><span class="v">m2m-human</span></div>
+					<div style="margin:12px;padding:9px 11px;border:1px dashed var(--line2);border-radius:8px;font-size:11px;color:var(--dim);line-height:1.5">Double-click <b>guard</b> — or the <b>Object</b> rail icon — to edit it in isolation ↗</div>
+				</div>
+			</aside>
+		</div>
+
+		<!-- ============ OBJECT CONTEXT ============ -->
+		<div class="context on" id="object">
+			<aside class="panel left" aria-label="Object panel">
+				<div class="ptabs" role="tablist">
+					<button role="tab" aria-selected="true" data-sub="clips">Clips</button>
+					<button role="tab" aria-selected="false" data-sub="structure">Structure</button>
+				</div>
+				<div class="psub on" data-sub="clips">
+					<div class="libtabs" id="libtabs"><button aria-pressed="false">All</button><button aria-pressed="true">loco</button><button aria-pressed="false">acti</button><button aria-pressed="false">comb</button><button aria-pressed="false">soci</button><button aria-pressed="false">emot</button><button aria-pressed="false">magi</button></div>
+					<div class="cliplist" id="cliplist"><button class="clip" aria-current="true"><span class="sw" style="background:var(--loco)"></span><span class="cn">Idle_Loop</span><span class="bdg b-loop">LOOP</span><span class="dur">3.12s</span></button><button class="clip" aria-current="false"><span class="sw" style="background:var(--loco)"></span><span class="cn">Walk_Loop</span><span class="bdg b-loop">LOOP</span><span class="dur">1.67s</span></button><button class="clip" aria-current="false"><span class="sw" style="background:var(--loco)"></span><span class="cn">Jog_Fwd_Loop</span><span class="bdg b-loop">LOOP</span><span class="dur">1.17s</span></button><button class="clip" aria-current="false"><span class="sw" style="background:var(--loco)"></span><span class="cn">Sprint_Loop</span><span class="bdg b-loop">LOOP</span><span class="dur">0.83s</span></button><button class="clip" aria-current="false"><span class="sw" style="background:var(--loco)"></span><span class="cn">Crouch_Idle_Loop</span><span class="bdg b-loop">LOOP</span><span class="dur">3.67s</span></button><button class="clip" aria-current="false"><span class="sw" style="background:var(--loco)"></span><span class="cn">Swim_Fwd_Loop</span><span class="bdg b-loop">LOOP</span><span class="dur">1.67s</span></button></div>
+				</div>
+				<div class="psub" data-sub="structure">
+					<div class="phead">guard · rig</div>
+					<div class="tree">
+						<div class="node"><span class="ic" style="background:var(--accent)"></span><span class="nm">SkinnedMesh</span><span class="ty">8.7k v</span></div>
+						<div class="node"><span class="ic" style="background:var(--social)"></span><span class="nm">Skeleton</span><span class="ty">44 bones</span></div>
+						<div class="node" style="padding-left:22px"><span class="ic" style="background:var(--faint)"></span><span class="nm">root → pelvis</span></div>
+						<div class="node"><span class="ic" style="background:var(--action)"></span><span class="nm">Material</span><span class="ty">1</span></div>
+					</div>
+				</div>
+			</aside>
+
+			<div class="panel stage"><div class="viewport" style="margin:8px">
+				<div class="grid" style="mask-image:radial-gradient(60% 55% at 50% 62%,#000 20%,transparent 80%)"></div>
+				<div class="vptools"><span class="t">Orbit</span><span class="t on">Turntable</span></div>
+				<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);text-align:center">
+					<div class="puppet" style="width:78px;height:156px"></div>
+					<div style="width:120px;height:26px;margin:-8px auto 0;border-radius:50%;background:radial-gradient(color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%)"></div>
+					<div class="tag" style="margin-top:14px"><span class="dot" style="background:var(--accent)"></span><b>guard</b><span class="now" id="stage-clip">Idle_Loop</span></div>
+				</div>
+				<div class="vpcorner">isolated · only this object</div>
+			</div></div>
+
+			<aside class="panel right" aria-label="Playback">
+				<div class="ptabs"><button role="tab" aria-selected="true">Playback</button><button role="tab" aria-selected="false">Fields</button></div>
+				<div class="psub on" style="display:block">
+					<div class="phead" style="padding-bottom:2px">Now playing</div>
+					<div class="pb-clip" id="pb-clip">Idle_Loop</div>
+					<div class="pb-meta" id="pb-meta">locomotion · 3.12s · loop</div>
+					<div class="ctl"><span class="k">Speed</span><input class="range" type="range" min="0.25" max="2" step="0.05" value="1" aria-label="Speed"></div>
+					<div class="ctl"><span class="k">Loop</span><button class="switch" id="sw-loop" role="switch" aria-checked="true" aria-label="Loop"></button></div>
+					<div class="ctl"><span class="k">Root motion</span><button class="switch" id="sw-rm" role="switch" aria-checked="false" aria-label="Root motion"></button></div>
+					<div class="compband">Mesh3DAnimator</div>
+					<div class="field"><span class="k">catalog</span><span class="v">m2m-human</span></div>
+					<div class="field"><span class="k">rig</span><span class="v">human</span></div>
+					<div style="margin:10px 12px;font-size:10.5px;color:var(--faint);line-height:1.5">Picking a clip sets <b>Mesh3DAnimator.clip</b> — same field <code style="font-family:var(--mono);color:var(--dim)">world_set_character_clip</code> sets.</div>
+				</div>
+			</aside>
+
+			<section class="behavior" aria-label="Behavior">
+				<div class="beh-h">
+					<span class="t">Behavior · clip schedule driven by alarms</span>
+					<span class="transport"><button id="pp" aria-label="Pause">❚❚</button><span id="clock">5.40s · 1.0×</span></span>
+				</div>
+				<div class="beh-body">
+					<div>
+						<div class="track" id="track"><div class="seg idle" style="width: 27.7778%;">Idle_Loop</div><div class="seg dance" style="width: 44.4444%;">Dance_Loop</div><div class="seg idle" style="width: 27.7778%;">Idle_Loop</div><div class="playhead" style="left: 60.0311%;"></div></div>
+						<div class="axis" id="axis"><span style="left: 0%;">0.0</span><span style="left: 16.6667%;">1.5</span><span style="left: 33.3333%;">3.0</span><span style="left: 50%;">4.5</span><span style="left: 66.6667%;">6.0</span><span style="left: 83.3333%;">7.5</span><span style="left: 100%;">9.0</span></div>
+					</div>
+					<div class="lanes" id="lanes"><div class="lane"><div class="trig"><span class="kd k-life"></span>create</div><div class="acts"><span class="act"><span class="op">alarm</span><span>0</span></span><button class="addact">+</button></div></div><div class="lane"><div class="trig"><span class="kd k-alarm"></span>alarm0</div><div class="acts"><span class="act"><span class="op">set</span><span>clip → Dance_Loop</span></span><span class="seq">→</span><span class="act"><span class="op">alarm</span><span>1 in 4s</span></span><button class="addact">+</button></div></div><div class="lane"><div class="trig"><span class="kd k-alarm"></span>alarm1</div><div class="acts"><span class="act"><span class="op">set</span><span>clip → Idle_Loop</span></span><span class="seq">→</span><span class="act"><span class="op">alarm</span><span>0 in 2.5s</span></span><button class="addact">+</button></div></div></div>
+				</div>
+			</section>
+		</div>
+	</div>
+</div>
+
+
+<script>
+	// ---- entity tree (Scene context) ----
+	const ENT = [
+		["guard","Character","var(--accent)",1],["walker","Character","var(--accent)",0],["roller","Character","var(--accent)",0],
+		["barrel","Prop","var(--action)",0],["ground","GroundPlane","var(--loco)",0],
+		["sun","DirectionalLight","var(--action)",0],["ambient","AmbientLight","var(--action)",0],["spawn","SpawnPoint","var(--social)",0],
+	];
+	const tree = document.getElementById("entitytree");
+	for (const [nm,ty,col,sel] of ENT) {
+		const d = document.createElement("div"); d.className = "node"; d.setAttribute("aria-selected", !!sel);
+		d.innerHTML = `<span class="ic" style="background:${col}"></span><span class="nm">${nm}</span><span class="ty">${ty}</span>`;
+		d.onclick = () => { tree.querySelectorAll(".node").forEach(n => n.setAttribute("aria-selected","false")); d.setAttribute("aria-selected","true"); };
+		d.ondblclick = () => setCtx("object");
+		tree.appendChild(d);
+	}
+
+	// ---- catalog data (Object context clip library) ----
+	const CATS = {
+		locomotion:{c:"var(--loco)",clips:[["Idle_Loop",3.12,1,0],["Walk_Loop",1.67,1,0],["Jog_Fwd_Loop",1.17,1,0],["Sprint_Loop",0.83,1,0],["Crouch_Idle_Loop",3.67,1,0],["Swim_Fwd_Loop",1.67,1,0]]},
+		action:{c:"var(--action)",clips:[["Jump_Start",1.67,0,0],["Jump_Loop",3.12,1,0],["Roll",1.83,0,0],["Roll_RM",1.83,0,1],["Interact",2.5,0,0],["Death01",2.17,0,0]]},
+		combat:{c:"var(--combat)",clips:[["Punch_Jab",1.08,0,0],["Sword_Idle",2.08,1,0],["Sword_Attack",1.92,0,0],["Sword_Attack_RM",1.92,0,1],["Pistol_Shoot",0.79,0,0]]},
+		social:{c:"var(--social)",clips:[["Idle_Talking_Loop",3.67,1,0],["Dance_Loop",1.25,1,0],["Bow",3.75,0,0],["Sitting_Idle_Loop",2.08,1,0]]},
+		emote:{c:"var(--emote)",clips:[["Angry",0.83,0,0]]},
+		magic:{c:"var(--magic)",clips:[["Spell_Simple_Idle_Loop",2.67,1,0],["Spell_Simple_Shoot",0.62,0,0]]},
+	};
+	const ALL = Object.entries(CATS).flatMap(([k,d]) => d.clips.map(x => ({cat:k,c:d.c,name:x[0],dur:x[1],loop:x[2],rm:x[3]})));
+	let cur = "Dance_Loop", filt = "all";
+
+	const libtabs = document.getElementById("libtabs");
+	function renderLibTabs() {
+		libtabs.innerHTML = "";
+		const mk = (id,label) => { const b=document.createElement("button"); b.setAttribute("aria-pressed",id===filt); b.textContent=label; b.onclick=()=>{filt=id;renderLibTabs();renderClips();}; return b; };
+		libtabs.appendChild(mk("all","All"));
+		for (const k of Object.keys(CATS)) libtabs.appendChild(mk(k, k.slice(0,4)));
+	}
+	const cliplist = document.getElementById("cliplist");
+	function renderClips() {
+		cliplist.innerHTML = "";
+		for (const c of ALL.filter(c => filt==="all"||c.cat===filt)) {
+			const el = document.createElement("button"); el.className="clip"; el.setAttribute("aria-current", c.name===cur);
+			el.innerHTML = `<span class="sw" style="background:${c.c}"></span><span class="cn">${c.name}</span>${c.loop?'<span class="bdg b-loop">LOOP</span>':''}${c.rm?'<span class="bdg b-rm">ROOT</span>':''}<span class="dur">${c.dur.toFixed(2)}s</span>`;
+			el.onclick = () => { cur=c.name; sync(c); renderClips(); };
+			cliplist.appendChild(el);
+		}
+	}
+	function sync(c) {
+		document.getElementById("pb-clip").textContent = c.name;
+		document.getElementById("pb-meta").textContent = `${c.cat} · ${c.dur.toFixed(2)}s · ${c.loop?"loop":"once"}${c.rm?" · root":""}`;
+		document.getElementById("stage-clip").textContent = c.name;
+		document.getElementById("sw-loop").setAttribute("aria-checked", !!c.loop);
+		document.getElementById("sw-rm").setAttribute("aria-checked", !!c.rm);
+	}
+
+
+	// ---- context router (the rail) ----
+	const CTX_LABEL = { scene: "Scene", object: "Object · guard" };
+	function setCtx(name) {
+		if (!CTX_LABEL[name]) return;
+		document.querySelectorAll(".railbtn").forEach(b => b.setAttribute("aria-current", b.dataset.ctx === name));
+		document.querySelectorAll(".context").forEach(c => c.classList.toggle("on", c.id === name));
+		document.getElementById("cr-here").textContent = CTX_LABEL[name];
+	}
+	document.querySelectorAll(".railbtn").forEach(b => b.onclick = () => setCtx(b.dataset.ctx));
+
+	// ---- in-context sub-tabs (left panels) ----
+	document.querySelectorAll(".ptabs").forEach(group => {
+		const withSub = group.parentElement.querySelector("[data-sub]");
+		if (!withSub) return; // inspector tabs are illustrative only
+		group.querySelectorAll("[data-sub]").forEach(tab => tab.onclick = () => {
+			group.querySelectorAll("[data-sub]").forEach(t => t.setAttribute("aria-selected", t===tab));
+			group.parentElement.querySelectorAll(".psub[data-sub]").forEach(p => p.classList.toggle("on", p.dataset.sub === tab.dataset.sub));
+		});
+	});
+
+	// ---- switches + theme + playhead ----
+	document.querySelectorAll(".switch").forEach(sw => sw.onclick = () => sw.setAttribute("aria-checked", sw.getAttribute("aria-checked")!=="true"));
+	document.getElementById("theme").onclick = () => { const r=document.documentElement; const dark=getComputedStyle(r).getPropertyValue("--ground").trim().startsWith("#0"); r.setAttribute("data-theme", dark?"light":"dark"); };
+
+	const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+	let t0 = performance.now();
+	function raf(now){ const t=((now-t0)/1000)%T; ph.style.left=(t/T*100)+"%"; document.getElementById("clock").textContent=t.toFixed(2)+"s · 1.0×"; requestAnimationFrame(raf); }
+	renderLibTabs(); renderClips();
+	if (!reduce) requestAnimationFrame(raf);
+
+	// ---- Scene palette: browse + drag assets onto the scene ----
+	const PAL = [
+		{ cat: "rigged", name: "mannequin", kind: "char", drop: "Character" },
+		{ cat: "rigged", name: "xbot", kind: "char", drop: "Character" },
+		{ cat: "models", name: "barrel", kind: "box", drop: "Prop" },
+		{ cat: "primitives", name: "box", kind: "box", drop: "Prop" },
+		{ cat: "primitives", name: "sphere", kind: "sphere", drop: "Prop" },
+		{ cat: "primitives", name: "capsule", kind: "capsule", drop: "Prop" },
+	];
+	const MINI = { char: "mini-char", box: "mini-box", sphere: "mini-sphere", capsule: "mini-capsule" };
+	const mini = (k) => `<div class="mini ${MINI[k]}"></div>`;
+	let pfilt = "all";
+	const pcats = document.getElementById("pcats"), pstrip = document.getElementById("pstrip");
+	function renderPCats() {
+		pcats.innerHTML = "";
+		const mk = (id, l) => { const b = document.createElement("button"); b.className = "ppill"; b.setAttribute("aria-pressed", id === pfilt); b.textContent = l; b.onclick = () => { pfilt = id; renderPCats(); renderPStrip(); }; return b; };
+		pcats.appendChild(mk("all", "All"));
+		["rigged", "models", "primitives"].forEach(c => pcats.appendChild(mk(c, c[0].toUpperCase() + c.slice(1))));
+	}
+	function renderPStrip() {
+		pstrip.innerHTML = "";
+		for (const a of PAL.filter(a => pfilt === "all" || a.cat === pfilt)) {
+			const c = document.createElement("div"); c.className = "pcard";
+			c.innerHTML = `<div class="pthumb">${mini(a.kind)}</div><span class="pn">${a.name}</span><span class="pb ${a.drop === "Character" ? "pb-char" : "pb-prop"}">${a.drop}</span>`;
+			c.addEventListener("pointerdown", e => startDrag(e, a));
+			pstrip.appendChild(c);
+		}
+	}
+
+	const palette = document.getElementById("palette"), phandle = document.getElementById("phandle");
+	function togglePalette(force) {
+		const open = force !== undefined ? force : palette.dataset.open !== "true";
+		palette.dataset.open = open; phandle.setAttribute("aria-expanded", open);
+	}
+	phandle.onclick = () => togglePalette();
+	addEventListener("keydown", e => { if (e.key === "/" && !/input|textarea/i.test(e.target.tagName)) { e.preventDefault(); togglePalette(); } });
+
+	const vp = () => document.getElementById("scene-vp");
+	let drag = null, ghost = null, ring = null;
+	const inside = (e, r) => e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom;
+	function startDrag(e, a) {
+		e.preventDefault(); drag = a;
+		ghost = document.createElement("div"); ghost.className = "dragghost"; ghost.innerHTML = `${mini(a.kind)}<span>${a.name}</span>`;
+		document.body.appendChild(ghost); moveGhost(e);
+		addEventListener("pointermove", moveGhost); addEventListener("pointerup", endDrag, { once: true });
+	}
+	function moveGhost(e) {
+		if (ghost) { ghost.style.left = e.clientX + "px"; ghost.style.top = e.clientY + "px"; }
+		const r = vp().getBoundingClientRect();
+		if (inside(e, r)) {
+			if (!ring) { ring = document.createElement("div"); ring.className = "dropring"; vp().appendChild(ring); }
+			ring.style.left = (e.clientX - r.left) + "px"; ring.style.top = (e.clientY - r.top) + "px";
+		} else if (ring) { ring.remove(); ring = null; }
+	}
+	function endDrag(e) {
+		removeEventListener("pointermove", moveGhost);
+		const r = vp().getBoundingClientRect();
+		if (drag && inside(e, r)) {
+			const el = document.createElement("div"); el.className = "placed";
+			el.style.left = (e.clientX - r.left) + "px"; el.style.top = (e.clientY - r.top) + "px";
+			el.innerHTML = mini(drag.kind); vp().appendChild(el);
+			toast(`Placed ${drag.name} as ${drag.drop}${drag.drop === "Character" ? " — animated" : ""}`);
+		}
+		if (ghost) { ghost.remove(); ghost = null; } if (ring) { ring.remove(); ring = null; } drag = null;
+	}
+	let toastEl = null, toastT = 0;
+	function toast(msg) {
+		if (!toastEl) { toastEl = document.createElement("div"); toastEl.className = "toast"; vp().appendChild(toastEl); }
+		toastEl.innerHTML = `<span style="color:var(--accent)">✓</span> ${msg}`; toastEl.style.opacity = "1";
+		clearTimeout(toastT); toastT = setTimeout(() => { if (toastEl) toastEl.style.opacity = "0"; }, 2400);
+	}
+	renderPCats(); renderPStrip(); togglePalette(true);
+</script>
+</body>
+</html>

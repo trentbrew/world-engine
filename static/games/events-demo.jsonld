@@ -1,0 +1,92 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" },
+    "events": { "@type": "@json" }
+  },
+  "@graph": [
+    {
+      "@id": "entity:light/ambient",
+      "@type": "Thing",
+      "conformsTo": "AmbientLight",
+      "components": { "Light": { "intensity": 0.7 } }
+    },
+    {
+      "@id": "entity:light/sun",
+      "@type": "Thing",
+      "conformsTo": "DirectionalLight",
+      "components": {
+        "Light": { "intensity": 1.1 },
+        "Transform": { "position": { "x": 4, "y": 8, "z": 3 } }
+      }
+    },
+    {
+      "@id": "entity:ground/main",
+      "@type": "Thing",
+      "conformsTo": "GroundPlane",
+      "components": { "Ground": { "size": 16, "color": "#0e0e14" } }
+    },
+
+    {
+      "@id": "type:Riser",
+      "@type": "EntityType",
+      "components": ["Transform", "Render"],
+      "defaults": { "Render": { "mesh": "primitive:box", "color": "#c0392b" } },
+      "events": {
+        "create": [{ "set": "Render.color", "to": "#3ecf8e" }],
+        "step": [
+          { "set": "Transform.position.y", "to": "=Transform.position.y + dt * 0.8" },
+          { "if": "=Transform.position.y > 3", "then": [{ "destroy": "self" }] }
+        ],
+        "destroy": [
+          { "spawn": "type:Puff", "at": "=vec(Transform.position.x, Transform.position.y, Transform.position.z)" }
+        ]
+      }
+    },
+
+    {
+      "@id": "type:Puff",
+      "@type": "EntityType",
+      "components": ["Transform", "Render"],
+      "defaults": {
+        "Render": { "mesh": "primitive:sphere", "color": "#ffe08a" },
+        "Transform": { "scale": [0.25, 0.25, 0.25] }
+      },
+      "events": {
+        "step": [
+          { "set": "Transform.scale", "to": "=vec(Transform.scale.x - dt, Transform.scale.y - dt, Transform.scale.z - dt)" },
+          { "if": "=Transform.scale.x <= 0.02", "then": [{ "destroy": "self" }] }
+        ]
+      }
+    },
+
+    {
+      "@id": "type:Fountain",
+      "@type": "EntityType",
+      "components": ["Transform", "Render"],
+      "defaults": {
+        "Render": { "mesh": "primitive:sphere", "color": "#e8c14a" },
+        "Transform": { "scale": [0.4, 0.4, 0.4] }
+      },
+      "events": {
+        "create": [
+          { "spawn": "type:Riser", "at": "=vec(Transform.position.x, 0.5, Transform.position.z)" }
+        ]
+      }
+    },
+
+    {
+      "@id": "entity:riser/1",
+      "@type": "Thing",
+      "conformsTo": "Riser",
+      "components": { "Transform": { "position": { "x": -1.5, "y": 0.5, "z": 0 } } }
+    },
+    {
+      "@id": "entity:fountain/1",
+      "@type": "Thing",
+      "conformsTo": "Fountain",
+      "components": { "Transform": { "position": { "x": 1.5, "y": 0.5, "z": 0 } } }
+    }
+  ]
+}

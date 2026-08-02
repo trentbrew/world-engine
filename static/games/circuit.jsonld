@@ -1,0 +1,297 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "type:Wall",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2a2a32"
+				}
+			}
+		},
+		{
+			"@id": "type:Gate",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#5b9fd4"
+				}
+			}
+		},
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Ground": {
+					"size": 32,
+					"color": "#121218"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.5
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1
+				},
+				"Transform": {
+					"position": {
+						"x": 8,
+						"y": 14,
+						"z": 6
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/start",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.05,
+						"z": 6
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:wall/north",
+			"@type": "Thing",
+			"conformsTo": "Wall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.5,
+						"z": -7
+					},
+					"scale": [
+						14,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:wall/south",
+			"@type": "Thing",
+			"conformsTo": "Wall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.5,
+						"z": 7
+					},
+					"scale": [
+						14,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:wall/east",
+			"@type": "Thing",
+			"conformsTo": "Wall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 7,
+						"y": 0.5,
+						"z": 0
+					},
+					"scale": [
+						1,
+						1,
+						12
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:wall/west",
+			"@type": "Thing",
+			"conformsTo": "Wall",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -7,
+						"y": 0.5,
+						"z": 0
+					},
+					"scale": [
+						1,
+						1,
+						12
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:gate/north",
+			"@type": "Thing",
+			"conformsTo": "Gate",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.5,
+						"z": -5
+					},
+					"scale": [
+						2,
+						1,
+						0.25
+					]
+				},
+				"Render": {
+					"color": "#3ecf8e"
+				}
+			}
+		},
+		{
+			"@id": "entity:gate/east",
+			"@type": "Thing",
+			"conformsTo": "Gate",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 5,
+						"y": 0.5,
+						"z": 0
+					},
+					"scale": [
+						0.25,
+						1,
+						2
+					]
+				},
+				"Render": {
+					"color": "#e8a838"
+				}
+			}
+		},
+		{
+			"@id": "entity:gate/south",
+			"@type": "Thing",
+			"conformsTo": "Gate",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.5,
+						"z": 5
+					},
+					"scale": [
+						2,
+						1,
+						0.25
+					]
+				},
+				"Render": {
+					"color": "#ff6b6b"
+				}
+			}
+		},
+		{
+			"@id": "entity:gate/west",
+			"@type": "Thing",
+			"conformsTo": "Gate",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -5,
+						"y": 0.5,
+						"z": 0
+					},
+					"scale": [
+						0.25,
+						1,
+						2
+					]
+				},
+				"Render": {
+					"color": "#7c6cf0"
+				}
+			}
+		},
+		{
+			"@id": "entity:line/start",
+			"@type": "Thing",
+			"conformsTo": "Gate",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.02,
+						"z": 6.5
+					},
+					"scale": [
+						4,
+						0.05,
+						0.5
+					]
+				},
+				"Render": {
+					"color": "#ffffff"
+				}
+			}
+		}
+	]
+}

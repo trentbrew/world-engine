@@ -1,0 +1,203 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" },
+    "events": { "@type": "@json" }
+  },
+  "@graph": [
+    {
+      "@id": "type:Wall",
+      "@type": "EntityType",
+      "components": ["Transform", "Render"],
+      "defaults": {
+        "Render": { "mesh": "primitive:box", "color": "#252530" }
+      }
+    },
+    {
+      "@id": "type:Coin",
+      "@type": "EntityType",
+      "components": ["Transform", "Render", "Collectible"],
+      "defaults": {
+        "Render": { "mesh": "primitive:sphere", "color": "#e8c14a" },
+        "Transform": { "scale": [0.35, 0.35, 0.35] },
+        "Collectible": { "radius": 0.75, "value": 1 }
+      },
+      "events": {
+        "collision": [
+          {
+            "with": "Player",
+            "do": [
+              { "score": "=Collectible.value" },
+              { "sfx": "=Collectible.sfx" },
+              { "destroy": "self" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "@id": "type:Gem",
+      "@type": "EntityType",
+      "components": ["Transform", "Render", "Collectible"],
+      "defaults": {
+        "Render": { "mesh": "primitive:sphere", "color": "#7c6cf0" },
+        "Transform": { "scale": [0.5, 0.5, 0.5] },
+        "Collectible": { "radius": 0.9, "value": 3 }
+      },
+      "events": {
+        "collision": [
+          {
+            "with": "Player",
+            "do": [
+              { "score": "=Collectible.value" },
+              { "sfx": "=Collectible.sfx" },
+              { "destroy": "self" }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "@id": "entity:ground/main",
+      "@type": "Thing",
+      "conformsTo": "GroundPlane",
+      "components": { "Ground": { "size": 32, "color": "#101018" } }
+    },
+    {
+      "@id": "entity:light/ambient",
+      "@type": "Thing",
+      "conformsTo": "AmbientLight",
+      "components": { "Light": { "intensity": 0.55 } }
+    },
+    {
+      "@id": "entity:light/sun",
+      "@type": "Thing",
+      "conformsTo": "DirectionalLight",
+      "components": {
+        "Light": { "intensity": 1.05 },
+        "Transform": { "position": { "x": 7, "y": 12, "z": 5 } }
+      }
+    },
+    {
+      "@id": "entity:spawn/start",
+      "@type": "Thing",
+      "conformsTo": "SpawnPoint",
+      "components": { "Transform": { "position": { "x": 0, "y": 0.05, "z": 5 } } }
+    },
+
+    {
+      "@id": "entity:wall/north",
+      "@type": "Thing",
+      "conformsTo": "Wall",
+      "components": {
+        "Transform": { "position": { "x": 0, "y": 0.5, "z": -6 }, "scale": [12, 1, 1] }
+      }
+    },
+    {
+      "@id": "entity:wall/south",
+      "@type": "Thing",
+      "conformsTo": "Wall",
+      "components": {
+        "Transform": { "position": { "x": 0, "y": 0.5, "z": 6 }, "scale": [12, 1, 1] }
+      }
+    },
+    {
+      "@id": "entity:wall/east",
+      "@type": "Thing",
+      "conformsTo": "Wall",
+      "components": {
+        "Transform": { "position": { "x": 6, "y": 0.5, "z": 0 }, "scale": [1, 1, 10] }
+      }
+    },
+    {
+      "@id": "entity:wall/west",
+      "@type": "Thing",
+      "conformsTo": "Wall",
+      "components": {
+        "Transform": { "position": { "x": -6, "y": 0.5, "z": 0 }, "scale": [1, 1, 10] }
+      }
+    },
+
+    {
+      "@id": "entity:coin/01",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": 0, "y": 0.4, "z": 3 } } }
+    },
+    {
+      "@id": "entity:coin/02",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": 2, "y": 0.4, "z": 2 } } }
+    },
+    {
+      "@id": "entity:coin/03",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": 4, "y": 0.4, "z": 0 } } }
+    },
+    {
+      "@id": "entity:coin/04",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": 4, "y": 0.4, "z": -2 } } }
+    },
+    {
+      "@id": "entity:coin/05",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": 2, "y": 0.4, "z": -4 } } }
+    },
+    {
+      "@id": "entity:coin/06",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": 0, "y": 0.4, "z": -5 } } }
+    },
+    {
+      "@id": "entity:coin/07",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": -2, "y": 0.4, "z": -4 } } }
+    },
+    {
+      "@id": "entity:coin/08",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": -4, "y": 0.4, "z": -2 } } }
+    },
+    {
+      "@id": "entity:coin/09",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": -4, "y": 0.4, "z": 0 } } }
+    },
+    {
+      "@id": "entity:coin/10",
+      "@type": "Thing",
+      "conformsTo": "Coin",
+      "components": { "Transform": { "position": { "x": -2, "y": 0.4, "z": 2 } } }
+    },
+
+    {
+      "@id": "entity:gem/center",
+      "@type": "Thing",
+      "conformsTo": "Gem",
+      "components": { "Transform": { "position": { "x": 0, "y": 0.5, "z": 0 } } }
+    },
+    {
+      "@id": "entity:gem/east",
+      "@type": "Thing",
+      "conformsTo": "Gem",
+      "components": { "Transform": { "position": { "x": 3, "y": 0.5, "z": -3 } } }
+    },
+    {
+      "@id": "entity:gem/west",
+      "@type": "Thing",
+      "conformsTo": "Gem",
+      "components": { "Transform": { "position": { "x": -3, "y": 0.5, "z": 3 } } }
+    }
+  ]
+}

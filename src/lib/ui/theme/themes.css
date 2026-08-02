@@ -1,0 +1,145 @@
+/* Swappable preset token blocks — tweakcn-compatible shadcn shape */
+
+[data-theme='default'] {
+	--background: oklch(0.985 0 0);
+	--foreground: oklch(0.145 0 0);
+	--card: oklch(0.97 0 0);
+	--card-foreground: oklch(0.145 0 0);
+	--popover: oklch(0.97 0 0);
+	--popover-foreground: oklch(0.145 0 0);
+	--primary: oklch(0.205 0 0);
+	--primary-foreground: oklch(0.985 0 0);
+	--secondary: oklch(0.94 0 0);
+	--secondary-foreground: oklch(0.205 0 0);
+	--muted: oklch(0.94 0 0);
+	--muted-foreground: oklch(0.45 0 0);
+	--accent: oklch(0.94 0 0);
+	--accent-foreground: oklch(0.205 0 0);
+	--destructive: oklch(0.577 0.245 27.325);
+	--border: oklch(0.9 0 0);
+	--input: oklch(0.9 0 0);
+	--ring: oklch(0.55 0 0);
+	--viewport: oklch(0.92 0 0);
+	--viewport-grid: oklch(0.86 0 0);
+	--text-mono: oklch(0.45 0 0);
+	--accent-spawn: oklch(0.55 0 0);
+	--accent-entity: oklch(0.45 0 0);
+	--accent-link: oklch(0.45 0 0);
+	--accent-selection: oklch(0.55 0 0);
+	--success: oklch(0.55 0.15 155);
+	--play-go: oklch(0.55 0.17 145);
+	--play-go-foreground: oklch(0.98 0.01 145);
+	--surface-glass: color-mix(in srgb, var(--secondary) 75%, transparent);
+
+	--field-well: oklch(0.94 0 0);
+	--field-well-hover: oklch(0.91 0 0);
+	--field-well-active: oklch(0.9 0.01 100);
+	--accent-field: oklch(0.62 0.12 85);
+	--accent-field-glow: color-mix(in srgb, var(--accent-field) 18%, transparent);
+	--border-field: color-mix(in srgb, var(--border) 65%, transparent);
+	--border-field-focus: color-mix(in srgb, var(--accent-field) 55%, var(--border));
+}
+
+[data-theme='default'].dark {
+	--background: oklch(0.145 0 0);
+	--foreground: oklch(0.985 0 0);
+	--card: oklch(0.205 0 0);
+	--card-foreground: oklch(0.985 0 0);
+	--popover: oklch(0.205 0 0);
+	--popover-foreground: oklch(0.985 0 0);
+	--primary: oklch(0.922 0 0);
+	--primary-foreground: oklch(0.205 0 0);
+	--secondary: oklch(0.269 0 0);
+	--secondary-foreground: oklch(0.985 0 0);
+	--muted: oklch(0.269 0 0);
+	--muted-foreground: oklch(0.708 0 0);
+	--accent: oklch(0.269 0 0);
+	--accent-foreground: oklch(0.985 0 0);
+	--destructive: oklch(0.704 0.191 22.216);
+	--border: oklch(1 0 0 / 10%);
+	--input: oklch(1 0 0 / 15%);
+	--ring: oklch(0.556 0 0);
+	--viewport: oklch(0.1 0 0);
+	--viewport-grid: oklch(0.18 0 0);
+	--text-mono: oklch(0.65 0 0);
+	--accent-spawn: oklch(0.75 0 0);
+	--accent-entity: oklch(0.65 0 0);
+	--accent-link: oklch(0.708 0 0);
+	--accent-selection: oklch(0.556 0 0);
+	--success: oklch(0.696 0.17 162.48);
+	--play-go: oklch(0.62 0.19 145);
+	--play-go-foreground: oklch(0.14 0.02 145);
+	--surface-glass: color-mix(in srgb, var(--secondary) 75%, transparent);
+
+	--field-well: oklch(0.16 0 0);
+	--field-well-hover: oklch(0.19 0 0);
+	--field-well-active: oklch(0.2 0.01 100);
+	--accent-field: oklch(0.72 0.12 85);
+	--accent-field-glow: color-mix(in srgb, var(--accent-field) 18%, transparent);
+	--border-field: color-mix(in srgb, var(--border) 65%, transparent);
+	--border-field-focus: color-mix(in srgb, var(--accent-field) 55%, var(--border));
+}
+
+[data-theme='violet-bloom'] {
+	--background: oklch(0.99 0.005 300);
+	--foreground: oklch(0.25 0.04 300);
+	--card: oklch(0.98 0.01 300);
+	--card-foreground: oklch(0.25 0.04 300);
+	--popover: oklch(0.98 0.01 300);
+	--popover-foreground: oklch(0.25 0.04 300);
+	--primary: oklch(0.55 0.22 300);
+	--primary-foreground: oklch(0.99 0.01 300);
+	--secondary: oklch(0.94 0.02 300);
+	--secondary-foreground: oklch(0.35 0.06 300);
+	--muted: oklch(0.94 0.02 300);
+	--muted-foreground: oklch(0.5 0.04 300);
+	--accent: oklch(0.92 0.04 320);
+	--accent-foreground: oklch(0.35 0.08 300);
+	--destructive: oklch(0.577 0.245 27.325);
+	--border: oklch(0.88 0.02 300);
+	--input: oklch(0.88 0.02 300);
+	--ring: oklch(0.55 0.22 300);
+	--viewport: oklch(0.96 0.015 300);
+	--viewport-grid: oklch(0.9 0.025 300);
+	--text-mono: oklch(0.5 0.04 300);
+	--accent-spawn: oklch(0.7 0.15 85);
+	--accent-entity: oklch(0.55 0.18 250);
+	--accent-link: oklch(0.55 0.18 250);
+	--accent-selection: oklch(0.55 0.22 300);
+	--success: oklch(0.6 0.16 155);
+	--play-go: oklch(0.58 0.2 145);
+	--play-go-foreground: oklch(0.98 0.02 145);
+	--surface-glass: color-mix(in srgb, var(--secondary) 72%, transparent);
+}
+
+[data-theme='violet-bloom'].dark {
+	--background: oklch(0.16 0.03 300);
+	--foreground: oklch(0.95 0.02 300);
+	--card: oklch(0.22 0.04 300);
+	--card-foreground: oklch(0.95 0.02 300);
+	--popover: oklch(0.22 0.04 300);
+	--popover-foreground: oklch(0.95 0.02 300);
+	--primary: oklch(0.72 0.18 300);
+	--primary-foreground: oklch(0.18 0.04 300);
+	--secondary: oklch(0.28 0.05 300);
+	--secondary-foreground: oklch(0.92 0.02 300);
+	--muted: oklch(0.28 0.05 300);
+	--muted-foreground: oklch(0.68 0.04 300);
+	--accent: oklch(0.32 0.07 310);
+	--accent-foreground: oklch(0.95 0.02 300);
+	--destructive: oklch(0.65 0.2 25);
+	--border: oklch(1 0 0 / 12%);
+	--input: oklch(1 0 0 / 16%);
+	--ring: oklch(0.72 0.18 300);
+	--viewport: oklch(0.12 0.035 300);
+	--viewport-grid: oklch(0.2 0.05 300);
+	--text-mono: oklch(0.68 0.04 300);
+	--accent-spawn: oklch(0.78 0.12 85);
+	--accent-entity: oklch(0.68 0.14 250);
+	--accent-link: oklch(0.68 0.14 250);
+	--accent-selection: oklch(0.72 0.18 300);
+	--success: oklch(0.72 0.16 155);
+	--play-go: oklch(0.65 0.19 145);
+	--play-go-foreground: oklch(0.14 0.03 145);
+	--surface-glass: color-mix(in srgb, var(--secondary) 65%, transparent);
+}

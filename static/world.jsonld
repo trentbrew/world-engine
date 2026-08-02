@@ -1,0 +1,154 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "component:Status",
+			"@type": "ComponentSchema",
+			"fields": {
+				"grounded": {
+					"t": "boolean",
+					"sync": "derived",
+					"default": "=Transform.position.y <= 0.55"
+				}
+			}
+		},
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Transform": {
+					"position": [
+						1.4395886732700627,
+						0,
+						-1.0339244334983044
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						30.1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/crate-a",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Transform": {
+					"position": [
+						-3.909736097239142,
+						4,
+						-1.986944862513298
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				},
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ff6b6b"
+				},
+				"Gravity": {
+					"g": 9.8,
+					"rest": 0.5
+				},
+				"Status": {}
+			}
+		},
+		{
+			"@id": "entity:prop/crate-b",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Transform": {
+					"position": [
+						7.2,
+						0,
+						2
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.1,
+						0.01,
+						0.01
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#ff6b6b",
+					"anchor": "bottom"
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/player-1",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.05,
+						"z": -2
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.45
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1
+				},
+				"Transform": {
+					"position": {
+						"x": 5,
+						"y": 8,
+						"z": 5
+					}
+				}
+			}
+		}
+	]
+}

@@ -1,0 +1,43 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" }
+  },
+  "__note": "AUTHORING SOURCE — proposed, data-only tier. No auto-import loader exists yet: copy the schemas a world needs inline (see static/games/playground.jsonld for the inline ComponentSchema pattern). Fields that need a real upkeep loop (decay + tend) are marked; that behavior stays proposed until a second world earns it — see pack.json.",
+  "@graph": [
+    {
+      "@id": "component:Commons",
+      "@type": "ComponentSchema",
+      "fields": {
+        "liveliness": { "t": "number", "sync": "durable", "default": 0.5, "__note": "0..1 upkeep level; driven by the proposed decayAndTend behavior" },
+        "glow": { "t": "number", "sync": "derived", "default": "=Commons.liveliness * (0.7 + sin(t * 0.5) * 0.3)", "__note": "per-frame visual warmth — derived, never on the wire" }
+      }
+    },
+    {
+      "@id": "component:Cultivable",
+      "@type": "ComponentSchema",
+      "fields": {
+        "stage": { "t": "number", "sync": "durable", "default": 0, "__note": "0..1 growth; advances on nature's clock via a behavior" },
+        "neglect": { "t": "number", "sync": "durable", "default": 0 },
+        "ripe": { "t": "boolean", "sync": "derived", "default": "=Cultivable.stage >= 0.85" }
+      }
+    },
+    {
+      "@id": "component:Conversant",
+      "@type": "ComponentSchema",
+      "fields": {
+        "name": { "t": "string", "sync": "durable", "default": "" },
+        "disposition": { "t": "number", "sync": "durable", "default": 0, "__note": "-1..1 toward the local commons/steward" },
+        "upkeep": { "t": "number", "sync": "durable", "default": 0.5, "__note": "the neighbor's own needs — a claim on attention" }
+      }
+    },
+    {
+      "@id": "component:Reputation",
+      "@type": "ComponentSchema",
+      "fields": {
+        "standing": { "t": "number", "sync": "durable", "default": 0, "__note": "accrues from tending, not accumulation" }
+      }
+    }
+  ]
+}

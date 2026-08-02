@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte — Save as EntityType (TRL-92 design mock)</title>
+  <style>
+    :root {
+      --viewport: #0e0e0e;
+      --viewport-grid: #1a1a1a;
+      --surface: #141414;
+      --surface-raised: #1c1c1c;
+      --surface-overlay: #242424;
+      --surface-glass: color-mix(in srgb, #242424 62%, transparent);
+      --text: #e8e8e8;
+      --text-muted: #8a8a8a;
+      --text-mono: #a3a3a3;
+      --primary: #d4d4d4;
+      --accent-type: #a78bfa;
+      --success: #86efac;
+      --destructive: #f87171;
+      --border: #333333;
+      --border-focus: #737373;
+      --right-panel-width: 280px;
+      --dialog-width: 420px;
+      --float-inset: 12px;
+      --rounded-sm: 6px;
+      --rounded-lg: 14px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --font-ui: 'DM Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      color: var(--text);
+      background: var(--viewport);
+      min-height: 100vh;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      background-color: var(--viewport);
+    }
+
+    .controls {
+      position: fixed;
+      top: var(--float-inset);
+      left: var(--float-inset);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      z-index: 100;
+      max-width: 520px;
+    }
+
+    .controls button {
+      font-family: inherit;
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-overlay);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .controls button.active {
+      color: var(--text);
+      border-color: var(--border-focus);
+      background: var(--surface-raised);
+    }
+
+    .controls button:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    .legend {
+      position: fixed;
+      bottom: var(--float-inset);
+      left: var(--float-inset);
+      max-width: 400px;
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--surface-overlay);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      font-size: 11px;
+      color: var(--text-muted);
+      z-index: 100;
+    }
+
+    .legend strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+    .right-panel {
+      position: absolute;
+      top: var(--float-inset);
+      right: var(--float-inset);
+      width: var(--right-panel-width);
+      height: calc(100vh - var(--float-inset) * 2 - 48px);
+      display: flex;
+      flex-direction: column;
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      border-radius: var(--rounded-lg);
+      box-shadow: 0 8px 32px rgb(0 0 0 / 0.24);
+      overflow: hidden;
+    }
+
+    .inspector-header {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      font-weight: 600;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      padding: 0 var(--spacing-sm);
+      flex-shrink: 0;
+    }
+
+    .panel-tab {
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 8px 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .panel-tab.active {
+      color: var(--text);
+      border-bottom-color: var(--text-muted);
+    }
+
+    .schema-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .accordion-item {
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+      padding: 8px 0;
+    }
+
+    .accordion-trigger {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .accordion-content {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-mono);
+      padding: 6px 0 4px;
+      line-height: 1.6;
+    }
+
+    .schema-footer {
+      flex-shrink: 0;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      background: color-mix(in srgb, var(--surface) 80%, transparent);
+    }
+
+    .btn-outline {
+      width: 100%;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: var(--surface-raised);
+    }
+
+    .btn-outline:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-outline:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgb(0 0 0 / 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .overlay.open { display: flex; }
+
+    .dialog {
+      width: min(var(--dialog-width), calc(100vw - 32px));
+      background: var(--surface-overlay);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-lg);
+      box-shadow: 0 16px 48px rgb(0 0 0 / 0.4);
+      padding: var(--spacing-md);
+    }
+
+    .dialog-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .field { margin-bottom: var(--spacing-md); }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .field input[type="text"] {
+      width: 100%;
+      font-family: inherit;
+      font-size: 13px;
+      padding: 8px 10px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: var(--viewport);
+      color: var(--text);
+    }
+
+    .field input:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 1px;
+    }
+
+    .field input.invalid {
+      border-color: var(--destructive);
+    }
+
+    .field-error {
+      font-size: 11px;
+      color: var(--destructive);
+      margin-top: 4px;
+      display: none;
+    }
+
+    .field-error.show { display: block; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .chip {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: var(--rounded-sm);
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .preview-block {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: var(--spacing-sm);
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: var(--viewport);
+      line-height: 1.6;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .type-id {
+      color: var(--accent-type);
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .checkbox-row input { margin-top: 2px; }
+
+    .dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: var(--spacing-md);
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--viewport);
+      border-color: var(--primary);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .add-entity-preview {
+      position: absolute;
+      bottom: var(--float-inset);
+      right: calc(var(--right-panel-width) + var(--float-inset) * 2);
+      width: 320px;
+      background: var(--surface-overlay);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-lg);
+      padding: var(--spacing-md);
+      display: none;
+    }
+
+    .add-entity-preview.show { display: block; }
+
+    .add-entity-preview h3 {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .select-mock {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: var(--viewport);
+      color: var(--text);
+      font-size: 13px;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    optgroup { color: var(--text-muted); }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="controls" data-design-note="Toggle mock states">
+      <button type="button" id="btn-eligible" class="active">Eligible prop</button>
+      <button type="button" id="btn-ineligible">Ineligible (Player)</button>
+      <button type="button" id="btn-dialog">Open dialog</button>
+      <button type="button" id="btn-collision">Dialog: name collision</button>
+      <button type="button" id="btn-add-entity">Show Add entity types</button>
+    </div>
+
+    <aside class="right-panel" aria-label="Inspector mock">
+      <div class="inspector-header">
+        <span id="header-type">Prop</span>
+        <span class="badge" id="header-id">crate-b</span>
+      </div>
+      <div class="panel-tabs" role="tablist">
+        <button type="button" class="panel-tab" role="tab">Props</button>
+        <button type="button" class="panel-tab active" role="tab" aria-selected="true">Schema</button>
+        <button type="button" class="panel-tab" role="tab">Graph</button>
+        <button type="button" class="panel-tab" role="tab">Ops</button>
+        <button type="button" class="panel-tab" role="tab">JSON</button>
+      </div>
+      <div class="schema-body">
+        <div class="accordion-item">
+          <button type="button" class="accordion-trigger">Type · Prop</button>
+          <div class="accordion-content">conformsTo: Prop<br />components: Transform, Render, Gravity</div>
+        </div>
+        <div class="accordion-item">
+          <button type="button" class="accordion-trigger">Transform</button>
+          <div class="accordion-content">position vec3 · realtime<br />scale vec3 · durable</div>
+        </div>
+        <div class="accordion-item">
+          <button type="button" class="accordion-trigger">Render</button>
+          <div class="accordion-content">mesh · color · anchor</div>
+        </div>
+        <div class="accordion-item">
+          <button type="button" class="accordion-trigger">Gravity</button>
+          <div class="accordion-content">g · vy · rest</div>
+        </div>
+      </div>
+      <div class="schema-footer" data-design-note="Primary entry point — Save as type CTA">
+        <button type="button" class="btn-outline" id="save-trigger" title="">
+          Save as type…
+        </button>
+      </div>
+    </aside>
+
+    <div class="add-entity-preview" id="add-entity-preview" data-design-note="Post-save: world types in Add entity">
+      <h3>Add entity</h3>
+      <select class="select-mock" aria-label="conformsTo">
+        <optgroup label="Built-in">
+          <option>Prop</option>
+          <option>SpawnPoint</option>
+          <option>GroundPlane</option>
+        </optgroup>
+        <optgroup label="World types">
+          <option selected>FallingCrate</option>
+        </optgroup>
+      </select>
+      <div class="hint">World types from @graph EntityType nodes</div>
+    </div>
+  </div>
+
+  <div class="overlay" id="dialog-overlay" role="presentation">
+    <div class="dialog" role="dialog" aria-labelledby="dialog-title" aria-modal="true">
+      <h2 class="dialog-title" id="dialog-title">Save as type</h2>
+      <p class="hint" style="margin-bottom: 12px;">Promote this entity's composition to a reusable EntityType in the world graph.</p>
+
+      <div class="field">
+        <label for="type-name">Type name</label>
+        <input type="text" id="type-name" value="FallingCrate" autocomplete="off" />
+        <div class="field-error" id="name-error">Type "Prop" is reserved</div>
+        <div class="hint">PascalCase — e.g. FallingCrate, HeavyBarrel</div>
+      </div>
+
+      <div class="field">
+        <label>Components captured</label>
+        <div class="chips">
+          <span class="chip">Transform</span>
+          <span class="chip">Render</span>
+          <span class="chip">Gravity</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Defaults (durable fields)</label>
+        <div class="preview-block">
+          Render.mesh: /models/barrel.glb<br />
+          Render.color: #ff6b6b<br />
+          Render.anchor: bottom<br />
+          Gravity.g: 9.8<br />
+          Gravity.rest: 0.5
+        </div>
+        <div class="hint">Position and other realtime fields are not saved on the type.</div>
+      </div>
+
+      <label class="checkbox-row">
+        <input type="checkbox" id="apply-conforms" checked />
+        <span><strong style="color: var(--text);">Apply type to this entity</strong><br />Sets conformsTo on crate-b</span>
+      </label>
+
+      <div class="field">
+        <label>Preview</label>
+        <div class="preview-block">
+          <span class="type-id">type:FallingCrate</span><br />
+          conformsTo: FallingCrate
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-secondary" id="dialog-cancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="dialog-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <strong>TRL-92 — Save as EntityType</strong>
+    Schema tab footer → dialog → graph EntityType + Add entity listing. Toggle states with top controls.
+  </div>
+
+  <script>
+    const overlay = document.getElementById('dialog-overlay');
+    const saveTrigger = document.getElementById('save-trigger');
+    const typeName = document.getElementById('type-name');
+    const nameError = document.getElementById('name-error');
+    const headerType = document.getElementById('header-type');
+    const headerId = document.getElementById('header-id');
+    const addEntityPreview = document.getElementById('add-entity-preview');
+
+    function openDialog(collision = false) {
+      overlay.classList.add('open');
+      if (collision) {
+        typeName.value = 'Prop';
+        typeName.classList.add('invalid');
+        nameError.textContent = 'Type "Prop" is reserved';
+        nameError.classList.add('show');
+      } else {
+        typeName.value = 'FallingCrate';
+        typeName.classList.remove('invalid');
+        nameError.classList.remove('show');
+      }
+      typeName.focus();
+    }
+
+    function closeDialog() {
+      overlay.classList.remove('open');
+    }
+
+    document.getElementById('btn-eligible').onclick = () => {
+      document.getElementById('btn-eligible').classList.add('active');
+      document.getElementById('btn-ineligible').classList.remove('active');
+      headerType.textContent = 'Prop';
+      headerId.textContent = 'crate-b';
+      saveTrigger.disabled = false;
+      saveTrigger.title = '';
+    };
+
+    document.getElementById('btn-ineligible').onclick = () => {
+      document.getElementById('btn-ineligible').classList.add('active');
+      document.getElementById('btn-eligible').classList.remove('active');
+      headerType.textContent = 'Player';
+      headerId.textContent = 'player-1';
+      saveTrigger.disabled = true;
+      saveTrigger.title = 'Player entities cannot become types';
+    };
+
+    document.getElementById('btn-dialog').onclick = () => openDialog(false);
+    document.getElementById('btn-collision').onclick = () => openDialog(true);
+    document.getElementById('btn-add-entity').onclick = () => {
+      addEntityPreview.classList.toggle('show');
+    };
+
+    saveTrigger.onclick = () => { if (!saveTrigger.disabled) openDialog(false); };
+    document.getElementById('dialog-cancel').onclick = closeDialog;
+    document.getElementById('dialog-save').onclick = closeDialog;
+    overlay.onclick = (e) => { if (e.target === overlay) closeDialog(); };
+
+    typeName.oninput = () => {
+      const v = typeName.value;
+      if (v === 'Prop' || v === 'Player') {
+        typeName.classList.add('invalid');
+        nameError.textContent = `Type "${v}" is reserved`;
+        nameError.classList.add('show');
+      } else {
+        typeName.classList.remove('invalid');
+        nameError.classList.remove('show');
+      }
+    };
+  </script>
+</body>
+</html>

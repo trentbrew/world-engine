@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threlte Skeleton — Left Scene Panel (TRL-46 design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --viewport: #1c1c1c;
+      --surface: #252525;
+      --surface-raised: #2e2e2e;
+      --surface-overlay: #363636;
+      --surface-glass: color-mix(in srgb, var(--surface-overlay) 72%, transparent);
+      --text: #e4e4e4;
+      --text-muted: #949494;
+      --border: #3d3d3d;
+      --border-focus: #a3a3a3;
+      --float-inset: 16px;
+      --panel-width: 240px;
+      --view-controls-height: 48px;
+      --rounded-sm: 4px;
+      --rounded-lg: 12px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--viewport);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .stage {
+      position: relative;
+      height: 100%;
+      background:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.35;
+    }
+
+    .stage::after {
+      content: "Viewport (hero)";
+      position: absolute;
+      bottom: calc(var(--float-inset) + var(--view-controls-height) + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--text-muted);
+      font-size: 11px;
+      opacity: 0.6;
+    }
+
+    /* Left panel — normative max-height */
+    .left-panel {
+      position: absolute;
+      top: var(--float-inset);
+      left: var(--float-inset);
+      width: var(--panel-width);
+      max-height: min(80vh, calc(100dvh - var(--float-inset) * 2 - var(--view-controls-height)));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      border-radius: var(--rounded-lg);
+      box-shadow: 0 4px 24px rgb(0 0 0 / 0.28);
+      z-index: 20;
+    }
+
+    .panel-tabs {
+      display: flex;
+      flex-shrink: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      padding: 0 var(--spacing-sm);
+    }
+
+    .panel-tab {
+      flex: 1;
+      font: 500 12px/1 inherit;
+      padding: 10px 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .panel-tab.active {
+      color: var(--text);
+      border-bottom-color: var(--text-muted);
+    }
+
+    .panel-tab:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+
+    .scroll-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: var(--spacing-sm) var(--spacing-md);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .scroll-fade {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 24px;
+      background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--surface) 90%, transparent));
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 150ms ease;
+    }
+
+    .scroll-wrap.has-overflow .scroll-fade { opacity: 1; }
+
+    .accordion-item { border-bottom: 1px solid color-mix(in srgb, var(--border) 20%, transparent); }
+
+    .accordion-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font: 500 10px/1 "JetBrains Mono", monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: left;
+    }
+
+    .accordion-trigger:hover { color: var(--text); }
+    .accordion-trigger:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+
+    .chevron {
+      width: 12px;
+      height: 12px;
+      transition: transform 150ms ease;
+      flex-shrink: 0;
+    }
+
+    .accordion-item.open .chevron { transform: rotate(180deg); }
+
+    .accordion-content {
+      display: none;
+      padding-bottom: var(--spacing-sm);
+    }
+
+    .accordion-item.open .accordion-content { display: block; }
+
+    .field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+
+    .field label { color: var(--text-muted); font-size: 11px; }
+
+    .field input[type="text"] {
+      flex: 1;
+      max-width: 120px;
+      font: inherit;
+      font-size: 12px;
+      padding: 4px 8px;
+      background: var(--viewport);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      color: var(--text);
+    }
+
+    .toggle {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .toggle.on { background: color-mix(in srgb, #5b9fd4 40%, var(--surface-raised)); }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: transform 150ms ease;
+    }
+    .toggle.on::after { transform: translateX(16px); background: var(--text); }
+
+    .segment {
+      display: flex;
+      gap: 0;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      overflow: hidden;
+    }
+
+    .segment button {
+      flex: 1;
+      font: 500 11px/1 inherit;
+      padding: 6px 4px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .segment button.active {
+      background: var(--surface-raised);
+      color: var(--text);
+    }
+
+    .segment button:focus-visible { outline: 2px solid var(--border-focus); outline-offset: -2px; }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin: 4px 0 8px;
+      line-height: 1.4;
+    }
+
+    details.dev-block {
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    details.dev-block summary {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .legend {
+      position: fixed;
+      bottom: var(--float-inset);
+      right: var(--float-inset);
+      max-width: 280px;
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--surface-overlay);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      font-size: 11px;
+      color: var(--text-muted);
+      z-index: 30;
+    }
+
+    .legend strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .chevron, .toggle::after, .scroll-fade { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" aria-hidden="true"></div>
+
+  <aside class="left-panel" aria-label="Scene browser" data-design-note="max-height: min(80vh, viewport budget)">
+    <div class="panel-tabs" role="tablist" aria-label="Panel sections">
+      <button type="button" class="panel-tab active" role="tab" aria-selected="true">Scene</button>
+      <button type="button" class="panel-tab" role="tab" aria-selected="false">Objects</button>
+      <button type="button" class="panel-tab" role="tab" aria-selected="false">Assets</button>
+    </div>
+
+    <div class="scroll-wrap" id="scrollWrap">
+      <div class="panel-scroll" id="panelScroll">
+        <!-- Essentials (default open) -->
+        <div class="accordion-item open" data-section="essentials">
+          <button type="button" class="accordion-trigger" aria-expanded="true">
+            Essentials
+            <svg class="chevron" viewBox="0 0 12 12"><path fill="currentColor" d="M2 4l4 4 4-4"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="field">
+              <label for="name">name</label>
+              <input id="name" type="text" value="Playground" />
+            </div>
+            <div class="field">
+              <label>background</label>
+              <span style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--text-muted)">#0e0e0e ■</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Environment (default open) -->
+        <div class="accordion-item open" data-section="environment">
+          <button type="button" class="accordion-trigger" aria-expanded="true">
+            Environment
+            <svg class="chevron" viewBox="0 0 12 12"><path fill="currentColor" d="M2 4l4 4 4-4"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="field"><label>sky</label><div class="toggle" role="switch" aria-checked="false" tabindex="0"></div></div>
+            <div class="field"><label>shadows</label><div class="toggle on" role="switch" aria-checked="true" tabindex="0"></div></div>
+          </div>
+        </div>
+
+        <!-- Play mode -->
+        <div class="accordion-item" data-section="play">
+          <button type="button" class="accordion-trigger" aria-expanded="false">
+            Play mode
+            <svg class="chevron" viewBox="0 0 12 12"><path fill="currentColor" d="M2 4l4 4 4-4"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="segment" role="group" aria-label="Play camera">
+              <button type="button">Follow</button>
+              <button type="button" class="active">Orbit</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grids merged -->
+        <div class="accordion-item" data-section="grids">
+          <button type="button" class="accordion-trigger" aria-expanded="false">
+            Grids
+            <svg class="chevron" viewBox="0 0 12 12"><path fill="currentColor" d="M2 4l4 4 4-4"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="segment" role="group" aria-label="Grid type" id="gridSegment">
+              <button type="button" class="active" data-grid="reference">Reference</button>
+              <button type="button" data-grid="ground">On ground</button>
+            </div>
+            <div id="gridReference">
+              <div class="field"><label>show</label><div class="toggle on"></div></div>
+              <div class="field"><label>infinite</label><div class="toggle on"></div></div>
+              <div class="field"><label>fade</label><span style="color:var(--text-muted);font-size:11px">100</span></div>
+            </div>
+            <div id="gridGround" hidden>
+              <p class="hint">Grid drawn on ground planes — tuned for dark surfaces.</p>
+              <div class="field"><label>show</label><div class="toggle on"></div></div>
+              <div class="field"><label>cell</label><span style="color:var(--text-muted);font-size:11px">1</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selection -->
+        <div class="accordion-item" data-section="selection">
+          <button type="button" class="accordion-trigger" aria-expanded="false">
+            Selection
+            <svg class="chevron" viewBox="0 0 12 12"><path fill="currentColor" d="M2 4l4 4 4-4"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="field"><label>outline</label><div class="toggle on"></div></div>
+          </div>
+        </div>
+
+        <!-- Developer -->
+        <div class="accordion-item" data-section="developer">
+          <button type="button" class="accordion-trigger" aria-expanded="false">
+            Developer
+            <svg class="chevron" viewBox="0 0 12 12"><path fill="currentColor" d="M2 4l4 4 4-4"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="field"><label>stats HUD</label><div class="toggle on"></div></div>
+            <details class="dev-block">
+              <summary>Input &amp; camera reference</summary>
+              <p class="hint">Read-only mappings and defaults (was Advanced sub-tabs).</p>
+            </details>
+          </div>
+        </div>
+
+        <!-- padding to demo scroll when sections opened -->
+        <div style="height:8px" aria-hidden="true"></div>
+      </div>
+      <div class="scroll-fade" aria-hidden="true"></div>
+    </div>
+  </aside>
+
+  <div class="legend">
+    <strong>TRL-46 design mock</strong>
+    Click section headers to expand. Open <em>Grids</em> + toggle segments. Panel capped at <code>min(80vh, …)</code>.
+  </div>
+
+  <script>
+    document.querySelectorAll('.accordion-trigger').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.accordion-item');
+        const open = item.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open);
+        updateScrollFade();
+      });
+    });
+
+    document.querySelectorAll('.toggle').forEach((el) => {
+      el.addEventListener('click', () => {
+        el.classList.toggle('on');
+        el.setAttribute('aria-checked', el.classList.contains('on'));
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); el.click(); }
+      });
+    });
+
+    const gridSeg = document.getElementById('gridSegment');
+    const refPanel = document.getElementById('gridReference');
+    const groundPanel = document.getElementById('gridGround');
+    gridSeg.querySelectorAll('button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        gridSeg.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        const isRef = btn.dataset.grid === 'reference';
+        refPanel.hidden = !isRef;
+        groundPanel.hidden = isRef;
+      });
+    });
+
+    const scrollEl = document.getElementById('panelScroll');
+    const scrollWrap = document.getElementById('scrollWrap');
+    function updateScrollFade() {
+      scrollWrap.classList.toggle('has-overflow', scrollEl.scrollHeight > scrollEl.clientHeight + 2);
+    }
+    scrollEl.addEventListener('scroll', updateScrollFade);
+    window.addEventListener('resize', updateScrollFade);
+    updateScrollFade();
+  </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "type:Crate",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Gravity"
+			]
+		},
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Ground": {
+					"size": 16
+				},
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.45
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1
+				},
+				"Transform": {
+					"position": {
+						"x": 5,
+						"y": 10,
+						"z": 4
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/start",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 3,
+						"y": 0.05,
+						"z": 3
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:crate/1",
+			"@type": "Thing",
+			"conformsTo": "Crate",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						5,
+						0
+					]
+				},
+				"Render": {
+					"color": "#ff6b6b"
+				},
+				"Gravity": {
+					"rest": 0.5
+				}
+			}
+		},
+		{
+			"@id": "entity:crate/2",
+			"@type": "Thing",
+			"conformsTo": "Crate",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						8,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				},
+				"Render": {
+					"color": "#e8a838"
+				},
+				"Gravity": {
+					"rest": 1.5
+				}
+			}
+		},
+		{
+			"@id": "entity:crate/3",
+			"@type": "Thing",
+			"conformsTo": "Crate",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						11,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				},
+				"Render": {
+					"color": "#5b9fd4"
+				},
+				"Gravity": {
+					"rest": 2.5
+				}
+			}
+		},
+		{
+			"@id": "entity:crate/4",
+			"@type": "Thing",
+			"conformsTo": "Crate",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 14,
+						"z": 0
+					}
+				},
+				"Render": {
+					"color": "#7c6cf0"
+				},
+				"Gravity": {
+					"rest": 3.5
+				}
+			}
+		}
+	]
+}

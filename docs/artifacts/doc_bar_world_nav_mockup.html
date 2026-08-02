@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="default" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trellis — Doc Bar World Nav (TRL design mock)</title>
+  <!-- trellis-design-adopted: slug=doc_bar_world_nav -->
+  <style>
+    :root {
+      --background: oklch(0.145 0 0);
+      --foreground: oklch(0.985 0 0);
+      --card: oklch(0.205 0 0);
+      --secondary: oklch(0.269 0 0);
+      --muted-foreground: oklch(0.708 0 0);
+      --primary: oklch(0.922 0 0);
+      --primary-foreground: oklch(0.205 0 0);
+      --border: oklch(1 0 0 / 10%);
+      --viewport: oklch(0.1 0 0);
+      --viewport-grid: oklch(0.16 0 0);
+      --accent-entity: oklch(0.72 0.12 250);
+      --destructive: oklch(0.577 0.245 27.325);
+      --surface-glass-panel: color-mix(in srgb, var(--card) 80%, transparent);
+      --chrome-pill-bg: color-mix(in srgb, var(--card) 90%, transparent);
+      --font-ui: 'Geist', system-ui, sans-serif;
+      --font-mono: 'Geist Mono', ui-monospace, monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --chrome-edge: 12px;
+      --doc-bar-height: 48px;
+      --left-panel-width: 300px;
+      --right-panel-width: 0px;
+      --bottom-pane-height: 0px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--foreground);
+      background: var(--viewport);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    /* —— Viewport (full bleed) —— */
+    .viewport-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-color: var(--viewport);
+    }
+
+    /* —— Chrome shell —— */
+    .shell {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: grid;
+      grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
+      grid-template-rows: calc(var(--chrome-edge) + var(--doc-bar-height)) 1fr var(--bottom-pane-height);
+    }
+
+    .panel-shell {
+      position: relative;
+      isolation: isolate;
+      background: transparent;
+      pointer-events: auto;
+      overflow: hidden;
+    }
+    .panel-shell::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: var(--surface-glass-panel);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+      pointer-events: none;
+    }
+
+    /* —— Doc bar (bracketed) —— */
+    .doc-bar-wrap {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      padding: var(--chrome-edge) var(--chrome-edge) 0;
+      pointer-events: none;
+    }
+
+    .doc-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: var(--doc-bar-height);
+      padding: 0 14px;
+      min-width: 0;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .doc-bar::before {
+      border-radius: inherit;
+      border-bottom: none;
+    }
+
+    .doc-bar-start {
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 160px;
+    }
+    .world-title {
+      font-size: 13px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .doc-bar-routes {
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .world-nav {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .route-btn {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      min-width: 52px;
+      height: 36px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 8px;
+      background: none;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      transition: color 120ms ease, background 120ms ease;
+    }
+    .route-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 1.75;
+    }
+    .route-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+    .route-btn:hover {
+      color: var(--foreground);
+      background: color-mix(in srgb, var(--foreground) 6%, transparent);
+    }
+    .route-btn.active {
+      color: var(--foreground);
+    }
+    .route-btn.active::after {
+      content: '';
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 2px;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--accent-entity);
+    }
+    .route-btn:focus-visible {
+      outline: 2px solid oklch(0.7 0.15 250);
+      outline-offset: 1px;
+    }
+
+    .doc-bar-mode {
+      flex: 0 0 auto;
+    }
+    .mode-tabs {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px;
+      border-radius: 999px;
+      background: var(--chrome-pill-bg);
+      border: 1px solid var(--border);
+    }
+    .mode-tabs button {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 26px;
+      min-width: 52px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted-foreground);
+      font: 500 12px inherit;
+      cursor: pointer;
+      transition: background 120ms ease, color 120ms ease;
+    }
+    .mode-tabs button.active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      box-shadow: 0 1px 2px color-mix(in srgb, black 24%, transparent);
+    }
+    .mode-tabs button svg { width: 13px; height: 13px; }
+
+    .doc-bar-end {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .avatars { display: flex; align-items: center; }
+    .av {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid var(--card);
+      margin-left: -6px;
+      background: #6a8cff;
+    }
+    .av:first-child { margin-left: 0; }
+
+    .chat-btn {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      width: 44px;
+      height: 36px;
+      border: 0;
+      border-radius: 8px;
+      background: none;
+      color: var(--muted-foreground);
+      cursor: pointer;
+    }
+    .chat-btn:hover, .chat-btn.open {
+      color: var(--foreground);
+      background: color-mix(in srgb, var(--foreground) 6%, transparent);
+    }
+    .chat-btn svg { width: 16px; height: 16px; }
+    .chat-btn span { font-size: 9px; font-weight: 600; }
+    .unread {
+      position: absolute;
+      top: 3px; right: 6px;
+      min-width: 14px; height: 14px;
+      padding: 0 3px;
+      border-radius: 999px;
+      background: var(--destructive);
+      color: #fff;
+      font: 700 9px/14px var(--font-mono);
+      text-align: center;
+    }
+    .score-chip {
+      font: 500 11px var(--font-mono);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--card);
+    }
+
+    /* Play mode: hide routes */
+    body.mode-play .world-nav,
+    body.mode-play .chat-btn { display: none; }
+    body.mode-play .doc-bar-routes { flex: 1; }
+
+    /* Compact: icon-only routes */
+    body.compact-routes .route-label { display: none; }
+    body.compact-routes .route-btn { min-width: 40px; }
+
+    /* —— Side panel —— */
+    .side-left {
+      grid-column: 1;
+      grid-row: 2 / -1;
+      padding: 0 6px 0 var(--chrome-edge);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      pointer-events: none;
+    }
+    .side-left .panel-shell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      border-radius: 0;
+    }
+    .side-left .panel-shell::before {
+      border-radius: 0;
+      border-right: none;
+    }
+
+    .panel-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+      font: 600 11px var(--font-mono);
+      letter-spacing: 0.06em;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .panel-hdr button {
+      width: 22px; height: 22px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .panel-tabs {
+      display: flex;
+      padding: 0 8px;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+      flex-shrink: 0;
+    }
+    .panel-tab {
+      font: 600 11px inherit;
+      padding: 9px 10px 8px;
+      border: 0;
+      background: none;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .panel-tab.active {
+      color: var(--foreground);
+      border-bottom-color: var(--accent-entity);
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow: auto;
+      padding: 10px 12px;
+      min-height: 0;
+    }
+
+    /* Collections form */
+    .field-label {
+      font-size: 11px;
+      color: var(--muted-foreground);
+      margin-bottom: 6px;
+    }
+    .text-input {
+      width: 100%;
+      height: 32px;
+      padding: 0 10px;
+      border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--viewport) 60%, transparent);
+      color: var(--foreground);
+      font: 400 12px inherit;
+      margin-bottom: 12px;
+    }
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      color: var(--muted-foreground);
+      cursor: pointer;
+    }
+    .chip input { accent-color: var(--accent-entity); }
+    .chip:has(input:checked) {
+      color: var(--foreground);
+      border-color: color-mix(in srgb, var(--accent-entity) 40%, transparent);
+      background: color-mix(in srgb, var(--accent-entity) 10%, transparent);
+    }
+    .actions { display: flex; gap: 8px; }
+    .btn {
+      flex: 1;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      font: 600 12px inherit;
+      cursor: pointer;
+    }
+    .btn-primary {
+      border: 0;
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+    .btn-ghost {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted-foreground);
+    }
+
+    /* Entity list */
+    .entity-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .entity-item.selected {
+      background: color-mix(in srgb, var(--accent-entity) 12%, transparent);
+      color: var(--accent-entity);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 2px; background: #666; flex-shrink: 0; }
+
+    /* —— Center canvas cell —— */
+    .canvas-cell {
+      grid-column: 2;
+      grid-row: 2;
+      position: relative;
+      pointer-events: none;
+    }
+
+    .empty-state {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--muted-foreground);
+      text-align: center;
+      padding: 24px;
+    }
+    .empty-state svg { width: 40px; height: 40px; opacity: 0.35; }
+    .empty-state h2 { font-size: 15px; font-weight: 600; color: var(--foreground); }
+    .empty-state p { font-size: 12px; max-width: 280px; line-height: 1.5; }
+
+    /* —— Bottom pane (actions only, Rooms route) —— */
+    .bottom-pane {
+      grid-column: 2;
+      grid-row: 3;
+      padding: 0 6px;
+      pointer-events: none;
+      display: none;
+    }
+    body.route-rooms.edit-mode .bottom-pane { display: block; }
+    .bottom-pane .panel-shell {
+      border-radius: 0;
+      border-top: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+      height: 100%;
+      display: flex;
+      flex-direction: column-reverse;
+    }
+    .bottom-pane .panel-shell::before {
+      border-radius: 0;
+      border-bottom: none;
+      border-left: none;
+      border-right: none;
+    }
+    .pane-handle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      font: 600 11px inherit;
+      color: var(--muted-foreground);
+      border-top: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+    }
+    .pane-handle .ttl { color: var(--foreground); }
+    .pane-handle kbd {
+      margin-left: auto;
+      font: 600 10px var(--font-mono);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+
+    /* Route visibility */
+    .route-panel { display: none; }
+    body.route-collections .panel-collections { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    body.route-rooms .panel-rooms { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    body.route-rooms .panel-rooms-tabs { display: flex; }
+    body.route-assets .panel-assets { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    body.route-objects .panel-objects { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    body.route-graph .panel-graph { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+    body.route-collections { --right-panel-width: 0px; }
+    body.route-rooms { --right-panel-width: 300px; --bottom-pane-height: 44px; }
+    body.route-rooms .canvas-scene { display: block; }
+    body.route-collections .empty-collections { display: flex; }
+    body.route-assets .empty-assets { display: flex; }
+    body.route-objects .empty-objects { display: flex; }
+    body.route-graph .empty-graph { display: flex; }
+
+    .canvas-scene { display: none; position: absolute; inset: 0; }
+    .empty-state { display: none; }
+
+    /* Right panel (Rooms only) */
+    .side-right {
+      grid-column: 3;
+      grid-row: 2 / -1;
+      padding: 0 var(--chrome-edge) 0 6px;
+      display: none;
+      flex-direction: column;
+      min-height: 0;
+      pointer-events: none;
+    }
+    body.route-rooms .side-right { display: flex; }
+    .side-right .panel-shell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      border-radius: 0;
+    }
+    .inspector-hdr {
+      padding: 10px 12px;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .gizmo-bar {
+      display: flex;
+      gap: 4px;
+      padding: 8px 10px;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+    }
+    .gizmo-bar button {
+      flex: 1;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--muted-foreground);
+      font: 600 10px inherit;
+      cursor: pointer;
+    }
+    .gizmo-bar button.active {
+      background: color-mix(in srgb, var(--accent-entity) 12%, transparent);
+      color: var(--accent-entity);
+      border-color: color-mix(in srgb, var(--accent-entity) 35%, transparent);
+    }
+    .field-row {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 6px;
+      padding: 4px 12px;
+      font-size: 12px;
+    }
+    .field-row label { color: var(--muted-foreground); font-size: 11px; }
+    .field-row input {
+      height: 26px;
+      padding: 0 6px;
+      border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--viewport) 50%, transparent);
+      color: var(--foreground);
+      font: 400 11px var(--font-mono);
+    }
+    .section-label {
+      padding: 10px 12px 4px;
+      font: 600 10px var(--font-mono);
+      letter-spacing: 0.08em;
+      color: var(--muted-foreground);
+    }
+
+    /* Chat dropdown */
+    .chat-panel {
+      display: none;
+      position: fixed;
+      top: calc(var(--chrome-edge) + var(--doc-bar-height) + 6px);
+      right: var(--chrome-edge);
+      width: 320px;
+      max-height: 360px;
+      z-index: 50;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      pointer-events: auto;
+      box-shadow: 0 12px 40px color-mix(in srgb, black 45%, transparent);
+    }
+    .chat-panel.open { display: flex; flex-direction: column; }
+    .chat-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: var(--surface-glass-panel);
+      backdrop-filter: blur(24px);
+      border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+      border-radius: inherit;
+    }
+    .chat-hdr {
+      padding: 10px 12px;
+      font-weight: 600;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 28%, transparent);
+    }
+    .chat-msgs {
+      flex: 1;
+      overflow: auto;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+    .chat-msg { margin-bottom: 8px; }
+    .chat-msg b { color: var(--foreground); font-weight: 600; }
+
+    /* Play FAB */
+    .chat-fab {
+      display: none;
+      position: fixed;
+      right: var(--chrome-edge);
+      bottom: var(--chrome-edge);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--chrome-pill-bg);
+      color: var(--foreground);
+      cursor: pointer;
+      z-index: 20;
+      pointer-events: auto;
+      box-shadow: 0 4px 16px color-mix(in srgb, black 35%, transparent);
+    }
+    body.mode-play .chat-fab { display: grid; place-items: center; }
+
+    /* No bottom dock callout */
+    .gain-badge {
+      position: fixed;
+      left: 50%;
+      bottom: var(--chrome-edge);
+      transform: translateX(-50%);
+      z-index: 5;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font: 600 10px var(--font-mono);
+      color: var(--muted-foreground);
+      background: color-mix(in srgb, var(--background) 85%, transparent);
+      border: 1px dashed color-mix(in srgb, var(--accent-entity) 40%, var(--border));
+      pointer-events: none;
+    }
+    body.route-rooms.edit-mode .gain-badge { display: none; }
+
+    /* Mock controls */
+    .mock-bar {
+      position: fixed;
+      top: calc(var(--chrome-edge) + var(--doc-bar-height) + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 10px;
+      max-width: 96vw;
+      background: color-mix(in srgb, var(--background) 92%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+      border-radius: 999px;
+      backdrop-filter: blur(16px);
+      pointer-events: auto;
+    }
+    .mock-bar button {
+      font: 600 10px var(--font-mono);
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+    }
+    .mock-bar button.active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+    }
+    .mock-bar .sep { width: 1px; background: var(--border); margin: 2px 4px; }
+
+    .legend {
+      position: fixed;
+      bottom: 52px;
+      left: var(--chrome-edge);
+      z-index: 99;
+      max-width: 220px;
+      padding: 8px 10px;
+      font-size: 10px;
+      line-height: 1.45;
+      color: var(--muted-foreground);
+      background: color-mix(in srgb, var(--background) 90%, transparent);
+      border: 1px dashed color-mix(in srgb, var(--border) 60%, transparent);
+      border-radius: var(--radius-sm);
+      pointer-events: none;
+    }
+    .legend strong { display: block; color: var(--foreground); margin-bottom: 4px; font-size: 11px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .route-btn, .mode-tabs button { transition: none; }
+    }
+  </style>
+</head>
+<body class="route-collections edit-mode">
+
+  <div class="viewport-scene" aria-hidden="true"></div>
+
+  <div class="shell" id="shell">
+    <!-- Doc bar -->
+    <div class="doc-bar-wrap">
+      <header class="doc-bar panel-shell" data-design-note="Bracketed doc bar — world routes between title and mode pill">
+        <div class="doc-bar-start">
+          <span class="world-title" title="Current world">Physics Pit</span>
+        </div>
+
+        <div class="doc-bar-routes">
+          <nav class="world-nav" aria-label="World navigation">
+            <button type="button" class="route-btn" data-route="graph" aria-label="Graph">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M8 6h8M7 8l4 9M17 8l-4 9"/></svg>
+              <span class="route-label">Graph</span>
+            </button>
+            <button type="button" class="route-btn" data-route="assets" aria-label="Assets">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"/></svg>
+              <span class="route-label">Assets</span>
+            </button>
+            <button type="button" class="route-btn" data-route="objects" aria-label="Objects">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v18M3 12h18"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+              <span class="route-label">Objects</span>
+            </button>
+            <button type="button" class="route-btn active" data-route="collections" aria-label="Collections" aria-current="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+              <span class="route-label">Collections</span>
+            </button>
+            <button type="button" class="route-btn" data-route="rooms" aria-label="Rooms">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              <span class="route-label">Rooms</span>
+            </button>
+          </nav>
+        </div>
+
+        <div class="doc-bar-mode">
+          <div class="mode-tabs" role="tablist" aria-label="Editor mode">
+            <button type="button" class="mode-edit active" role="tab" aria-selected="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              Edit
+            </button>
+            <button type="button" class="mode-play" role="tab" aria-selected="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+              Play
+            </button>
+          </div>
+        </div>
+
+        <div class="doc-bar-end">
+          <span class="score-chip play-only" style="display:none">★ 12</span>
+          <div class="avatars edit-only">
+            <div class="av"></div>
+            <div class="av" style="background:#e85d8a"></div>
+          </div>
+          <button type="button" class="chat-btn edit-only" id="chatToggle" aria-label="Open room chat" aria-expanded="false" aria-controls="room-chat-panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+            <span>Chat</span>
+            <span class="unread">2</span>
+          </button>
+        </div>
+      </header>
+    </div>
+
+    <!-- Left panel -->
+    <aside class="side-left">
+      <div class="panel-shell">
+        <div class="route-panel panel-collections">
+          <div class="panel-hdr">
+            <span>Collections</span>
+            <button type="button" title="New collection">+</button>
+          </div>
+          <div class="panel-body">
+            <div class="field-label">Collection name (e.g. Quest)</div>
+            <input class="text-input" type="text" placeholder="Collection name (e.g. Quest)" />
+            <div class="chip-grid">
+              <label class="chip"><input type="checkbox" /> Alarm</label>
+              <label class="chip"><input type="checkbox" /> Animator</label>
+              <label class="chip"><input type="checkbox" checked /> Transform</label>
+              <label class="chip"><input type="checkbox" /> Physics</label>
+              <label class="chip"><input type="checkbox" /> Player</label>
+              <label class="chip"><input type="checkbox" /> Gravity</label>
+            </div>
+            <div class="actions">
+              <button type="button" class="btn btn-primary">Create</button>
+              <button type="button" class="btn btn-ghost">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="route-panel panel-rooms">
+          <div class="panel-tabs panel-rooms-tabs">
+            <button type="button" class="panel-tab">Room</button>
+            <button type="button" class="panel-tab active">Instances</button>
+            <button type="button" class="panel-tab">Settings</button>
+          </div>
+          <div class="panel-body">
+            <div class="entity-item selected"><span class="dot"></span> PitWall</div>
+            <div class="entity-item"><span class="dot"></span> Floor</div>
+            <div class="entity-item"><span class="dot" style="background:#7ec8e3"></span> PlayerSpawn</div>
+            <div class="entity-item"><span class="dot"></span> HazardA</div>
+          </div>
+        </div>
+
+        <div class="route-panel panel-assets">
+          <div class="panel-hdr"><span>Assets</span></div>
+          <div class="panel-body" style="color:var(--muted-foreground);font-size:12px">Sprites, models, sounds…</div>
+        </div>
+
+        <div class="route-panel panel-objects">
+          <div class="panel-hdr"><span>Objects</span><button>+</button></div>
+          <div class="panel-body" style="color:var(--muted-foreground);font-size:12px">Object types & events…</div>
+        </div>
+
+        <div class="route-panel panel-graph">
+          <div class="panel-hdr"><span>Graph</span></div>
+          <div class="panel-body" style="color:var(--muted-foreground);font-size:12px">Game-global records & ref edges…</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Canvas -->
+    <main class="canvas-cell">
+      <div class="canvas-scene viewport-scene"></div>
+      <div class="empty-state empty-collections">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <h2>Collections</h2>
+        <p>Select a collection on the left, or create one to manage game-global data.</p>
+      </div>
+      <div class="empty-state empty-assets">
+        <h2>Assets</h2>
+        <p>Import and browse project assets.</p>
+      </div>
+      <div class="empty-state empty-objects">
+        <h2>Objects</h2>
+        <p>Define object types before placing instances in rooms.</p>
+      </div>
+      <div class="empty-state empty-graph">
+        <h2>Graph</h2>
+        <p>Explore entities and ref relationships across the game.</p>
+      </div>
+    </main>
+
+    <!-- Right panel (Rooms) -->
+    <aside class="side-right">
+      <div class="panel-shell">
+        <div class="inspector-hdr">PitWall <span style="font:500 10px var(--font-mono);color:var(--muted-foreground);margin-left:6px">wall-s</span></div>
+        <div class="gizmo-bar">
+          <button type="button" class="active">Move</button>
+          <button type="button">Rotate</button>
+          <button type="button">Scale</button>
+        </div>
+        <div class="section-label">TRANSFORM</div>
+        <div class="field-row"><label>position</label><input value="0, -0.8, 0.8" readonly /></div>
+        <div class="field-row"><label>scale</label><input value="7.8, 3.6, 0.35" readonly /></div>
+        <div class="section-label">RENDER</div>
+        <div class="field-row"><label>mesh</label><input value="primitive:box" readonly /></div>
+      </div>
+    </aside>
+
+    <!-- Bottom pane — actions only, no nav dock -->
+    <div class="bottom-pane" data-design-note="Bottom pane retained for palette/actions; bottom dock removed">
+      <div class="panel-shell">
+        <div class="pane-handle">
+          <span class="ttl">Palette</span>
+          <span>drag assets to place</span>
+          <kbd>⌘K</kbd>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat panel (anchors from doc bar) -->
+  <div class="chat-panel panel-shell" id="room-chat-panel" role="region" aria-label="Room chat">
+    <div class="chat-hdr">Room chat</div>
+    <div class="chat-msgs">
+      <div class="chat-msg"><b>alex</b> placed PitWall</div>
+      <div class="chat-msg"><b>you</b> tweaked scale</div>
+      <div class="chat-msg"><b>sam</b> joined the room</div>
+    </div>
+  </div>
+
+  <button type="button" class="chat-fab" aria-label="Open room chat">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+  </button>
+
+  <div class="gain-badge">↑ ~58px viewport reclaimed — no bottom dock</div>
+
+  <!-- Mock controls -->
+  <div class="mock-bar" aria-label="Mock state toggles">
+    <span style="font:600 9px var(--font-mono);color:var(--muted-foreground);align-self:center;padding:0 4px">ROUTE</span>
+    <button type="button" data-set-route="collections" class="active">Collections</button>
+    <button type="button" data-set-route="rooms">Rooms</button>
+    <button type="button" data-set-route="assets">Assets</button>
+    <span class="sep"></span>
+    <span style="font:600 9px var(--font-mono);color:var(--muted-foreground);align-self:center;padding:0 4px">MODE</span>
+    <button type="button" data-set-mode="edit" class="active">Edit</button>
+    <button type="button" data-set-mode="play">Play</button>
+    <span class="sep"></span>
+    <button type="button" id="toggleCompact">Compact routes</button>
+  </div>
+
+  <div class="legend">
+    <strong>Doc bar world nav</strong>
+    Routes lifted from bottom dock. Graph leads the group. Edit/Play stays separate pill. Chat drops from top-right. Bottom = actions only.
+  </div>
+
+  <script>
+    const body = document.body;
+    const routeBtns = document.querySelectorAll('[data-route]');
+    const mockRouteBtns = document.querySelectorAll('[data-set-route]');
+    const modeEdit = document.querySelector('.mode-edit');
+    const modePlay = document.querySelector('.mode-play');
+    const mockModeBtns = document.querySelectorAll('[data-set-mode]');
+    const chatToggle = document.getElementById('chatToggle');
+    const chatPanel = document.getElementById('room-chat-panel');
+
+    function setRoute(route) {
+      body.className = body.className.replace(/route-\w+/g, '');
+      body.classList.add('route-' + route);
+      routeBtns.forEach((btn) => {
+        const on = btn.dataset.route === route;
+        btn.classList.toggle('active', on);
+        btn.toggleAttribute('aria-current', on);
+      });
+      mockRouteBtns.forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.setRoute === route);
+      });
+    }
+
+    function setMode(mode) {
+      body.classList.toggle('mode-play', mode === 'play');
+      body.classList.toggle('edit-mode', mode === 'edit');
+      body.classList.toggle('mode-play', mode === 'play');
+      if (mode === 'play') body.classList.remove('edit-mode');
+      else body.classList.add('edit-mode');
+      modeEdit.classList.toggle('active', mode === 'edit');
+      modePlay.classList.toggle('active', mode === 'play');
+      modeEdit.setAttribute('aria-selected', mode === 'edit');
+      modePlay.setAttribute('aria-selected', mode === 'play');
+      mockModeBtns.forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.setMode === mode);
+      });
+      document.querySelectorAll('.edit-only').forEach((el) => {
+        el.style.display = mode === 'edit' ? '' : 'none';
+      });
+      document.querySelectorAll('.play-only').forEach((el) => {
+        el.style.display = mode === 'play' ? '' : 'none';
+      });
+    }
+
+    routeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => setRoute(btn.dataset.route));
+    });
+    mockRouteBtns.forEach((btn) => {
+      btn.addEventListener('click', () => setRoute(btn.dataset.setRoute));
+    });
+    modeEdit.addEventListener('click', () => setMode('edit'));
+    modePlay.addEventListener('click', () => setMode('play'));
+    mockModeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => setMode(btn.dataset.setMode));
+    });
+
+    chatToggle.addEventListener('click', () => {
+      const open = chatPanel.classList.toggle('open');
+      chatToggle.classList.toggle('open', open);
+      chatToggle.setAttribute('aria-expanded', open);
+      chatToggle.setAttribute('aria-label', open ? 'Close room chat' : 'Open room chat');
+      if (open) chatToggle.querySelector('.unread')?.remove();
+    });
+
+    document.getElementById('toggleCompact').addEventListener('click', function () {
+      body.classList.toggle('compact-routes');
+      this.classList.toggle('active');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && chatPanel.classList.contains('open')) {
+        chatPanel.classList.remove('open');
+        chatToggle.classList.remove('open');
+        chatToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  </script>
+</body>
+</html>
