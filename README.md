@@ -1,5 +1,8 @@
 # threlte world engine
 
+<img width="1920" height="1080" alt="CleanShot 2026-07-03 at 00 22 39" src="https://github.com/user-attachments/assets/98632242-e9ed-43a8-b0f8-ba5b4084fa20" />
+<img width="1920" height="1080" alt="CleanShot 2026-06-28 at 21 16 22" src="https://github.com/user-attachments/assets/7730dd39-f33d-4225-aac2-cf05aeeeb58e" />
+
 A **data-first, realtime-multiplayer 3D game engine** where games are authored as
 **JSON-LD** against an extensible ontology — built for AI agents to compose worlds
 from primitives, not by writing engine code. SvelteKit + Threlte (three.js), a
