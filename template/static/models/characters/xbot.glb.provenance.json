@@ -1,0 +1,10 @@
+{
+  "source": "threejs-examples",
+  "name": "Xbot",
+  "license": "MIT (three.js examples bundle; Mixamo rig)",
+  "page": "https://threejs.org/examples/models/gltf/Xbot.glb",
+  "rigged": true,
+  "variant": "female",
+  "pairWith": "/models/characters/mannequin.glb",
+  "importedAt": "2026-07-08T20:33:00.000Z"
+}

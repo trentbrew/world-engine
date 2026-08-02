@@ -1,0 +1,988 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import './lib/ui/theme/themes.css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+	--radius: 0.625rem;
+	--radius-sm: 6px;
+	--radius-md: 10px;
+	--radius-lg: 14px;
+	--field-control-radius: var(--radius-sm);
+	--spacing-sm: 8px;
+	--spacing-md: 16px;
+	--spacing-lg: 24px;
+	--font-ui: 'Geist', system-ui, sans-serif;
+	--font-mono: 'Geist Mono', ui-monospace, monospace;
+	--font-sans: var(--font-ui);
+	--doc-bar-height: 32px;
+	--doc-bar-pad-y: 8px;
+	--doc-bar-chrome-height: calc(var(--doc-bar-height) + var(--doc-bar-pad-y) * 2);
+	--chrome-float-gap: 6px;
+	/** Uniform inset from viewport edges — doc bar, side panels, dock. */
+	--chrome-edge: var(--float-inset);
+	/** Gap between adjacent chrome cards (rail↔panel, panel↔main, doc↔content). */
+	--chrome-inner-gap: var(--chrome-float-gap);
+	/** Gap between rail card and adjacent side panel / doc bar card. */
+	--chrome-rail-gap: var(--chrome-inner-gap);
+	/** Gap between a side panel card and the center column. */
+	--chrome-panel-gap: var(--chrome-inner-gap);
+	/** In-panel section dividers (header/toolbar borders). */
+	--chrome-divider: color-mix(in srgb, var(--border) 28%, transparent);
+	/**
+	 * Frosted card fill opacities — paired with chrome-opacity-* modifiers.
+	 * Shell chrome (rail / doc-bar / side panels / bottom) shares one mid-tone
+	 * so light + dark modes stay balanced; center wells stay slightly lighter.
+	 */
+	--chrome-fill: 60%;
+	--chrome-fill-underlay-delta: 18%;
+	--chrome-fill-rail: var(--chrome-fill);
+	--chrome-fill-doc-bar: var(--chrome-fill);
+	--chrome-fill-panel: var(--chrome-fill);
+	--chrome-fill-bottom: var(--chrome-fill);
+	--chrome-fill-main: 30%;
+	--chrome-top-outer: calc(
+		var(--chrome-edge) + var(--doc-bar-chrome-height) + var(--chrome-float-gap)
+	);
+	--stage-inset: var(--spacing-sm);
+	--tool-pill-height: 44px;
+	--left-panel-width: 320px;
+	--right-panel-width: 320px;
+	--rail-card-width: 56px;
+	--rail-width: var(--rail-card-width);
+	--view-bar-height: 36px;
+	--gizmo-size: 64px;
+	--gizmo-well-size: var(--gizmo-size);
+	--view-toggle-gutter: 48px;
+	--view-controls-height: calc(var(--float-inset) + var(--gizmo-well-size));
+	--transform-toolbar-height: 34px;
+	--bottom-pane-collapsed: var(--panel-shelf-height);
+	--panel-shelf-height: 48px;
+	--bottom-chrome-height: max(
+		calc(var(--float-inset) + var(--gizmo-well-size)),
+		calc(var(--float-inset) + var(--transform-toolbar-height)),
+		var(--bottom-pane-height, 0px)
+	);
+	--viewport-bottom-inset: calc(var(--float-inset) + var(--bottom-pane-height, 0px));
+	--status-bar-height: 22px;
+	--float-inset: 12px;
+	--chat-fab-size: 48px;
+	--toast-inset-bottom: var(--float-inset);
+	--toast-inset-right: var(--float-inset);
+	--popover-width: 240px;
+	--scrollbar-size: 6px;
+	--scrollbar-thumb: color-mix(in srgb, var(--muted-foreground) 22%, transparent);
+	--scrollbar-thumb-hover: color-mix(in srgb, var(--muted-foreground) 38%, transparent);
+	--surface-glass-panel: color-mix(in srgb, var(--card) 80%, transparent);
+	/** Legacy chrome bar fill — prefer --chrome-fill + chrome-opacity-* */
+	--surface-glass-chrome: color-mix(in srgb, var(--card) var(--chrome-fill), transparent);
+	/** Floating viewport pills (play toolbar, mode tabs, editing badge) */
+	--chrome-pill-bg: color-mix(in srgb, var(--card) 90%, transparent);
+
+	--field-row-height: 28px;
+	--field-label-col: 88px;
+	--field-dot-size: 5px;
+
+	/* legacy shell aliases — retire Phase 3 */
+	--surface: var(--background);
+	--surface-raised: var(--card);
+	--surface-overlay: var(--secondary);
+	--text: var(--foreground);
+	--text-muted: var(--muted-foreground);
+	--border-focus: var(--ring);
+	--primary-muted: color-mix(in srgb, var(--primary) 12%, transparent);
+	--accent-play: var(--primary);
+	--accent-play-foreground: var(--primary-foreground);
+	--rounded-sm: var(--radius-sm);
+	--rounded-md: var(--radius-md);
+	--rounded-lg: var(--radius-lg);
+	--rounded-pill: 999px;
+}
+
+.dark {
+	color-scheme: dark;
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-viewport: var(--viewport);
+	--color-viewport-grid: var(--viewport-grid);
+	--color-accent-spawn: var(--accent-spawn);
+	--color-accent-entity: var(--accent-entity);
+	--color-accent-link: var(--accent-link);
+	--color-accent-selection: var(--accent-selection);
+	--color-text-mono: var(--text-mono);
+	--color-success: var(--success);
+	--color-play-go: var(--play-go);
+	--color-play-go-foreground: var(--play-go-foreground);
+	--radius-sm: var(--radius-sm);
+	--radius-md: var(--radius-md);
+	--radius-lg: var(--radius-lg);
+	--spacing-sm: var(--spacing-sm);
+	--spacing-md: var(--spacing-md);
+	--spacing-lg: var(--spacing-lg);
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	min-height: 100dvh;
+	overflow: hidden;
+	background: var(--viewport);
+	font-family: var(--font-ui);
+	font-size: 13px;
+	color: var(--foreground);
+}
+
+/* Thin, low-contrast native scrollbars (vertical + horizontal) */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+	width: var(--scrollbar-size);
+	height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+	background-color: var(--scrollbar-thumb);
+	border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+	background-color: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
+.no-scrollbar {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/*
+ * Frosted glass — blur lives on ::before so Chrome can stack filters over the
+ * WebGL viewport (nested backdrop-filter roots break in Chromium).
+ */
+.glass-panel,
+.glass-panel-shell {
+	position: relative;
+	isolation: isolate;
+	background: transparent;
+	border: 1px solid transparent;
+	box-shadow: none;
+}
+
+.glass-panel {
+	border-radius: var(--radius-lg);
+}
+
+.glass-panel-shell {
+	border-radius: var(--radius-lg);
+}
+
+.glass-panel-shell.glass-flush {
+	border-radius: 0;
+}
+
+.glass-panel-shell.glass-flush::before {
+	border-radius: 0;
+}
+
+.glass-panel::before,
+.glass-panel-shell::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	pointer-events: none;
+	-webkit-backdrop-filter: blur(20px);
+	backdrop-filter: blur(20px);
+}
+
+.glass-panel::before {
+	background: color-mix(in srgb, var(--surface-glass) 55%, transparent);
+	border: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+	box-shadow: 0 8px 32px rgb(0 0 0 / 0.14);
+}
+
+.glass-panel-shell::before {
+	background: var(--surface-glass-panel);
+	-webkit-backdrop-filter: blur(24px);
+	backdrop-filter: blur(24px);
+	border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+	box-shadow: 0 8px 32px rgb(0 0 0 / 0.14);
+}
+
+/* Rail + doc bar — blur over viewport, more opaque than .glass-panel-shell */
+.glass-chrome-bar {
+	position: relative;
+	isolation: isolate;
+	background: transparent;
+	border: 1px solid transparent;
+	box-shadow: none;
+}
+
+.glass-chrome-bar::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	pointer-events: none;
+	background: var(--surface-glass-chrome);
+	-webkit-backdrop-filter: blur(20px);
+	backdrop-filter: blur(20px);
+	border: 1px solid color-mix(in srgb, var(--border) 48%, transparent);
+	box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
+}
+
+.glass-chrome-bar.glass-flush::before {
+	border-radius: 0;
+}
+
+/* Floating shell cards — side panels, doc bar, bottom dock */
+.chrome-float-card {
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+	border-radius: var(--radius-md);
+	width: 100%;
+	pointer-events: auto;
+}
+
+.chrome-float-card::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -2;
+	border-radius: inherit;
+	pointer-events: none;
+	background: color-mix(in srgb, var(--card) 68%, transparent);
+}
+
+.chrome-float-card.glass-panel-shell::before {
+	background: color-mix(in srgb, var(--card) 84%, transparent);
+	border: 1px solid color-mix(in srgb, var(--border) 42%, transparent);
+	box-shadow:
+		0 12px 40px rgb(0 0 0 / 0.24),
+		0 2px 8px rgb(0 0 0 / 0.12);
+}
+
+.chrome-float-card :global(.left-panel),
+.chrome-float-card :global(.right-panel),
+.chrome-float-card :global(.doc-bar),
+.chrome-float-card :global(.rail) {
+	border-radius: inherit;
+	overflow: hidden;
+}
+
+/* Shell chrome opacity tiers — see docs/artifacts/chrome_shell_ontology.md */
+.chrome-opacity-rail.glass-panel-shell::before,
+.chrome-opacity-doc-bar.glass-panel-shell::before,
+.chrome-opacity-panel.glass-panel-shell::before,
+.chrome-opacity-bottom.glass-panel-shell::before {
+	background: color-mix(in srgb, var(--card) var(--chrome-fill), transparent);
+}
+
+.chrome-opacity-rail.chrome-float-card::after,
+.chrome-opacity-doc-bar.chrome-float-card::after,
+.chrome-opacity-panel.chrome-float-card::after,
+.chrome-opacity-bottom.chrome-float-card::after {
+	background: color-mix(
+		in srgb,
+		var(--card) calc(var(--chrome-fill) - var(--chrome-fill-underlay-delta)),
+		transparent
+	);
+}
+
+.chrome-opacity-main.glass-panel-shell::before {
+	background: color-mix(in srgb, var(--card) var(--chrome-fill-main), transparent);
+}
+
+.chrome-opacity-main.chrome-float-card::after {
+	background: color-mix(in srgb, var(--card) calc(var(--chrome-fill-main) - 10%), transparent);
+}
+
+/* Center-route wells — fill the main inset box from WorldShell */
+.chrome-main-card {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
+	pointer-events: auto;
+}
+
+/* Chrome: WebGL canvas needs a background-image or backdrop-filter won't sample it. */
+.viewport-canvas canvas {
+	background-image: linear-gradient(transparent, transparent);
+}
+
+@utility chrome-pill {
+	background: var(--chrome-pill-bg);
+	border: 1px solid var(--border);
+	border-radius: var(--rounded-pill);
+	box-shadow: 0 4px 16px rgb(0 0 0 / 0.3);
+}
+
+.glass-panel-inner {
+	pointer-events: auto;
+}
+
+/* ---- Inspector field system (anime.js field language) ---- */
+
+.field-row {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 4px;
+	margin-bottom: 10px;
+	min-height: 0;
+}
+
+.field-row-control {
+	width: 100%;
+	min-width: 0;
+}
+
+.field-row-control > .field-well,
+.field-row-control > .field-split {
+	width: 100%;
+}
+
+.field-row-control .field-well {
+	width: 100%;
+}
+
+.field-split {
+	display: flex;
+	gap: 4px;
+	align-items: stretch;
+	width: 100%;
+}
+
+.field-well--slider,
+.field-well--grow {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.field-well--num {
+	flex: 0 0 64px;
+	width: 64px;
+}
+
+.field-well--range-nums {
+	flex: 0 0 72px;
+	width: 72px;
+}
+
+.field-well--alpha {
+	flex: 0 0 84px;
+	width: 84px;
+}
+
+.field-axis-row {
+	display: flex;
+	gap: 4px;
+	width: 100%;
+}
+
+.field-axis-row .field-well {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.field-label-wrap {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+	min-width: 0;
+}
+
+.field-label {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--muted-foreground);
+	text-transform: lowercase;
+	cursor: default;
+	line-height: 1.3;
+}
+
+.field-dot {
+	width: var(--field-dot-size);
+	height: var(--field-dot-size);
+	border-radius: 50%;
+	background: var(--accent-field);
+	flex-shrink: 0;
+	opacity: 0;
+	transition: opacity 120ms ease;
+}
+
+.field-row--dirty .field-dot,
+.field-dot--visible {
+	opacity: 1;
+}
+
+.field-row:focus-within .field-label {
+	color: var(--foreground);
+}
+
+.field-well {
+	position: relative;
+	display: flex;
+	align-items: center;
+	min-height: var(--field-row-height);
+	background: var(--field-well);
+	border: 1px solid var(--border-field);
+	border-radius: var(--field-control-radius);
+	overflow: hidden;
+	transition:
+		border-color 120ms ease,
+		box-shadow 120ms ease,
+		background 120ms ease;
+}
+
+.field-well:hover:not(.field-well--disabled) {
+	background: var(--field-well-hover);
+}
+
+.field-row:focus-within .field-well,
+.field-well:focus-within {
+	border-color: var(--border-field-focus);
+	box-shadow: inset 0 0 0 1px var(--accent-field-glow);
+	background: var(--field-well-active);
+}
+
+.field-row--dirty .field-well,
+.field-well--dirty {
+	border-color: color-mix(in srgb, var(--accent-field) 30%, var(--border-field));
+}
+
+.field-well--disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.field-row--disabled .field-dot,
+.field-row--disabled .field-dot--visible {
+	opacity: 0;
+}
+
+.field-value {
+	flex: 1;
+	min-width: 0;
+	padding: 0 8px;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--muted-foreground);
+	text-align: right;
+	background: transparent;
+	border: none;
+	outline: none;
+	height: var(--field-row-height);
+}
+
+.field-row:focus-within .field-value,
+.field-row--dirty .field-value {
+	color: var(--accent-field);
+}
+
+.field-value--color {
+	text-align: right;
+}
+
+.field-value--left {
+	text-align: left;
+}
+
+.field-value--mesh {
+	flex: 1;
+}
+
+.field-textarea {
+	flex: 1;
+	min-width: 0;
+	height: auto;
+	min-height: calc(var(--field-row-height) * 2);
+	padding: 6px 8px;
+	text-align: left;
+	line-height: 1.45;
+	resize: vertical;
+	border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+	border-radius: var(--field-control-radius, 6px);
+}
+
+.field-row:focus-within .field-textarea {
+	border-color: var(--ring);
+}
+
+.field-axis {
+	flex-shrink: 0;
+	width: fit-content;
+	min-width: fit-content;
+	padding: 0 6px;
+	text-align: center;
+	font-family: var(--font-mono);
+	font-size: 10px;
+	color: color-mix(in srgb, var(--muted-foreground) 70%, transparent);
+	border-right: 1px solid var(--border-field);
+	line-height: var(--field-row-height);
+}
+
+.slider-well {
+	position: relative;
+	flex: 1;
+	display: flex;
+	align-items: center;
+	height: var(--field-row-height);
+	padding: 0 8px 0 4px;
+	min-width: 0;
+}
+
+.slider-track {
+	position: absolute;
+	left: 8px;
+	right: 8px;
+	top: 50%;
+	height: 1px;
+	background: var(--border);
+	transform: translateY(-50%);
+	pointer-events: none;
+}
+
+.slider-tick {
+	position: absolute;
+	top: 50%;
+	width: 2px;
+	height: 14px;
+	background: var(--muted-foreground);
+	transform: translate(-50%, -50%);
+	transition:
+		left 80ms ease,
+		background 120ms ease;
+	pointer-events: none;
+}
+
+.field-row:focus-within .slider-tick,
+.field-row--dirty .slider-tick {
+	background: var(--accent-field);
+}
+
+.slider-input {
+	position: absolute;
+	left: 8px;
+	right: 8px;
+	width: calc(100% - 16px);
+	opacity: 0;
+	cursor: ew-resize;
+	height: var(--field-row-height);
+	margin: 0;
+}
+
+.range-well {
+	position: relative;
+	flex: 1;
+	display: flex;
+	align-items: center;
+	height: var(--field-row-height);
+	padding: 0 8px 0 4px;
+	min-width: 0;
+}
+
+.range-highlight {
+	position: absolute;
+	top: 50%;
+	height: 3px;
+	background: color-mix(in srgb, var(--accent-field) 35%, transparent);
+	transform: translateY(-50%);
+	pointer-events: none;
+	border-radius: 1px;
+}
+
+.range-tick {
+	z-index: 1;
+}
+
+.range-input {
+	position: absolute;
+	left: 8px;
+	right: 8px;
+	width: calc(100% - 16px);
+	height: var(--field-row-height);
+	margin: 0;
+	pointer-events: none;
+	appearance: none;
+	background: transparent;
+}
+
+.range-input-min {
+	z-index: 3;
+}
+
+.range-input-max {
+	z-index: 4;
+}
+
+.range-input::-webkit-slider-thumb {
+	appearance: none;
+	pointer-events: auto;
+	width: 12px;
+	height: var(--field-row-height);
+	cursor: ew-resize;
+	background: transparent;
+}
+
+.range-input::-moz-range-thumb {
+	pointer-events: auto;
+	width: 12px;
+	height: var(--field-row-height);
+	border: 0;
+	background: transparent;
+	cursor: ew-resize;
+}
+
+.range-nums {
+	display: block;
+	width: 100%;
+	padding: 0 6px;
+	font-family: var(--font-mono);
+	font-size: 10px;
+	color: var(--muted-foreground);
+	white-space: nowrap;
+	text-align: left;
+	line-height: var(--field-row-height);
+}
+
+.field-row:focus-within .range-nums,
+.field-row--dirty .range-nums {
+	color: var(--accent-field);
+}
+
+.slider-num {
+	width: 100%;
+	text-align: left;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--muted-foreground);
+	flex-shrink: 0;
+	background: transparent;
+	border: none;
+	outline: none;
+	height: var(--field-row-height);
+	padding: 0 8px;
+}
+
+.field-row:focus-within .slider-num,
+.field-row--dirty .slider-num {
+	color: var(--accent-field);
+}
+
+.bool-well {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 8px;
+	height: var(--field-row-height);
+	cursor: pointer;
+	border: none;
+	background: transparent;
+	width: 100%;
+}
+
+.bool-text {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--muted-foreground);
+	text-transform: lowercase;
+}
+
+.bool-box {
+	width: 14px;
+	height: 14px;
+	border: 1px solid var(--border);
+	border-radius: 2px;
+	background: color-mix(in srgb, var(--field-well) 80%, black);
+	display: grid;
+	place-items: center;
+	flex-shrink: 0;
+}
+
+.bool-box--on {
+	border-color: var(--border-field-focus);
+	box-shadow: inset 0 0 0 1px var(--accent-field-glow);
+}
+
+.bool-box--on::after {
+	content: '';
+	width: 6px;
+	height: 6px;
+	background: var(--accent-field);
+	border-radius: 1px;
+}
+
+.color-well {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 0 8px;
+	height: var(--field-row-height);
+	min-width: 0;
+}
+
+.color-swatch-input {
+	width: 16px;
+	height: 16px;
+	padding: 0;
+	border: 1px solid var(--border);
+	border-radius: 50%;
+	background: transparent;
+	cursor: pointer;
+	overflow: hidden;
+	flex-shrink: 0;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.color-swatch-input::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+
+.color-swatch-input::-webkit-color-swatch {
+	border: none;
+	border-radius: 50%;
+}
+
+.color-swatch-input::-moz-color-swatch {
+	border: none;
+	border-radius: 50%;
+}
+
+:global(.field-select-trigger) {
+	display: flex !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	height: var(--field-row-height) !important;
+	min-height: var(--field-row-height) !important;
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	padding: 0 8px !important;
+	gap: 6px !important;
+	justify-content: space-between !important;
+}
+
+.field-well :global(.field-select-trigger[data-slot='select-trigger']) {
+	border: none !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+.field-well :global(.field-select-trigger[data-slot='select-trigger']:focus-visible) {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+:global(.field-select-trigger:focus-visible) {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+:global(.field-select-trigger > svg:last-child) {
+	display: none;
+}
+
+.select-value {
+	flex: 1;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--muted-foreground);
+	text-transform: lowercase;
+	text-align: left;
+}
+
+.select-chevrons {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	color: color-mix(in srgb, var(--muted-foreground) 55%, transparent);
+	font-size: 7px;
+	line-height: 1;
+	margin-left: 6px;
+	flex-shrink: 0;
+}
+
+.mesh-browse {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 28px;
+	height: var(--field-row-height);
+	border: none;
+	border-left: 1px solid var(--border-field);
+	background: transparent;
+	color: var(--muted-foreground);
+	cursor: pointer;
+}
+
+.mesh-browse:hover {
+	color: var(--foreground);
+	background: var(--field-well-hover);
+}
+
+.inspector-field-group {
+	display: flex;
+	gap: 6px;
+	margin-bottom: 4px;
+}
+
+.inspector-field-group-item {
+	flex: 1;
+	min-width: 0;
+}
+
+.inspector-label-info {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 14px;
+	height: 14px;
+	padding: 0;
+	border: none;
+	border-radius: var(--field-control-radius);
+	background: transparent;
+	color: color-mix(in srgb, var(--muted-foreground) 85%, transparent);
+	cursor: help;
+	opacity: 0.72;
+	transition:
+		color 120ms ease,
+		opacity 120ms ease;
+}
+
+.inspector-label-info:hover,
+.inspector-label-info:focus-visible {
+	color: var(--foreground);
+	opacity: 1;
+	outline: none;
+}
+
+.inspector-label-info:focus-visible {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 45%, transparent);
+}
+
+.inspector-toggle-group {
+	width: 100%;
+	border-radius: var(--field-control-radius) !important;
+	overflow: hidden;
+}
+
+.inspector-toggle-group [data-slot='toggle-group-item'] {
+	flex: 1;
+	border-radius: 0 !important;
+}
+
+:global(.inspector-footer-btn) {
+	width: 100%;
+	height: var(--field-row-height) !important;
+	min-height: var(--field-row-height) !important;
+	max-height: var(--field-row-height) !important;
+	padding-block: 0 !important;
+	font-size: 11px !important;
+	line-height: 1 !important;
+	border-radius: var(--field-control-radius) !important;
+	box-sizing: border-box !important;
+}
+
+	:global(.add-component-btn),
+:global(.save-type-btn),
+:global(.add-type-component-btn) {
+	border-radius: var(--field-control-radius) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.field-dot,
+	.field-well,
+	.slider-tick {
+		transition: none;
+	}
+}
+
+/* Room chat FAB is hidden on small viewports — toasts can sit flush right. */
+@media (max-width: 767px) {
+	:root {
+		--toast-inset-right: var(--float-inset);
+		--toast-inset-bottom: var(--float-inset);
+	}
+}
+
+/* Collab toasts — peer accent on bottom-right stack */
+:global([data-sonner-toast].peer-toast) {
+	border-left: 3px solid var(--peer-accent, var(--primary));
+	background: color-mix(in srgb, var(--peer-accent, var(--primary)) 10%, var(--popover)) !important;
+}
+
+:global([data-sonner-toast].peer-toast [data-icon]) {
+	color: var(--peer-accent, var(--primary));
+}
+
+:global([data-sonner-toast].app-toast [data-icon]) {
+	color: var(--peer-accent, var(--primary));
+}
+

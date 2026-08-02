@@ -1,0 +1,28 @@
+{
+  "@id": "catalog:xbot-mixamo",
+  "name": "Xbot Mixamo",
+  "rig": "human",
+  "source": "mixamo",
+  "rootBone": "mixamorig:Hips",
+  "hipBone": "mixamorig:Hips",
+  "verified": "2026-07-08 — clip ids from three.js examples/models/gltf/Xbot.glb embedded animations",
+  "locomotion": {
+    "idle": "idle",
+    "walk": "walk",
+    "jog": "run",
+    "run": "run",
+    "sprint": "run",
+    "jumpStart": "idle",
+    "jumpLoop": "idle",
+    "jumpLand": "idle"
+  },
+  "clips": [
+    { "id": "idle", "category": "locomotion", "loop": true },
+    { "id": "walk", "category": "locomotion", "loop": true },
+    { "id": "run", "category": "locomotion", "loop": true },
+    { "id": "agree", "category": "gesture", "loop": false },
+    { "id": "headShake", "category": "gesture", "loop": false },
+    { "id": "sad_pose", "category": "pose", "loop": true },
+    { "id": "sneak_pose", "category": "pose", "loop": true }
+  ]
+}

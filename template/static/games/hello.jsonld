@@ -1,0 +1,100 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "entity:ground/main",
+			"@type": "Thing",
+			"conformsTo": "GroundPlane",
+			"components": {
+				"Ground": {
+					"size": 16
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.5
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1
+				},
+				"Transform": {
+					"position": {
+						"x": 5,
+						"y": 8,
+						"z": 5
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/center",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 0,
+						"y": 0.05,
+						"z": 0
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/barrel",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": 3,
+						"y": 0.6,
+						"z": 0
+					}
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"anchor": "bottom"
+				}
+			}
+		},
+		{
+			"@id": "entity:obj/cube",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Transform": {
+					"position": {
+						"x": -3,
+						"y": 0.5,
+						"z": 0
+					}
+				},
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ff6b6b"
+				}
+			}
+		}
+	]
+}
