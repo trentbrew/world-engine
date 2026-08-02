@@ -71,8 +71,13 @@ function movementSample(): MovementSample {
 	const kb = keyboardAxis();
 	const pad = gamepadAxis();
 
-	let x = kb.x + pad.x;
-	let z = kb.z + pad.z;
+	// Keyboard takes precedence when active: summing the pad in let a resting
+	// or drifting stick cancel WASD (e.g. S + stick held forward ≈ 0), which
+	// read as "back/right don't work while forward/left do". Pad-only motion
+	// and pad analog range are unchanged.
+	const kbActive = kb.x !== 0 || kb.z !== 0;
+	let x = kbActive ? kb.x : pad.x;
+	let z = kbActive ? kb.z : pad.z;
 	const mergedLen = Math.hypot(x, z);
 	if (mergedLen <= 0.01) {
 		return { x: 0, z: 0, tier: 'idle', speed: 0, magnitude: 0, source: 'none' };
@@ -98,7 +103,6 @@ function movementSample(): MovementSample {
 
 	const kbMag = Math.hypot(kb.x, kb.z);
 	const padMag = Math.hypot(pad.x, pad.z);
-	const kbActive = kbMag > 0;
 	const padActive = padMag > gamepad.deadzone;
 
 	let loc: LocomotionSample;
