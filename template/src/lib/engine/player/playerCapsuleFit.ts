@@ -7,7 +7,7 @@ import type { Entity } from '$lib/engine/ontology/schema';
 
 export type FittedCapsule = { halfHeight: number; radius: number };
 
-export const DEFAULT_CAPSULE: FittedCapsule = { halfHeight: 0.25, radius: 0.32 };
+export const DEFAULT_CAPSULE: FittedCapsule = { halfHeight: 0.80625, radius: 0.16875 };
 
 /**
  * Keep capsule bottom slightly above the reported ground plane so foot casts

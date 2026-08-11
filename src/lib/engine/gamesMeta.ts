@@ -11,10 +11,14 @@ export type GameOverride = {
 	category?: 'demo';
 };
 
-/** Default world (`/world.jsonld`) — always first in the picker. */
+/** Loaded when `?game=` is missing — see `ensureGameInUrl` / `resolveGame`. */
+export const DEFAULT_GAME_PARAM = 'parkour';
+
+/** Scratch world at `/world.jsonld` — pick via `?game=sandbox`. */
 export const SANDBOX_GAME = {
+	param: 'sandbox',
 	title: 'Sandbox',
-	description: 'The default world — ground, crates, spawn, lights.',
+	description: 'Scratch pad — ground, crates, spawn, lights.',
 	dimensions: '3d' as const
 };
 
@@ -23,16 +27,17 @@ export const SANDBOX_GAME = {
  * after these; SceneSelector still splits `category: 'demo'` into Demos.
  */
 export const GAME_ORDER: string[] = [
+	'parkour',
 	'craftpunk/commons',
 	'powder/slope',
 	'orbit',
 	'playground',
 	'collect',
 	'tower',
+	'sandbox',
 	'blank',
 	'blank2d',
 	'arena',
-	'parkour',
 	'gallery',
 	'circuit',
 	'physics',

@@ -42,9 +42,7 @@
 	--chrome-fill-panel: var(--chrome-fill);
 	--chrome-fill-bottom: var(--chrome-fill);
 	--chrome-fill-main: 30%;
-	--chrome-top-outer: calc(
-		var(--chrome-edge) + var(--doc-bar-chrome-height) + var(--chrome-float-gap)
-	);
+	--chrome-top-outer: calc(var(--chrome-edge) + var(--doc-bar-chrome-height) + var(--chrome-float-gap));
 	--stage-inset: var(--spacing-sm);
 	--tool-pill-height: 44px;
 	--left-panel-width: 320px;
@@ -59,11 +57,9 @@
 	--transform-toolbar-height: 34px;
 	--bottom-pane-collapsed: var(--panel-shelf-height);
 	--panel-shelf-height: 48px;
-	--bottom-chrome-height: max(
-		calc(var(--float-inset) + var(--gizmo-well-size)),
-		calc(var(--float-inset) + var(--transform-toolbar-height)),
-		var(--bottom-pane-height, 0px)
-	);
+	--bottom-chrome-height: max(calc(var(--float-inset) + var(--gizmo-well-size)),
+			calc(var(--float-inset) + var(--transform-toolbar-height)),
+			var(--bottom-pane-height, 0px));
 	--viewport-bottom-inset: calc(var(--float-inset) + var(--bottom-pane-height, 0px));
 	--status-bar-height: 22px;
 	--float-inset: 12px;
@@ -198,6 +194,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
 	*,
 	*::before,
 	*::after {
@@ -325,6 +322,15 @@ body {
 	overflow: hidden;
 }
 
+/* Play-mode doc bar — dropdown panels hang below the nav row. */
+.chrome-float-card.doc-bar-card--bare {
+	overflow: visible;
+}
+
+.chrome-float-card.doc-bar-card--bare :global(.doc-bar) {
+	overflow: visible;
+}
+
 /* Shell chrome opacity tiers — see docs/artifacts/chrome_shell_ontology.md */
 .chrome-opacity-rail.glass-panel-shell::before,
 .chrome-opacity-doc-bar.glass-panel-shell::before,
@@ -337,11 +343,9 @@ body {
 .chrome-opacity-doc-bar.chrome-float-card::after,
 .chrome-opacity-panel.chrome-float-card::after,
 .chrome-opacity-bottom.chrome-float-card::after {
-	background: color-mix(
-		in srgb,
-		var(--card) calc(var(--chrome-fill) - var(--chrome-fill-underlay-delta)),
-		transparent
-	);
+	background: color-mix(in srgb,
+			var(--card) calc(var(--chrome-fill) - var(--chrome-fill-underlay-delta)),
+			transparent);
 }
 
 .chrome-opacity-main.glass-panel-shell::before {
@@ -394,8 +398,8 @@ body {
 	min-width: 0;
 }
 
-.field-row-control > .field-well,
-.field-row-control > .field-split {
+.field-row-control>.field-well,
+.field-row-control>.field-split {
 	width: 100%;
 }
 
@@ -950,13 +954,14 @@ body {
 	box-sizing: border-box !important;
 }
 
-	:global(.add-component-btn),
+:global(.add-component-btn),
 :global(.save-type-btn),
 :global(.add-type-component-btn) {
 	border-radius: var(--field-control-radius) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
+
 	.field-dot,
 	.field-well,
 	.slider-tick {
@@ -985,4 +990,3 @@ body {
 :global([data-sonner-toast].app-toast [data-icon]) {
 	color: var(--peer-accent, var(--primary));
 }
-

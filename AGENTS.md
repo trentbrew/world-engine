@@ -17,7 +17,7 @@ network layer all read from that data.
 
 ```bash
 just run                      # full stack: vite + trellis db + relay
-pnpm dev                      # default world (static/world.jsonld)
+pnpm dev                      # default world (static/games/parkour.jsonld)
 # open http://localhost:9292/?game=orbit      → loads static/games/orbit.jsonld
 # open the same URL in two tabs               → multiplayer (BroadcastChannel)
 

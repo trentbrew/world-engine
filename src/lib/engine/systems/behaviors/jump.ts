@@ -5,7 +5,7 @@
 import { registerComponent } from '$lib/engine/ontology/registry';
 import { resolveCollider } from '$lib/engine/physics/colliderShape';
 import { world } from '$lib/engine/runtime/world.svelte';
-import { playSfx } from '$lib/engine/audio/sfx';
+import { playSfx, SFX_SWITCH } from '$lib/engine/audio/sfx';
 import { input } from '$lib/engine/player/input';
 import {
 	applyJumpAnimClip,
@@ -66,7 +66,7 @@ registerComponent({
 				[1, 0]
 			]
 		},
-		sfxJump: { t: 'ref' }
+		sfxJump: { t: 'ref', default: SFX_SWITCH.jump }
 	}
 });
 

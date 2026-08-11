@@ -3,9 +3,9 @@
  * Each client reads exactly one pad: member slot N → Nth connected controller.
  */
 import { SvelteMap } from 'svelte/reactivity';
-import { playSfx } from '$lib/engine/audio/sfx';
+import { playSfx, SFX_SWITCH } from '$lib/engine/audio/sfx';
 
-const CONTROLLER_CONNECT_SFX = '/audio/ping.wav';
+const CONTROLLER_CONNECT_SFX = SFX_SWITCH.controllerConnect;
 const GAMEPAD_PREFS_KEY = 'engine:gamepad-prefs';
 
 type GamepadPrefs = {

@@ -9,7 +9,7 @@ import { registerComponent } from '$lib/engine/ontology/registry';
 import { world } from '$lib/engine/runtime/world.svelte';
 import { session } from '$lib/engine/net/session.svelte';
 import { score } from '$lib/engine/game/score.svelte';
-import { playSfx } from '$lib/engine/audio/sfx';
+import { playSfx, SFX_SWITCH } from '$lib/engine/audio/sfx';
 import type { TickContext } from '$lib/engine/ontology/schema';
 
 registerComponent({
@@ -17,7 +17,7 @@ registerComponent({
 	fields: {
 		radius: { t: 'number', default: 0.9 },
 		value: { t: 'number', default: 1 },
-		sfx: { t: 'ref', default: '/audio/collect.wav' }
+		sfx: { t: 'ref', default: SFX_SWITCH.collect }
 	}
 });
 

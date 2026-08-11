@@ -90,7 +90,7 @@
 				</aside>
 			{/if}
 
-			<header class="app-doc-bar">
+			<header class="app-doc-bar" class:app-doc-bar--play={docBarBare}>
 				<div
 					class="chrome-float-card glass-panel-shell chrome-opacity-doc-bar doc-bar-card"
 					class:doc-bar-card--bare={docBarBare}
@@ -202,6 +202,12 @@
 		pointer-events: none;
 		min-height: 0;
 		box-sizing: border-box;
+	}
+
+	/* Play: fixed nav height; HUD dropdowns overlay the viewport. */
+	.app-doc-bar--play,
+	.app-doc-bar--play .doc-bar-card {
+		overflow: visible;
 	}
 
 	.doc-bar-card {

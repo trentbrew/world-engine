@@ -6,6 +6,7 @@
 import { getComponent, getType, registerComponent, registerType } from '$lib/engine/ontology/registry';
 import { createComponentBag } from '$lib/engine/ontology/resolveComponentBag';
 import type { ComponentData, Entity } from '$lib/engine/ontology/schema';
+import { peerColor } from '$lib/engine/collab/peerColor';
 import {
 	capsuleRestCenterY,
 	MANNEQUIN_CAPSULE_FIT,
@@ -64,9 +65,7 @@ registerType({
 
 /** Deterministic, vivid color from a client id. */
 export function colorForClient(id: string): string {
-	let h = 0;
-	for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360;
-	return `hsl(${h}, 65%, 58%)`;
+	return peerColor(id);
 }
 
 /** Capsule center when resting on the physics floor (default mannequin fit). */

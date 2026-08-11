@@ -44,6 +44,7 @@ import { roomTransition } from '$lib/engine/room/roomTransition.svelte';
 import { warmAdjacentRoomAssets } from '$lib/engine/room/warmRoomAssets';
 import { scheduler } from '$lib/engine/systems/scheduler.svelte';
 import { buildPlayer } from '$lib/engine/player/spawnPlayer';
+import { resetPlayerMovementState } from '$lib/engine/player/playerSystem';
 import { applyPlayerLayout, LOCAL_PLAYER_LAYOUT_KEY } from '$lib/engine/dev/editorSession';
 import {
 	reconcilePlayerSpawnPositions,
@@ -144,8 +145,10 @@ class NetSession {
 			this.#sendSelection(entityId);
 		});
 
-		// Spawn our player locally, then announce once the transport can send.
-		const player = buildPlayer(this.clientId, this.#spawnPoint());
+		// Spawn locally on a client-id ring slot, then join before announcing so peers
+		// never receive a stacked spawn position from the first network tick.
+		const spawn = spawnPositionForClient(this.clientId, [this.clientId]);
+		const player = buildPlayer(this.clientId, spawn);
 		if (ui.shellMode !== 'play') applyPlayerLayout(player, LOCAL_PLAYER_LAYOUT_KEY);
 		this.#myPlayerId = player.id;
 		this.owners[player.id] = this.clientId;
@@ -157,9 +160,9 @@ class NetSession {
 		world.spawn(player);
 
 		// Handshake immediately (relay outbox queues until open) and again on (re)connect.
-		this.#handshake();
-		transport.whenReady(() => this.#handshake());
-		queueMicrotask(() => this.#syncMemberSpawns());
+		this.#handshakeJoin();
+		transport.whenReady(() => this.#handshakeJoin());
+		queueMicrotask(() => this.#bootstrapSpawns());
 		this.#heartbeatTimer = window.setInterval(() => this.#heartbeat(), HEARTBEAT_MS);
 		this.#publishTimer = window.setInterval(() => this.#publish(), PUBLISH_MS);
 		window.addEventListener('pagehide', this.#leave);
@@ -199,6 +202,12 @@ class NetSession {
 		const message = { text: trimmed, at: Date.now(), name: collab.localDisplayName() };
 		roomChat.ingest(this.clientId, message, true);
 		this.#send({ t: 'chat', id: this.clientId, message });
+	}
+
+	/** Ask the room to open its chat (walk-up interact with a peer). */
+	sendChatOpen() {
+		if (!this.connected || ui.shellMode !== 'play') return;
+		this.#send({ t: 'chat_open', id: this.clientId });
 	}
 
 	/** Remove an entity locally and across peers (e.g. a collected pickup or deleted prop). */
@@ -301,6 +310,13 @@ class NetSession {
 				if (msg.id !== this.clientId && msg.message?.text) {
 					this.#touch(msg.id);
 					roomChat.ingest(msg.id, msg.message);
+				}
+				break;
+			case 'chat_open':
+				if (msg.id !== this.clientId) {
+					this.#touch(msg.id);
+					// Open the shared chat so the peer we walked up to sees it too.
+					if (ui.shellMode === 'play') roomChat.setOpen(true);
 				}
 				break;
 			case 'goto_room':
@@ -410,10 +426,14 @@ class NetSession {
 		this.#send({ t: 'leave', id: this.clientId });
 	};
 
-	#handshake() {
+	#handshakeJoin() {
 		if (!this.connected) return;
 		this.#send({ t: 'join', id: this.clientId });
-		this.#announcePlayer();
+	}
+
+	/** Re-slot after roster discovery, then announce with roster spawn pose. */
+	#bootstrapSpawns() {
+		this.#syncMemberSpawns();
 	}
 
 	#announcePlayer() {
@@ -421,13 +441,19 @@ class NetSession {
 		const player = world.getEntity(this.#myPlayerId);
 		if (!player) return;
 
+		const spawn = spawnPositionForClient(this.clientId, this.members);
 		let components = $state.snapshot(player.components) as NetEntity['components'];
 		const hasVisual =
 			!!components?.Render || (!!components?.SkinnedMesh && !!components?.Mesh3DAnimator);
 		if (!components?.Player || !components?.Transform || !hasVisual) {
-			const rebuilt = buildPlayer(this.clientId, this.#spawnPoint());
+			const rebuilt = buildPlayer(this.clientId, spawn);
 			if (ui.shellMode !== 'play') applyPlayerLayout(rebuilt);
 			components = rebuilt.components;
+		} else {
+			components = {
+				...components,
+				Transform: { ...components.Transform, position: spawn }
+			};
 		}
 
 		this.#sendSpawn({ ...player, components: components as Entity['components'] });
@@ -581,6 +607,9 @@ class NetSession {
 		if (key === this.#membersKey) return;
 		this.#membersKey = key;
 		reconcilePlayerSpawnPositions(this.members);
+		if (this.#myPlayerId && world.localPlayerId === this.#myPlayerId) {
+			resetPlayerMovementState();
+		}
 		if (this.#myPlayerId) this.#announcePlayer();
 	}
 

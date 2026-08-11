@@ -83,7 +83,7 @@
 		"tailwindcss": "^4.3.1",
 		"three": "^0.184.0",
 		"three-viewport-gizmo": "2.2.0",
-		"trellis": "^3.2.5",
+		"trellis": "file:../../TRELLIS/trellis-node",
 		"zod": "^4.4.3"
 	}
 }

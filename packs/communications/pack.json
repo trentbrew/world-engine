@@ -1,0 +1,56 @@
+{
+  "id": "communications",
+  "title": "Communications",
+  "status": "proposed",
+  "motivatedBy": "museum-oss multiplayer chat",
+  "description": "Three-tier in-world communication: a proximity speech bubble, an in-world device addressed by player identity (works across spaces), and room broadcast. Adds to — never replaces — the existing room chat.",
+  "boundary": "Nothing here is wired into engine core. The DM envelope, inbox store, and bubble/phone views are proposed — each only lands in engine/ when a SECOND, unrelated world needs it. Until then this manifest names the boundary so comms-shaped logic never leaks into the kernel.",
+  "authoringSource": "./components.jsonld",
+  "provides": {
+    "components": [
+      {
+        "name": "Device",
+        "status": "proposed",
+        "why": "An in-world mobile device on an actor or prop: an identity-addressed phone whose screen shows the active message line. Talk to a person, not a room.",
+        "reusableBy": ["a city-sim with in-world messaging between citizens", "a multiplayer life-sim where players ping each other across districts"]
+      },
+      {
+        "name": "Bubble",
+        "status": "proposed",
+        "why": "A spatial, proximity-gated speech bubble floating over a head — here-and-now talk that fades out, never a log.",
+        "reusableBy": ["a party game with positional voice-lines", "an RPG where NPCs speak ambiently as you approach"]
+      }
+    ],
+    "types": [
+      {
+        "name": "DeviceHolder",
+        "status": "proposed",
+        "why": "A non-player carrier of a device + bubble: NPCs, kiosks, artifacts that can receive a DM or speak spatially.",
+        "reusableBy": ["a museum docent NPC", "a quest-giver kiosk in any multiplayer world"]
+      }
+    ],
+    "behaviors": [
+      {
+        "name": "dmEnvelope",
+        "status": "proposed",
+        "enginePathWhenBuilt": "src/lib/engine/net/transport.ts",
+        "why": "A peer-addressed {t:'dm', to, from, message} message, session.sendDm, and a per-peer dmInbox store. In-room DMs need no transport change; cross-space needs relay identity routing.",
+        "reusableBy": ["any multiplayer game with cross-space direct messages", "a collaborative world with private notes between players"]
+      },
+      {
+        "name": "bubbleView",
+        "status": "proposed",
+        "enginePathWhenBuilt": "src/lib/engine/render/views/BubbleView.svelte",
+        "why": "Screen-space DOM overlay above an entity's head (PeerSelectionLabelProjector pattern), gated on Bubble.speaking and fading on Bubble.since.",
+        "reusableBy": ["any game with spatial speech", "a spectator mode with live callouts"]
+      },
+      {
+        "name": "phoneView",
+        "status": "proposed",
+        "enginePathWhenBuilt": "src/lib/engine/render/views/PhoneView.svelte",
+        "why": "In-world phone mesh with a canvas-texture face showing Device.screen.",
+        "reusableBy": ["a game where gadgets render text in-world", "a handheld-terminal world"]
+      }
+    ]
+  }
+}

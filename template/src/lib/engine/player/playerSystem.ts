@@ -87,15 +87,39 @@ export function setHorizontalVelocity(vx: number, vz: number): void {
 	velocityZ = vz;
 }
 
+function findNearestRemotePlayer(
+	localPos: [number, number, number],
+	localId: string,
+	maxRadius = 4.0
+): { position: [number, number, number]; id: string } | null {
+	let nearest: { position: [number, number, number]; id: string } | null = null;
+	let nearestDist = Infinity;
+
+	for (const entity of world.query('Player')) {
+		if (entity.id === localId) continue;
+		const pos = entity.components.Transform?.position as [number, number, number] | undefined;
+		if (!pos) continue;
+
+		const dx = pos[0] - localPos[0];
+		const dz = pos[2] - localPos[2];
+		const dist = Math.sqrt(dx * dx + dz * dz);
+		if (dist <= maxRadius && dist < nearestDist) {
+			nearestDist = dist;
+			nearest = { position: pos, id: entity.id };
+		}
+	}
+	return nearest;
+}
+
 export function playerSystem(ctx: TickContext) {
 	for (const entity of world.query('Player')) {
 		if (!world.isOwner(entity.id)) continue;
 		const player = entity.components.Player as PlayerMotorData;
 		const transform = entity.components.Transform as
 			| {
-					position: [number, number, number];
-					rotation?: [number, number, number, number];
-			  }
+				position: [number, number, number];
+				rotation?: [number, number, number, number];
+			}
 			| undefined;
 		if (!transform) continue;
 
@@ -207,14 +231,27 @@ export function playerSystem(ctx: TickContext) {
 
 		const faceX = wishMag > 0.01 ? wishX : velocityX;
 		const faceZ = wishMag > 0.01 ? wishZ : velocityZ;
-		if (Math.hypot(faceX, faceZ) > 0.01) {
-			// Skinned mannequin faces +Z — motor yaw matches visible facing (no visual π offset).
-			const targetYaw = Math.atan2(faceX, faceZ);
+		let targetYaw = Math.hypot(faceX, faceZ) > 0.01 ? Math.atan2(faceX, faceZ) : null;
+
+		// Chatting auto-turn: turn toward nearest remote player while chatting
+		const isChatting = ui.shellMode === 'play' && roomChat.open;
+		if (isChatting && (!targetYaw || wishMag <= 0.01)) {
+			const nearestRemote = findNearestRemotePlayer(transform.position, entity.id);
+			if (nearestRemote) {
+				const dx = nearestRemote.position[0] - transform.position[0];
+				const dz = nearestRemote.position[2] - transform.position[2];
+				if (Math.hypot(dx, dz) > 0.01) {
+					targetYaw = Math.atan2(dx, dz);
+				}
+			}
+		}
+
+		if (targetYaw !== null) {
 			const currentYaw = yawFromQuat(transform.rotation);
 			const delta = shortestAngleDelta(currentYaw, targetYaw);
-			if (Math.abs(delta) >= YAW_DEADBAND || move.source === 'keyboard') {
+			if (Math.abs(delta) >= YAW_DEADBAND || move.source === 'keyboard' || isChatting) {
 				const nextYaw =
-					move.source === 'keyboard'
+					move.source === 'keyboard' || isChatting
 						? stepYaw(currentYaw, targetYaw, ctx.dt)
 						: targetYaw;
 				transform.rotation = quatFromYaw(nextYaw);

@@ -57,6 +57,31 @@ function effectiveMembers(members: string[], clientId: string): string[] {
 	return sorted.length > 0 ? sorted : clientId ? [clientId] : [];
 }
 
+function primarySpawnCenter(markers: SpawnMarker[] = listSpawnMarkers()): [number, number, number] {
+	return markers[0]?.position ?? [0, 0.05, 0];
+}
+
+/** Stable ring angle from client id — every tab agrees before roster sync. */
+export function spawnAngleForClient(clientId: string): number {
+	let h = 0;
+	for (let i = 0; i < clientId.length; i++) h = (h * 31 + clientId.charCodeAt(i)) >>> 0;
+	return (h % 360) * (Math.PI / 180);
+}
+
+/** Offset a peer onto the spawn ring using only their client id. */
+export function clientIdRingPosition(
+	center: [number, number, number],
+	clientId: string,
+	radius = RING_RADIUS
+): [number, number, number] {
+	const angle = spawnAngleForClient(clientId);
+	return [
+		center[0] + Math.cos(angle) * radius,
+		center[1],
+		center[2] + Math.sin(angle) * radius
+	];
+}
+
 /** Ground XZ for a member slot before capsule rest height is applied. */
 export function spawnBaseForSlot(
 	slotIndex: number,
@@ -107,7 +132,7 @@ export function spawnBaseForClient(
 	members: string[]
 ): [number, number, number] {
 	const bases = spawnBasesForRoster(members);
-	return bases.get(clientId) ?? spawnBaseForSlot(0, 1);
+	return bases.get(clientId) ?? clientIdRingPosition(primarySpawnCenter(), clientId);
 }
 
 /**
@@ -117,10 +142,16 @@ export function spawnBaseForClient(
 export function spawnBasesForRoster(members: string[]): Map<string, [number, number, number]> {
 	const sorted = effectiveMembers(members, members[0] ?? '');
 	const markers = listSpawnMarkers();
+	const center = primarySpawnCenter(markers);
 	const bases = new Map<string, [number, number, number]>();
 	for (let i = 0; i < sorted.length; i++) {
 		const id = sorted[i]!;
-		bases.set(id, spawnBaseForSlot(i, sorted.length, markers));
+		// Solo tabs still fan out by client id so the first network tick never stacks peers.
+		if (sorted.length === 1) {
+			bases.set(id, clientIdRingPosition(center, id));
+		} else {
+			bases.set(id, spawnBaseForSlot(i, sorted.length, markers));
+		}
 	}
 	return separateSpawnBases(bases);
 }
@@ -200,11 +231,11 @@ export function reconcilePlayerSpawnPositions(members: string[]): void {
 	const roster = effectiveMembers(members, members[0] ?? '');
 	const bases = spawnBasesForRoster(roster);
 	for (const clientId of roster) {
-		const entity = world.getEntity(playerEntityId(clientId));
+		const entityId = playerEntityId(clientId);
+		const entity = world.getEntity(entityId);
 		if (!entity) continue;
 		const base = bases.get(clientId) ?? spawnBaseForClient(clientId, roster);
 		const pos = spawnPositionFromBase(base);
-		const bag = entity.components.Transform as { position?: [number, number, number] } | undefined;
-		if (bag) bag.position = pos;
+		world.applyFieldLocal(entityId, 'Transform', 'position', pos);
 	}
 }

@@ -16,7 +16,7 @@
 			"components": {
 				"Ground": {
 					"size": 20,
-					"color": "#80808080"
+					"color": "#0e0e12"
 				},
 				"Transform": {
 					"position": [

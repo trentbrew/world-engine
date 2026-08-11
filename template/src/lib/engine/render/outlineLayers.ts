@@ -1,5 +1,10 @@
+import { Color } from 'three';
 import { peerColor } from '$lib/engine/collab/peerColor';
-import { isPlayerEntity, playerClientId } from '$lib/engine/player/access';
+import {
+	isPlayerEntity,
+	playerClientId,
+	playerDesignatedColor
+} from '$lib/engine/player/access';
 import { session } from '$lib/engine/net/session.svelte';
 import { ui } from '$lib/ui/ui.svelte';
 import { world } from '$lib/engine/runtime/world.svelte';
@@ -10,10 +15,33 @@ export type OutlineLayer = {
 	entityIds: string[];
 	/** X-ray selection edge with white halo + color core. */
 	emphasized: boolean;
+	/** Optional edge strength override for non-emphasized passes. */
+	edgeStrength?: number;
 };
+
+function playPlayerOutlineLayers(): OutlineLayer[] {
+	if (ui.shellMode !== 'play') return [];
+
+	const layers: OutlineLayer[] = [];
+	for (const entity of world.query('Player')) {
+		if (!isPlayerEntity(entity)) continue;
+		const clientId = playerClientId(entity);
+		layers.push({
+			id: clientId ? `player:${clientId}` : `player:${entity.id}`,
+			color: playerDesignatedColor(entity),
+			entityIds: [entity.id],
+			emphasized: false,
+			edgeStrength: 5
+		});
+	}
+	return layers;
+}
 
 /** Active outline passes derived from hover + local/remote selection. */
 export function outlineLayers(): OutlineLayer[] {
+	const playLayers = playPlayerOutlineLayers();
+	if (playLayers.length > 0) return playLayers;
+
 	if (ui.shellMode !== 'edit' || !ui.chrome.selectionOutline) return [];
 
 	const layers: OutlineLayer[] = [];
@@ -62,6 +90,10 @@ export function outlineLayers(): OutlineLayer[] {
 	return layers;
 }
 
-export function hexToOutlineColor(hex: string): number {
-	return Number.parseInt(hex.replace('#', ''), 16);
+export function hexToOutlineColor(css: string): number {
+	try {
+		return new Color(css).getHex();
+	} catch {
+		return 0xffffff;
+	}
 }

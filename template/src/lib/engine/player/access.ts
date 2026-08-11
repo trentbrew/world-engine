@@ -2,6 +2,7 @@
 import type { Entity } from '$lib/engine/ontology/schema';
 import { canInspectField } from '$lib/engine/collab/editingPolicy';
 import { world } from '$lib/engine/runtime/world.svelte';
+import { peerColor } from '$lib/engine/collab/peerColor';
 
 const PLAYER_ID_PREFIX = 'entity:player/';
 
@@ -20,6 +21,17 @@ export function playerClientId(entity: Entity): string | null {
 export function isRemotePlayerEntity(entity: Entity): boolean {
 	if (!isPlayerEntity(entity)) return false;
 	return entity.id !== world.localPlayerId;
+}
+
+/** Stable avatar tint — matches spawn rings and Player type defaults. */
+export function playerDesignatedColor(entity: Entity): string {
+	const fromPlayer = (entity.components.Player as { color?: string } | undefined)?.color;
+	if (fromPlayer) return fromPlayer;
+	const fromSkin = (entity.components.SkinnedMesh as { color?: string } | undefined)?.color;
+	if (fromSkin) return fromSkin;
+	const clientId = playerClientId(entity);
+	if (clientId) return peerColor(clientId);
+	return '#ffffff';
 }
 
 const PEER_AUTHORING_TRANSFORM_FIELDS = new Set(['position', 'rotation']);

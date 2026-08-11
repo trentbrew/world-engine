@@ -1,6 +1,6 @@
 /** Keyboard shortcuts active while in play mode. */
 
-import { isFormFieldFocused } from '$lib/ui/shellKeyboard';
+import { isFormFieldFocused, isModKey } from '$lib/ui/shellKeyboard';
 import { ui } from '$lib/ui/ui.svelte';
 import { viewportDebug } from '$lib/ui/viewportDebug.svelte';
 
@@ -14,12 +14,12 @@ export function handlePlayKeydown(event: KeyboardEvent): boolean {
 	}
 
 	const key = event.key.toLowerCase();
-	if (key === 'r') {
+	if (!isModKey(event) && key === 'r') {
 		ui.resetPlay();
 		event.preventDefault();
 		return true;
 	}
-	if (key === 'p') {
+	if (!isModKey(event) && key === 'p') {
 		ui.togglePlayPause();
 		event.preventDefault();
 		return true;

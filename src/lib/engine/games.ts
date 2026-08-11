@@ -7,7 +7,12 @@
  */
 import { discoveredGames } from '$lib/engine/discoveredGames';
 import { defaultRoomForGame } from '$lib/engine/net/roomUrl';
-import { GAME_ORDER, GAME_OVERRIDES, SANDBOX_GAME } from '$lib/engine/gamesMeta';
+import {
+	DEFAULT_GAME_PARAM,
+	GAME_ORDER,
+	GAME_OVERRIDES,
+	SANDBOX_GAME
+} from '$lib/engine/gamesMeta';
 
 export interface GameEntry {
 	param?: string;
@@ -21,8 +26,14 @@ export interface GameEntry {
 const RECENT_GAMES_KEY = 'scene-selector:recent-games';
 const MAX_RECENT_GAMES = 4;
 
+function isSandboxParam(param: string | undefined | null): boolean {
+	return param === 'sandbox' || param === 'default' || param === '_';
+}
+
 function buildGamesCatalog(): GameEntry[] {
 	const byParam = new Map<string, GameEntry>();
+
+	byParam.set(SANDBOX_GAME.param, { ...SANDBOX_GAME });
 
 	for (const discovered of discoveredGames) {
 		const override = GAME_OVERRIDES[discovered.param] ?? {};
@@ -39,7 +50,7 @@ function buildGamesCatalog(): GameEntry[] {
 		byParam.set(discovered.param, entry);
 	}
 
-	const ordered: GameEntry[] = [{ ...SANDBOX_GAME }];
+	const ordered: GameEntry[] = [];
 	const seen = new Set<string>();
 
 	for (const param of GAME_ORDER) {
@@ -72,15 +83,15 @@ export function prettifyGameParam(param: string): string {
 
 /**
  * Resolve a `?game=` param to a catalog entry, synthesizing a labelled entry
- * for unregistered params instead of silently falling back to the Sandbox.
- * `undefined`/empty means the default world (GAMES[0]).
+ * for unregistered params instead of silently falling back to Sandbox.
+ * `undefined`/empty means the default world (`DEFAULT_GAME_PARAM`).
  */
 export function resolveGame(param?: string): GameEntry {
-	if (!param) return GAMES[0];
+	const key = param || DEFAULT_GAME_PARAM;
 	return (
-		GAMES.find((game) => game.param === param) ?? {
-			param,
-			title: prettifyGameParam(param),
+		GAMES.find((game) => game.param === key) ?? {
+			param: key,
+			title: prettifyGameParam(key),
 			description: '',
 			dimensions: '3d'
 		}
@@ -88,12 +99,26 @@ export function resolveGame(param?: string): GameEntry {
 }
 
 export function gameUrl(param?: string): string {
-	return param ? `/games/${param}.jsonld` : '/world.jsonld';
+	if (!param || isSandboxParam(param)) return '/world.jsonld';
+	return `/games/${param}.jsonld`;
 }
 
 export function currentGameParam(): string | undefined {
-	if (typeof location === 'undefined') return undefined;
-	return new URLSearchParams(location.search).get('game') ?? undefined;
+	if (typeof location === 'undefined') return DEFAULT_GAME_PARAM;
+	return new URLSearchParams(location.search).get('game') ?? DEFAULT_GAME_PARAM;
+}
+
+/** Add `?game=` when missing so the default world is explicit in the URL. */
+export function ensureGameInUrl(): string {
+	if (typeof location === 'undefined') return DEFAULT_GAME_PARAM;
+
+	const url = new URL(location.href);
+	const existing = url.searchParams.get('game');
+	if (existing) return existing;
+
+	url.searchParams.set('game', DEFAULT_GAME_PARAM);
+	history.replaceState(history.state, '', url);
+	return DEFAULT_GAME_PARAM;
 }
 
 export function currentGame(): GameEntry {
@@ -137,11 +162,11 @@ function rememberGame(param?: string): void {
 /** Navigate to a game (full reload — each game is its own multiplayer room). */
 export function loadGame(param?: string) {
 	if (typeof location === 'undefined') return;
-	rememberGame(param);
+	const next = param || DEFAULT_GAME_PARAM;
+	rememberGame(next);
 	const url = new URL(location.href);
-	if (param) url.searchParams.set('game', param);
-	else url.searchParams.delete('game');
-	url.searchParams.set('room', defaultRoomForGame(param ?? null));
+	url.searchParams.set('game', next);
+	url.searchParams.set('room', defaultRoomForGame(next));
 	// Always land in edit mode when switching worlds — play is an explicit choice.
 	url.searchParams.delete('play');
 	url.searchParams.set('mode', 'edit');

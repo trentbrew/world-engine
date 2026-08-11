@@ -70,6 +70,7 @@
 		display: flex;
 		align-items: center;
 		gap: 10px;
+		overflow: visible;
 	}
 
 	.doc-bar-playlab {

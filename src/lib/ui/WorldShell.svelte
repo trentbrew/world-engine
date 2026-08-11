@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount, tick } from 'svelte';
-	import { currentGame } from '$lib/engine/games';
+	import { currentGame, ensureGameInUrl, gameUrl } from '$lib/engine/games';
 	import { loadOntology } from '$lib/engine/ontology/loadOntology';
 	import { staticSource, type WorldSource } from '$lib/engine/ontology/source';
 	import {
@@ -104,6 +104,7 @@
 			sceneLoading.suspended = false;
 		}
 
+		ensureGameInUrl();
 		ensureRoomInUrl();
 		const params = new URLSearchParams(location.search);
 		if (params.get('inspectorTabs') === '1') {
@@ -111,8 +112,8 @@
 		}
 		initEditingPolicy(params);
 		const shellMode = ensureShellModeInUrl('edit');
-		const game = params.get('game');
-		const url = game ? `/games/${game}.jsonld` : '/world.jsonld';
+		const game = params.get('game') ?? currentGame().param;
+		const url = gameUrl(game ?? undefined);
 		const gameTitle = currentGame().title;
 		const durableMode = params.get('durable') === 'trellis' ? 'trellis' : 'static';
 		const worldId = resolveRoomId(params);

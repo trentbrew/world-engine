@@ -4,10 +4,11 @@
 	import { movementJank } from '$lib/engine/player/movementJank.svelte';
 	import { ui } from '$lib/ui/ui.svelte';
 	import { viewportDebug } from '$lib/ui/viewportDebug.svelte';
+	import { playHudMenu } from '$lib/ui/playHudMenu.svelte';
 
 	let { embedded = false }: { embedded?: boolean } = $props();
 
-	let expanded = $state(false);
+	const expanded = $derived(playHudMenu.isOpen('jank'));
 
 	const visible = $derived(ui.shellMode === 'play' && viewportDebug.jankHud);
 	const statusClass = $derived(movementJank.status);
@@ -16,11 +17,11 @@
 	);
 
 	function toggleExpanded() {
-		expanded = !expanded;
+		playHudMenu.toggle('jank');
 	}
 
 	function collapse() {
-		expanded = false;
+		if (playHudMenu.isOpen('jank')) playHudMenu.close();
 	}
 
 	$effect(() => {

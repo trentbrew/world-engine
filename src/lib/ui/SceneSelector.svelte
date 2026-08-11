@@ -39,7 +39,7 @@
 	const activeGame = $derived(resolveGame(activeParam || undefined));
 
 	function sceneLabel(game: GameEntry): string {
-		return game.param ? game.title : 'Sandbox';
+		return game.title;
 	}
 
 	const activeRoomLabel = $derived(
@@ -47,7 +47,7 @@
 	);
 
 	function sceneFile(game: GameEntry): string {
-		return game.param ? `${game.param}.jsonld` : 'world.jsonld';
+		return game.param === 'sandbox' || !game.param ? 'world.jsonld' : `${game.param}.jsonld`;
 	}
 
 	function commandValue(game: GameEntry): string {

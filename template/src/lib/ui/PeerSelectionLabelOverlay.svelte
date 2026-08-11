@@ -7,8 +7,14 @@
 	<div class="peer-badge-layer" aria-hidden="true">
 		{#each peerSelectionLabels.labels as badge (badge.key)}
 			{#if badge.visible}
-				<span class="peer-badge" style:left="{badge.x}px" style:top="{badge.y}px">
-					<span class="peer-badge-dot" style:background={badge.color}></span>
+				<span
+					class="peer-badge"
+					style:left="{badge.x}px"
+					style:top="{badge.y}px"
+					style:background="color-mix(in srgb, {badge.color} 85%, transparent)"
+					style:border-color="color-mix(in srgb, {badge.color} 50%, transparent)"
+					style:color="#ffffff"
+				>
 					<span class="peer-badge-name">{badge.name}</span>
 				</span>
 			{/if}
@@ -42,13 +48,6 @@
 		font-size: 12px;
 		font-weight: 600;
 		line-height: 1.35;
-	}
-
-	.peer-badge-dot {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		flex-shrink: 0;
 	}
 
 	.peer-badge-name {

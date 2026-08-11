@@ -4,10 +4,13 @@
  * component is registered by importing spawnPlayer for its side effects.
  */
 import './spawnPlayer';
+import { roomChat } from '$lib/engine/collab/roomChat.svelte';
 import { world } from '$lib/engine/runtime/world.svelte';
 import type { TickContext } from '$lib/engine/ontology/schema';
 import { groundStore } from '$lib/engine/player/groundStore.svelte';
+import { playerInteractPrompt } from '$lib/engine/room/playerInteractPrompt.svelte';
 import { worldProfile } from '$lib/engine/world/worldProfile.svelte';
+import { ui } from '$lib/ui/ui.svelte';
 import { input, PLAYER_SPEED_BASELINE } from './input';
 import {
 	conformMovement,
@@ -16,7 +19,7 @@ import {
 	integrateGroundVelocity
 } from './playerMovementUtils';
 import { clipHorizontalVelocity, resolveHorizontalPlayerMove } from './playerCollision';
-import { applyLocomotionClip } from './playerLocomotionClips';
+import { applyChatTalkingClip, applyLocomotionClip } from './playerLocomotionClips';
 
 /** Latest ground normal from GroundSensor — used by slope movement. */
 export let lastGroundNormal: [number, number, number] = [0, 1, 0];
@@ -87,15 +90,52 @@ export function setHorizontalVelocity(vx: number, vz: number): void {
 	velocityZ = vz;
 }
 
+/** Conversation partner to face while chatting — within this of the player. */
+const CHAT_FACING_RADIUS = 6;
+
+function playerPosition(entityId: string): [number, number, number] | undefined {
+	const entity = world.getEntity(entityId);
+	return entity?.components.Transform?.position as [number, number, number] | undefined;
+}
+
+/**
+ * Who to look at during a conversation: the peer playerInteract is tracking
+ * (the one the chat panel follows), else the closest player in earshot.
+ */
+function chatPartnerPosition(
+	localId: string,
+	localPos: [number, number, number]
+): [number, number, number] | null {
+	const tracked = playerInteractPrompt.prompt?.entityId;
+	if (tracked && tracked !== localId) {
+		const pos = playerPosition(tracked);
+		if (pos) return pos;
+	}
+
+	let nearest: [number, number, number] | null = null;
+	let nearestDist = CHAT_FACING_RADIUS;
+	for (const entity of world.query('Player')) {
+		if (entity.id === localId) continue;
+		const pos = entity.components.Transform?.position as [number, number, number] | undefined;
+		if (!pos) continue;
+		const dist = Math.hypot(pos[0] - localPos[0], pos[2] - localPos[2]);
+		if (dist < nearestDist) {
+			nearestDist = dist;
+			nearest = pos;
+		}
+	}
+	return nearest;
+}
+
 export function playerSystem(ctx: TickContext) {
 	for (const entity of world.query('Player')) {
 		if (!world.isOwner(entity.id)) continue;
 		const player = entity.components.Player as PlayerMotorData;
 		const transform = entity.components.Transform as
 			| {
-					position: [number, number, number];
-					rotation?: [number, number, number, number];
-			  }
+				position: [number, number, number];
+				rotation?: [number, number, number, number];
+			}
 			| undefined;
 		if (!transform) continue;
 
@@ -107,7 +147,14 @@ export function playerSystem(ctx: TickContext) {
 		const motorGrounded = groundStore.grounded && jumpVy <= 0.01;
 
 		const move = input.movement();
-		applyLocomotionClip(entity, move.tier);
+		// Talking is an idle pose — walking or jumping out of a conversation hands
+		// the clip back to locomotion (which no-ops mid-air, keeping jump clips).
+		const chatting = ui.shellMode === 'play' && roomChat.open;
+		if (chatting && move.tier === 'idle' && motorGrounded) {
+			applyChatTalkingClip(entity);
+		} else {
+			applyLocomotionClip(entity, move.tier);
+		}
 		const speedScale = (player.speed ?? PLAYER_SPEED_BASELINE) / PLAYER_SPEED_BASELINE;
 		const maxSpeed = move.magnitude > 0.01 ? move.speed * speedScale : 0;
 
@@ -207,14 +254,25 @@ export function playerSystem(ctx: TickContext) {
 
 		const faceX = wishMag > 0.01 ? wishX : velocityX;
 		const faceZ = wishMag > 0.01 ? wishZ : velocityZ;
-		if (Math.hypot(faceX, faceZ) > 0.01) {
-			// Skinned mannequin faces +Z — motor yaw matches visible facing (no visual π offset).
-			const targetYaw = Math.atan2(faceX, faceZ);
+		let targetYaw = Math.hypot(faceX, faceZ) > 0.01 ? Math.atan2(faceX, faceZ) : null;
+
+		// Standing in a conversation: face the peer we're talking to. Moving always
+		// wins, so walking away turns the body along the walk direction.
+		if (chatting && targetYaw === null) {
+			const partner = chatPartnerPosition(entity.id, transform.position);
+			if (partner) {
+				const dx = partner[0] - transform.position[0];
+				const dz = partner[2] - transform.position[2];
+				if (Math.hypot(dx, dz) > 0.01) targetYaw = Math.atan2(dx, dz);
+			}
+		}
+
+		if (targetYaw !== null) {
 			const currentYaw = yawFromQuat(transform.rotation);
 			const delta = shortestAngleDelta(currentYaw, targetYaw);
-			if (Math.abs(delta) >= YAW_DEADBAND || move.source === 'keyboard') {
+			if (Math.abs(delta) >= YAW_DEADBAND || move.source === 'keyboard' || chatting) {
 				const nextYaw =
-					move.source === 'keyboard'
+					move.source === 'keyboard' || chatting
 						? stepYaw(currentYaw, targetYaw, ctx.dt)
 						: targetYaw;
 				transform.rotation = quatFromYaw(nextYaw);

@@ -25,11 +25,15 @@
 			"@type": "Thing",
 			"conformsTo": "GroundPlane",
 			"components": {
+				"Ground": {
+					"size": 20,
+					"color": "#0e0e12"
+				},
 				"Transform": {
 					"position": [
-						1.4395886732700627,
 						0,
-						-1.0339244334983044
+						0,
+						0
 					],
 					"rotation": [
 						0,
@@ -38,7 +42,7 @@
 						1
 					],
 					"scale": [
-						30.1,
+						1,
 						1,
 						1
 					]

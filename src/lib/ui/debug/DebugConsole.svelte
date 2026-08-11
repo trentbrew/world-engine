@@ -4,6 +4,7 @@
   import { scheduler } from '$lib/engine/systems';
   import { debugLog } from '$lib/ui/debug/debugLog.svelte';
   import DebugStatsTab from '$lib/ui/debug/DebugStatsTab.svelte';
+  import { playHudMenu } from '$lib/ui/playHudMenu.svelte';
 
   let {
     embedded = false,
@@ -13,8 +14,9 @@
     placement?: 'bottom-left' | 'top-right';
   } = $props();
 
-  let expanded = $state(false);
   let rootEl = $state<HTMLDivElement | null>(null);
+
+  const expanded = $derived(playHudMenu.isOpen('stats'));
 
   const pillAriaLabel = $derived(
     `Developer HUD, Stats, tick ${scheduler.tick}, ${expanded ? 'collapse' : 'expand'}`,
@@ -25,12 +27,13 @@
   });
 
   function toggleExpanded() {
-    expanded = !expanded;
-    if (expanded) debugLog.markSeen();
+    const opening = !playHudMenu.isOpen('stats');
+    playHudMenu.toggle('stats');
+    if (opening) debugLog.markSeen();
   }
 
   function collapse() {
-    expanded = false;
+    if (playHudMenu.isOpen('stats')) playHudMenu.close();
   }
 
   function onRootKeydown(event: KeyboardEvent) {
@@ -114,6 +117,8 @@
 
   .debug-console.embedded {
     position: static;
+    bottom: auto;
+    left: auto;
     z-index: auto;
   }
 

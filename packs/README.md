@@ -85,6 +85,9 @@ consumers, it isn't a pack primitive — it's content. Put it back in the world.
 
 ## Packs
 
+- **[communications](communications/)** — three-tier in-world communication:
+  proximity speech `Bubble`, identity-addressed `Device` DMs (reach across
+  spaces), and room broadcast. All `proposed`; additive on top of room chat.
 - **[craftpunk-society](craftpunk-society/)** — commons, cultivation, AI-neighbor, and
   reputation primitives surfaced by Craftpunk. All `proposed`; none wired into core.
 - **[powder-riding](powder-riding/)** — board-carve locomotion, air-trick scoring, and

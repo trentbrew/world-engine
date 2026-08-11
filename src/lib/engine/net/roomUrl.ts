@@ -1,7 +1,9 @@
 /** Resolve and persist the multiplayer `?room=` query param. */
 
+import { DEFAULT_GAME_PARAM } from '$lib/engine/gamesMeta';
+
 export function defaultRoomForGame(game: string | null): string {
-	return game ?? 'lobby';
+	return game ?? DEFAULT_GAME_PARAM;
 }
 
 export function resolveRoomId(search?: URLSearchParams | string): string {
@@ -15,7 +17,7 @@ export function resolveRoomId(search?: URLSearchParams | string): string {
 
 /** Add `?room=` when missing so share links always include the room id. */
 export function ensureRoomInUrl(): string {
-	if (typeof location === 'undefined') return 'lobby';
+	if (typeof location === 'undefined') return DEFAULT_GAME_PARAM;
 
 	const url = new URL(location.href);
 	const room = resolveRoomId(url.searchParams);

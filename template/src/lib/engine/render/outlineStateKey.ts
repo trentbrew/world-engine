@@ -9,7 +9,10 @@ export function outlineStateKey(
 	if (!enabled) return 'off';
 
 	const layerKey = layers
-		.map((layer) => `${layer.id}:${layer.entityIds.join('+')}:${layer.emphasized}:${layer.color}`)
+		.map(
+			(layer) =>
+				`${layer.id}:${layer.entityIds.join('+')}:${layer.emphasized}:${layer.color}:${layer.edgeStrength ?? ''}`
+		)
 		.join('|');
 
 	return `${registryFingerprint}::${layerKey}`;

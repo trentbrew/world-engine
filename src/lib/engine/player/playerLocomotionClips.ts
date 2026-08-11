@@ -15,6 +15,9 @@ import {
 import type { Entity } from '$lib/engine/ontology/schema';
 import type { LocomotionTier } from '$lib/engine/player/playInput';
 
+/** Social loop while the room chat panel is open in play mode. */
+export const CHAT_TALKING_CLIP = 'Idle_Talking_Loop';
+
 /** Hold land clip briefly so it reads before locomotion resumes. */
 const LAND_HOLD_MS = 280;
 /** Play Jump_Start this long before settling into Jump_Loop while airborne. */
@@ -154,6 +157,12 @@ function tierClip(entity: Entity, tier: LocomotionTier): string {
 	const pack = locomotionPack(entity);
 	const key = TIER_KEY[tier];
 	return pack.bindings[key] ?? pack.bindings.idle;
+}
+
+/** Override locomotion/jump clips while the player is in an open room chat. */
+export function applyChatTalkingClip(entity: Entity): void {
+	if (!('Mesh3DAnimator' in entity.components)) return;
+	setAnimClip(entity, CHAT_TALKING_CLIP);
 }
 
 /** Grounded locomotion tiers only — skip while airborne or landing hold. */

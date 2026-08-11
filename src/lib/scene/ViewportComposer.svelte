@@ -27,6 +27,7 @@
 	import { SketchEffect } from '$lib/scene/effects/SketchEffect';
 	import type { SceneStyle, ToneMappingId } from '$lib/scene/artStyles';
 	import { camera as cameraStore } from '$lib/engine/render/camera.svelte';
+	import { session } from '$lib/engine/net/session.svelte';
 	import { world } from '$lib/engine/runtime/world.svelte';
 	import { ui } from '$lib/ui/ui.svelte';
 
@@ -59,7 +60,9 @@
 	let toneMappingPass: EffectPass | undefined;
 	let composerRendering = false;
 
-	const selectionEnabled = $derived(ui.shellMode === 'edit' && ui.chrome.selectionOutline);
+	const selectionEnabled = $derived(
+		(ui.shellMode === 'edit' && ui.chrome.selectionOutline) || ui.shellMode === 'play'
+	);
 
 	const outlineEffectDefaults = {
 		blendFunction: BlendFunction.ALPHA,
@@ -162,11 +165,11 @@
 			if (meshes.length === 0) continue;
 
 			if (!layer.emphasized) {
-				// Hover — subtle mesh silhouette (SelectionFootprints also draws a ground ring).
+				// Hover / play silhouettes — colored mesh edge.
 				specs.push({
 					key: `${layer.id}:hover`,
 					color: hexToOutlineColor(layer.color),
-					edgeStrength: 3.5,
+					edgeStrength: layer.edgeStrength ?? 3.5,
 					xRay: false,
 					meshes
 				});
@@ -337,10 +340,12 @@
 		invalidate();
 	});
 
-	// On-demand edit viewport must repaint when hover/selection affordances change.
+	// On-demand viewport must repaint when hover/selection/play outlines change.
 	$effect(() => {
 		world.hovered;
 		world.selection;
+		ui.shellMode;
+		session.members;
 		invalidate();
 	});
 

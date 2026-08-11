@@ -1,8 +1,8 @@
 import { join } from 'node:path';
 
-/** Map API `game` segment to static JSON-LD path (`undefined` = default world). */
+/** Map API `game` segment to static JSON-LD path (`undefined` = `/world.jsonld` scratch). */
 export function normalizeGameParam(game: string): string | undefined {
-	if (game === 'default' || game === '_') return undefined;
+	if (game === 'default' || game === '_' || game === 'sandbox') return undefined;
 	return game;
 }
 

@@ -15,6 +15,7 @@ import { jumpSystem, resetJumpInputState } from './behaviors/jump';
 import { eraSwapSystem, resetEraSwapState } from './behaviors/eraSwap';
 import { plaqueProximitySystem, resetPlaqueProximityState } from './behaviors/plaqueProximity';
 import { roomPortalSystem, resetRoomPortalState } from './behaviors/roomPortal';
+import { playerInteractSystem, resetPlayerInteractState } from './behaviors/playerInteract';
 import { platformVelocitySystem, resetPlatformVelocityState } from './behaviors/platformVelocity';
 import './behaviors/physics';
 import './behaviors/collect';
@@ -44,6 +45,8 @@ function registerSystems() {
 	scheduler.register(eventSystem);
 	scheduler.register(eraSwapSystem);
 	scheduler.register(plaqueProximitySystem);
+	// PlayerInteract before RoomPortal so E near a player talks instead of travelling.
+	scheduler.register(playerInteractSystem);
 	scheduler.register(roomPortalSystem);
 	scheduler.register(formulaSystem);
 	registered = true;
@@ -109,6 +112,7 @@ export function stopSimulation() {
 	resetEraSwapState();
 	resetPlaqueProximityState();
 	resetRoomPortalState();
+	resetPlayerInteractState();
 }
 
 /** Freeze gameplay while staying in play mode. */

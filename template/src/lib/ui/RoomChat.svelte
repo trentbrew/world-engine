@@ -303,18 +303,29 @@
 
   .chat-panel {
     position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
-    background: color-mix(in srgb, var(--card) 94%, transparent);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: var(--rounded-lg);
-    box-shadow:
-      0 12px 40px rgb(0 0 0 / 0.32),
-      0 2px 8px rgb(0 0 0 / 0.18),
-      inset 0 1px 0 color-mix(in srgb, var(--foreground) 6%, transparent);
     overflow: hidden;
+  }
+
+  .chat-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--surface-glass) 48%, transparent);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 1px solid color-mix(in srgb, var(--border) 38%, transparent);
+    box-shadow:
+      0 12px 40px rgb(0 0 0 / 0.22),
+      0 2px 8px rgb(0 0 0 / 0.12);
   }
 
   .chat-panel :global(.vertical-resize-handle.edge-bottom) {
@@ -388,7 +399,8 @@
     justify-content: space-between;
     gap: var(--spacing-sm);
     padding: var(--spacing-sm) var(--spacing-md);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+    background: transparent;
   }
 
   .chat-title {
@@ -415,7 +427,7 @@
   }
 
   .chat-close:hover {
-    background: var(--secondary);
+    background: color-mix(in srgb, var(--secondary) 55%, transparent);
     color: var(--foreground);
   }
 
@@ -486,7 +498,9 @@
   .chat-bubble {
     padding: 6px 10px;
     border-radius: var(--rounded-md);
-    background: var(--secondary);
+    background: color-mix(in srgb, var(--secondary) 52%, transparent);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     color: var(--foreground);
     font-size: 12px;
     line-height: 1.4;
@@ -494,8 +508,10 @@
   }
 
   .chat-message.mine .chat-bubble {
-    background: color-mix(in srgb, var(--primary) 22%, var(--secondary));
-    border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+    background: color-mix(in srgb, var(--primary) 16%, transparent);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent);
   }
 
   .chat-time {
@@ -509,8 +525,8 @@
     display: flex;
     gap: 6px;
     padding: var(--spacing-sm);
-    border-top: 1px solid var(--border);
-    background: color-mix(in srgb, var(--card) 40%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+    background: transparent;
   }
 
   .chat-composer input {
@@ -520,8 +536,10 @@
     font-size: 12px;
     padding: 6px 10px;
     border-radius: var(--rounded-pill);
-    border: 1px solid var(--border);
-    background: var(--input);
+    border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+    background: color-mix(in srgb, var(--card) 32%, transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     color: var(--foreground);
   }
 
@@ -569,27 +587,39 @@
 
   .chat-fab {
     position: relative;
+    isolation: isolate;
     width: 48px;
     height: 48px;
-    border: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+    border: 1px solid transparent;
     border-radius: 50%;
-    background: var(--surface-glass-panel);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: transparent;
     color: var(--foreground);
     cursor: pointer;
-    box-shadow: 0 4px 20px rgb(0 0 0 / 0.12);
     display: grid;
     place-items: center;
   }
 
-  .chat-fab:hover {
-    background: color-mix(in srgb, var(--card) 96%, transparent);
+  .chat-fab::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--surface-glass) 48%, transparent);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1px solid color-mix(in srgb, var(--border) 38%, transparent);
+    box-shadow: 0 4px 20px rgb(0 0 0 / 0.14);
   }
 
-  .chat-fab[aria-expanded='true'] {
-    background: color-mix(in srgb, var(--card) 98%, transparent);
-    border-color: color-mix(in srgb, var(--ring) 55%, var(--border));
+  .chat-fab:hover::before {
+    background: color-mix(in srgb, var(--surface-glass) 62%, transparent);
+  }
+
+  .chat-fab[aria-expanded='true']::before {
+    background: color-mix(in srgb, var(--surface-glass) 68%, transparent);
+    border-color: color-mix(in srgb, var(--ring) 45%, var(--border));
   }
 
   .chat-fab:focus-visible {

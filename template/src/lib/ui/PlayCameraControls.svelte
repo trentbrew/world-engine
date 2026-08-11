@@ -13,10 +13,12 @@
 	import FieldWell from '$lib/ui/FieldWell.svelte';
 	import InspectorField from '$lib/ui/InspectorField.svelte';
 	import InspectorAccordion from '$lib/ui/InspectorAccordion.svelte';
+	import { playHudMenu } from '$lib/ui/playHudMenu.svelte';
 
-	let expanded = $state(false);
 	let controlsOpen = $state(true);
 	let followOpen = $state(true);
+
+	const expanded = $derived(playHudMenu.isOpen('camera'));
 
 	const cam = $derived(playInputState.config.followCamera);
 	const following = $derived(camera.mode === 'follow');
@@ -65,7 +67,11 @@
 	}
 
 	function collapse() {
-		expanded = false;
+		if (playHudMenu.isOpen('camera')) playHudMenu.close();
+	}
+
+	function toggleExpanded() {
+		playHudMenu.toggle('camera');
 	}
 
 	$effect(() => {
@@ -87,7 +93,7 @@
 		class="camera-pill"
 		aria-expanded={expanded}
 		aria-label={`Camera controls, ${presetLabel}, ${expanded ? 'collapse' : 'expand'}`}
-		onclick={() => (expanded = !expanded)}
+		onclick={toggleExpanded}
 	>
 		<CameraIcon class="pill-icon" aria-hidden="true" />
 		<span class="pill-tab">Camera</span>

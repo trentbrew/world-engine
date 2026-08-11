@@ -17,6 +17,7 @@
 	import SparkRendererHost from '$lib/scene/SparkRendererHost.svelte';
 	import PeerSelectionLabelProjector from '$lib/scene/PeerSelectionLabelProjector.svelte';
 	import RoomPortalPromptProjector from '$lib/scene/RoomPortalPromptProjector.svelte';
+	import PlayerInteractPromptProjector from '$lib/scene/PlayerInteractPromptProjector.svelte';
 	import PlayerSpawnRings from '$lib/scene/PlayerSpawnRings.svelte';
 	import ViewportComposer from '$lib/scene/ViewportComposer.svelte';
 	import {
@@ -906,6 +907,7 @@
 
 	<PeerSelectionLabelProjector />
 	<RoomPortalPromptProjector />
+	<PlayerInteractPromptProjector />
 	<ViewportComposer />
 </Suspense>
 

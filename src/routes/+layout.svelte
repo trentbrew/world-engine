@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
+	import { ensureGameInUrl } from '$lib/engine/games';
 	import { ensureRoomInUrl } from '$lib/engine/net/roomUrl';
 	import { ModeWatcher } from 'mode-watcher';
 	import '../app.css';
 
 	let { children } = $props();
 
-	if (browser) ensureRoomInUrl();
+	if (browser) {
+		ensureGameInUrl();
+		ensureRoomInUrl();
+	}
 </script>
 
 <ModeWatcher defaultMode="dark" defaultTheme="default" modeStorageKey="mode" themeStorageKey="theme" />

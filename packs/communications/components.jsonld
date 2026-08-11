@@ -1,0 +1,35 @@
+{
+  "@context": {
+    "@vocab": "https://game.example/vocab/",
+    "conformsTo": { "@type": "@id" },
+    "components": { "@type": "@json" }
+  },
+  "__note": "AUTHORING SOURCE — proposed, data-only tier. No auto-import loader exists yet: copy the schemas a world needs inline (see static/games/playground.jsonld for the inline ComponentSchema pattern). Device and Bubble attach to code-spawned players by adding them to your world's type:Player override — the delta snippet is in docs/plans/communications.md; static/games/player-avatar-override.jsonld shows the full surrounding block. The DM envelope, inbox store, and views stay proposed (see pack.json).",
+  "@graph": [
+    {
+      "@id": "component:Device",
+      "@type": "ComponentSchema",
+      "fields": {
+        "powered": { "t": "boolean", "sync": "durable", "default": true, "__note": "phone on/off" },
+        "screen": { "t": "string", "sync": "realtime", "default": "", "__note": "active line shown on the phone face; owner-synced, peers render it" }
+      }
+    },
+    {
+      "@id": "component:Bubble",
+      "@type": "ComponentSchema",
+      "fields": {
+        "text": { "t": "string", "sync": "realtime", "default": "", "__note": "line currently spoken; owner sets it, peers read it" },
+        "speaking": { "t": "boolean", "sync": "derived", "default": "=Bubble.text != ''", "__note": "view gate — derived, never on the wire" },
+        "since": { "t": "number", "sync": "realtime", "default": 0, "__note": "epoch ms when text was set; the overlay fades after a beat" }
+      }
+    },
+    {
+      "@id": "type:DeviceHolder",
+      "@type": "EntityType",
+      "components": ["Transform", "Render", "Device", "Bubble"],
+      "defaults": {
+        "Device": { "powered": true }
+      }
+    }
+  ]
+}

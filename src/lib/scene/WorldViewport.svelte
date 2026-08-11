@@ -16,6 +16,7 @@
 	} from '$lib/scene/placementSession';
 	import PeerSelectionLabelOverlay from '$lib/ui/PeerSelectionLabelOverlay.svelte';
 	import RoomPortalPromptOverlay from '$lib/ui/RoomPortalPromptOverlay.svelte';
+	import PlayerInteractPromptOverlay from '$lib/ui/PlayerInteractPromptOverlay.svelte';
 	import RoomTransitionOverlay from '$lib/ui/RoomTransitionOverlay.svelte';
 	import ViewControls from '$lib/ui/ViewControls.svelte';
 	import PlayModeToolbar from '$lib/ui/PlayModeToolbar.svelte';
@@ -170,6 +171,7 @@
 
 	<PeerSelectionLabelOverlay />
 	<RoomPortalPromptOverlay />
+	<PlayerInteractPromptOverlay />
 	<RoomTransitionOverlay />
 
 	{#if ui.shellMode === 'edit'}

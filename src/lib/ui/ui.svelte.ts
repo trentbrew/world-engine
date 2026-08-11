@@ -6,6 +6,7 @@ import { worldProfile } from '$lib/engine/world/worldProfile.svelte';
 import { syncShellModeToUrl } from '$lib/engine/shellUrl';
 import { primePlayMenuButtons } from '$lib/engine/player/gamepad.svelte';
 import { reconcilePlayerSpawnPositions } from '$lib/engine/player/spawnPoints';
+import { resetPlayerMovementState } from '$lib/engine/player/playerSystem';
 import { session } from '$lib/engine/net/session.svelte';
 import {
 	bootstrapFormulas,
@@ -393,6 +394,7 @@ class UIState {
 		worldProfile.apply2dViewerDefaults();
 		primePlayMenuButtons();
 		reconcilePlayerSpawnPositions(session.members);
+		resetPlayerMovementState();
 		startSimulation();
 		if (world.activeRoomId) warmAdjacentRoomAssets(world.activeRoomId);
 		this.modeMessage = 'Play mode';
@@ -481,6 +483,7 @@ class UIState {
 		resetPlayCameraRig();
 		if (world.localPlayerId) followCamera.reset();
 		reconcilePlayerSpawnPositions(session.members);
+		resetPlayerMovementState();
 		bootstrapFormulas();
 		this.modeMessage = this.playPaused ? 'Paused' : 'Play mode';
 	}

@@ -71,6 +71,10 @@ export type NetMessage =
 	| { t: 'authoring'; id: string; patch: DurablePatch }
 	/** Ephemeral room chat message. */
 	| { t: 'chat'; id: string; message: RoomChatWire }
+	/** Peer asked to open the room chat (walk-up interact). */
+	| { t: 'chat_open'; id: string }
+	/** Ephemeral typing indicator — peers expire it if the `false` edge is lost. */
+	| { t: 'typing'; id: string; typing: boolean }
 	/** Host-authored room transition in multi-room games (play mode). */
 	| {
 		t: 'goto_room';

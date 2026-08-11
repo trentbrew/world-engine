@@ -40,8 +40,11 @@
 			world.canTransformEntity(entity.id)
 	);
 	const playing = $derived(ui.shellMode === 'play');
-	const colliderHalfX = $derived((size * scale[0]) / 2);
-	const colliderHalfZ = $derived((size * scale[2]) / 2);
+	// Collider args are in RigidBody-local units. Do NOT bake Transform.scale here —
+	// the body sits under transformRoot, which already applies scale. Baking + parent
+	// scale double-counts (lobby once shipped scale [30,1,1] and walk casts went janky).
+	const colliderHalfX = $derived(size / 2);
+	const colliderHalfZ = $derived(size / 2);
 	// Plane mesh is rotated −90° on X; cuboid half-extents are local to the rigid body,
 	// so thickness must be on local Z (maps to world Y), not local Y.
 	const colliderHalfThickness = 0.05;
