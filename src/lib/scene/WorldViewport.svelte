@@ -192,6 +192,7 @@
 	{/if}
 
 	{#if ui.shellMode === 'play'}
+		<RoomChat showFab={false} />
 		<ViewportTopRight />
 		<PlayPauseMenu />
 		<PlayResetOverlay />

@@ -401,7 +401,7 @@
 <PreviewTray />
 <SceneSettingsSync />
 
-{#if ui.shellMode === 'edit' || ui.shellMode === 'play'}
+{#if ui.shellMode === 'edit'}
 	<RoomChat showFab={false} />
 {/if}
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import MessageCircleIcon from '@lucide/svelte/icons/message-circle';
 	import { roomChat } from '$lib/engine/collab/roomChat.svelte';
+	import { session } from '$lib/engine/net/session.svelte';
 
 	const chatOpen = $derived(roomChat.open);
 	const chatUnread = $derived(roomChat.unread);
@@ -18,7 +19,10 @@
 			? `Open room chat, ${chatUnread} unread`
 			: 'Open room chat'}
 	title={chatOpen ? 'Close chat' : 'Room chat'}
-	onclick={() => roomChat.setOpen(!chatOpen)}
+	onclick={() => {
+		if (!chatOpen) roomChat.ensureRoomConvo(session.members);
+		roomChat.setOpen(!chatOpen);
+	}}
 >
 	<MessageCircleIcon class="chat-icon" aria-hidden="true" />
 	<span>Chat</span>

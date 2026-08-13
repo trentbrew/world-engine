@@ -3,7 +3,7 @@
  * their head. Local-only HUD + interact edge; no host authority. Mirrors the
  * RoomPortal prompt pattern: the nearest remote player within radius gets a
  * screen-space pill (position filled by PlayerInteractPromptProjector each
- * frame). Pressing E opens the room chat — the channel everyone already shares.
+ * frame). Pressing E starts or joins a proximity-scoped conversation.
  *
  * While the chat is open the target becomes *sticky*: we keep tracking the peer
  * we walked up to even after stepping out of interact range, so the chat panel
@@ -22,15 +22,33 @@ import { ui } from '$lib/ui/ui.svelte';
 
 const INTERACT_RADIUS = 2.5;
 
-/** Chat opened from the FAB / a peer adopts the closest player inside this. */
+/** Chat opened from a peer adopts the closest player inside this. */
 const ADOPT_RADIUS = 12;
 
 /** Sticky chat target — survives leaving INTERACT_RADIUS while chat is open. */
 let chatPartnerId: string | null = null;
 
+type InRangePeer = {
+	entityId: string;
+	clientId: string;
+	distance: number;
+};
+
 export function resetPlayerInteractState(): void {
 	chatPartnerId = null;
 	playerInteractPrompt.clear();
+}
+
+/** Pin the sticky chat target to a remote peer (e.g. when they open walk-up chat). */
+export function adoptChatPartnerByClientId(clientId: string): boolean {
+	if (!clientId) return false;
+	for (const entity of world.query('Player')) {
+		if (playerClientId(entity) === clientId && isTalkable(entity)) {
+			chatPartnerId = entity.id;
+			return true;
+		}
+	}
+	return false;
 }
 
 function xzDistance(a: [number, number, number], b: [number, number, number]): number {
@@ -54,6 +72,81 @@ function displayNameOf(entity: Entity): string {
 	return peerId ? collab.displayNameFor(peerId) : 'this player';
 }
 
+/** Remote peers within walk-up interact radius. */
+export function peersInInteractRange(playerPos: [number, number, number]): InRangePeer[] {
+	const peers: InRangePeer[] = [];
+	for (const entity of world.query('Player')) {
+		if (!isTalkable(entity)) continue;
+		const pos = entityPosition(entity);
+		const clientId = playerClientId(entity);
+		if (!pos || !clientId) continue;
+		const distance = xzDistance(playerPos, pos);
+		if (distance <= INTERACT_RADIUS) {
+			peers.push({ entityId: entity.id, clientId, distance });
+		}
+	}
+	return peers.sort((a, b) => a.distance - b.distance);
+}
+
+/** Detect a joinable group convo among in-range peers (from wire discovery map). */
+export function detectNearbyConvo(
+	inRange: InRangePeer[]
+): { convoId: string; members: string[]; joinSize: number } | null {
+	if (inRange.length === 0) return null;
+
+	let best: { convoId: string; members: string[]; joinSize: number; inRangeCount: number } | null =
+		null;
+
+	for (const peer of inRange) {
+		const info = roomChat.peerConvo[peer.clientId];
+		if (!info || info.members.length < 2) continue;
+		if (info.members.includes(session.clientId)) continue;
+
+		const inRangeCount = inRange.filter((p) => info.members.includes(p.clientId)).length;
+		if (inRangeCount === 0) continue;
+
+		if (
+			!best ||
+			info.members.length > best.joinSize ||
+			(inRangeCount > best.inRangeCount && info.members.length === best.joinSize)
+		) {
+			best = {
+				convoId: info.convoId,
+				members: info.members,
+				joinSize: info.members.length,
+				inRangeCount
+			};
+		}
+	}
+
+	return best ? { convoId: best.convoId, members: best.members, joinSize: best.joinSize } : null;
+}
+
+function nearestConvoMemberEntity(
+	playerPos: [number, number, number],
+	memberClientIds: string[]
+): string | null {
+	let nearestId: string | null = null;
+	let nearestDist = Infinity;
+	for (const entity of world.query('Player')) {
+		if (!isTalkable(entity)) continue;
+		const clientId = playerClientId(entity);
+		if (!clientId || !memberClientIds.includes(clientId)) continue;
+		const pos = entityPosition(entity);
+		if (!pos) continue;
+		const dist = xzDistance(playerPos, pos);
+		if (dist < nearestDist) {
+			nearestDist = dist;
+			nearestId = entity.id;
+		}
+	}
+	return nearestId;
+}
+
+function mergeMemberIds(existing: string[], added: string[]): string[] {
+	return [...new Set([...existing, ...added])].sort((a, b) => a.localeCompare(b));
+}
+
 export function playerInteractSystem(_ctx: TickContext): void {
 	if (ui.shellMode !== 'play' || ui.playPaused) {
 		resetPlayerInteractState();
@@ -68,14 +161,16 @@ export function playerInteractSystem(_ctx: TickContext): void {
 		return;
 	}
 
-	let nearestId: string | null = null;
-	let nearestDist = Infinity;
+	const inRange = peersInInteractRange(playerPos);
+	const joinable = detectNearbyConvo(inRange);
+
+	let nearestId: string | null = inRange[0]?.entityId ?? null;
+	let nearestDist = inRange[0]?.distance ?? Infinity;
 
 	for (const entity of world.query('Player')) {
 		if (!isTalkable(entity)) continue;
 		const pos = entityPosition(entity);
 		if (!pos) continue;
-
 		const dist = xzDistance(playerPos, pos);
 		if (dist < nearestDist) {
 			nearestDist = dist;
@@ -86,16 +181,42 @@ export function playerInteractSystem(_ctx: TickContext): void {
 	const chatting = roomChat.open;
 	if (!chatting) chatPartnerId = null;
 
-	// Sticky while chatting: hold the peer we walked up to, adopting the closest
-	// one when the chat was opened some other way (FAB, or a peer's invite).
 	if (chatting) {
+		const memberIds = roomChat.members.length ? roomChat.members : [];
+		if (memberIds.length > 1) {
+			const anchor = nearestConvoMemberEntity(playerPos, memberIds);
+			if (anchor) chatPartnerId = anchor;
+		}
+
+		if (!chatPartnerId && nearestId && nearestDist <= ADOPT_RADIUS) {
+			chatPartnerId = nearestId;
+		}
 		const partner = chatPartnerId ? world.getEntity(chatPartnerId) : undefined;
-		if (!partner || !isTalkable(partner)) {
-			chatPartnerId = nearestId && nearestDist <= ADOPT_RADIUS ? nearestId : null;
+		if (chatPartnerId && (!partner || !isTalkable(partner))) {
+			const adopted = nearestId && nearestDist <= ADOPT_RADIUS ? nearestId : null;
+			if (adopted) {
+				chatPartnerId = adopted;
+			} else {
+				const convoId = roomChat.leaveConvo();
+				if (convoId) session.sendConvoLeave(convoId);
+				chatPartnerId = null;
+				playerInteractPrompt.clear();
+				return;
+			}
 		}
 	}
 
-	const targetId = chatting ? chatPartnerId : nearestDist <= INTERACT_RADIUS ? nearestId : null;
+	let targetId: string | null = null;
+	if (chatting) {
+		targetId = chatPartnerId;
+	} else if (joinable) {
+		targetId =
+			inRange.find((p) => joinable.members.includes(p.clientId))?.entityId ??
+			nearestId;
+	} else if (inRange.length > 0) {
+		targetId = inRange[0].entityId;
+	}
+
 	const target = targetId ? world.getEntity(targetId) : undefined;
 	const targetPos = target ? entityPosition(target) : undefined;
 	if (!target || !targetPos) {
@@ -105,13 +226,21 @@ export function playerInteractSystem(_ctx: TickContext): void {
 
 	const distance = xzDistance(playerPos, targetPos);
 	const padHint = gamepadWestLabel();
-	// Reuse the projector's last screen point for this target so the prompt
-	// doesn't snap to (0,0) for a frame when the target changes.
 	const existing = playerInteractPrompt.prompt;
 	const sameTarget = existing?.entityId === target.id;
+
+	let label: string;
+	if (joinable && !chatting) {
+		label = `Join conversation (${joinable.joinSize})`;
+	} else if (chatting && roomChat.members.length > 2) {
+		label = `Group chat (${roomChat.members.length})`;
+	} else {
+		label = `Talk with ${displayNameOf(target)}`;
+	}
+
 	playerInteractPrompt.set({
 		entityId: target.id,
-		label: `Talk with ${displayNameOf(target)}`,
+		label,
 		hint: `Press ${padHint}`,
 		x: sameTarget ? existing.x : 0,
 		y: sameTarget ? existing.y : 0,
@@ -123,7 +252,17 @@ export function playerInteractSystem(_ctx: TickContext): void {
 
 	if (!chatting && distance <= INTERACT_RADIUS && input.interactPressed()) {
 		chatPartnerId = target.id;
-		roomChat.setOpen(true);
-		session.sendChatOpen();
+		const partnerClientId = playerClientId(target);
+		if (!partnerClientId) return;
+
+		if (joinable) {
+			const members = mergeMemberIds(joinable.members, [session.clientId]);
+			roomChat.joinConvo(joinable.convoId, members);
+			session.sendConvoJoin(joinable.convoId, members);
+			return;
+		}
+
+		const { convoId, members } = roomChat.startConvo(partnerClientId);
+		session.sendChatOpen(convoId, members);
 	}
 }

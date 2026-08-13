@@ -19,9 +19,11 @@
   }
 
   let { showFab = true }: Props = $props();
-  const anchoredToDocBar = $derived(!showFab);
+  /** Edit mode only — play mode anchors above the walk-up partner's head. */
+  const anchoredToDocBar = $derived(!showFab && ui.shellMode !== 'play');
   const interactPrompt = $derived(playerInteractPrompt.prompt);
   const anchoredToPlayer = $derived(ui.shellMode === 'play' && !!interactPrompt?.visible);
+  const inPlayViewport = $derived(ui.shellMode === 'play');
   /** Chat partner walked off the viewport — pin to the rim with a wayfinder. */
   const pinnedToEdge = $derived(anchoredToPlayer && interactPrompt?.onScreen === false);
   const playerName = $derived.by(() => {
@@ -43,6 +45,8 @@
   const TYPING_PING_MS = 2500;
   /** Idle this long after the last keystroke → broadcast "stopped typing". */
   const TYPING_IDLE_MS = 2000;
+  /** Breathing room between edge-pinned panel and viewport rim. */
+  const EDGE_PIN_INSET = 20;
 
   let draft = $state('');
   let messagesEl = $state<HTMLDivElement | null>(null);
@@ -69,9 +73,13 @@
   );
 
   const participants = $derived.by(() => {
-    const ids = session.connected
-      ? session.members
-      : [session.clientId].filter(Boolean);
+    void roomChat.members;
+    const ids =
+      ui.shellMode === 'play' && roomChat.members.length
+        ? roomChat.members
+        : session.connected
+          ? session.members
+          : [session.clientId].filter(Boolean);
     return ids.map((id) => {
       const self = id === session.clientId;
       const name = collab.displayNameFor(id);
@@ -84,6 +92,35 @@
       };
     });
   });
+  const activeMessages = $derived.by(() => {
+    void roomChat.messages.length;
+    void roomChat.convoId;
+    return roomChat.activeMessages();
+  });
+  const chatTitle = $derived.by(() => {
+    if (ui.shellMode === 'edit') return 'Room chat';
+    const others = roomChat.members.filter((id) => id !== session.clientId);
+    if (others.length === 0) return 'Chat';
+    if (others.length === 1) return `Chat with ${collab.displayNameFor(others[0])}`;
+    if (others.length === 2) {
+      return `Chat with ${collab.displayNameFor(others[0])}, ${collab.displayNameFor(others[1])}`;
+    }
+    return `Group chat (${roomChat.members.length})`;
+  });
+  const rosterLabel = $derived(
+    participants.length === 1
+      ? 'just you'
+      : ui.shellMode === 'play'
+        ? `${participants.length} in chat`
+        : `${participants.length} here`,
+  );
+  const composerPlaceholder = $derived(
+    session.connected
+      ? ui.shellMode === 'play'
+        ? 'Message the group…'
+        : 'Message the room…'
+      : 'Connect to chat…',
+  );
   const rosterAvatars = $derived(participants.slice(0, MAX_ROSTER_AVATARS));
   const rosterOverflow = $derived(
     Math.max(0, participants.length - MAX_ROSTER_AVATARS),
@@ -145,8 +182,8 @@
         window.innerHeight,
         interactPrompt.x,
         interactPrompt.y,
-        chatWidth / 2 + margin,
-        chatHeight / 2 + margin,
+        chatWidth / 2 + margin + EDGE_PIN_INSET,
+        chatHeight / 2 + margin + EDGE_PIN_INSET,
       );
       anchorStyle =
         `left:${place.x}px;top:${place.y}px;bottom:auto;right:auto;` +
@@ -215,11 +252,20 @@
   }
 
   function toggleOpen() {
+    if (!open && ui.shellMode === 'edit') {
+      roomChat.ensureRoomConvo(session.members);
+    }
     roomChat.setOpen(!open);
   }
 
   function closePanel() {
-    roomChat.setOpen(false);
+    stopTyping();
+    if (ui.shellMode === 'play') {
+      const convoId = roomChat.leaveConvo();
+      if (convoId) session.sendConvoLeave(convoId);
+    } else {
+      roomChat.closeConversation();
+    }
   }
 
   /** Throttled "still typing" edge; auto-stops after an idle gap. */
@@ -237,13 +283,16 @@
   function stopTyping() {
     if (typeof window !== 'undefined') clearTimeout(typingIdleTimer);
     typingIdleTimer = 0;
+    roomChat.setLocalComposing(false);
     if (typingSentAt === 0) return;
     typingSentAt = 0;
     session.sendTyping(false);
   }
 
   function onDraftInput() {
-    if (draft.trim()) noteTyping();
+    const composing = draft.trim().length > 0;
+    roomChat.setLocalComposing(composing);
+    if (composing) noteTyping();
     else stopTyping();
   }
 
@@ -268,7 +317,7 @@
   }
 
   $effect(() => {
-    void roomChat.messages.length;
+    void activeMessages.length;
     void open;
     if (open) queueMicrotask(scrollToEnd);
   });
@@ -302,6 +351,7 @@
       return () => window.removeEventListener('resize', onResize);
     }
     anchorStyle = '';
+    arrow = null;
   });
 
   // Escape is two-stage: hand the keyboard back to the avatar first (so you can
@@ -340,6 +390,7 @@
 <div
   class="room-chat"
   class:room-chat--doc-bar={anchoredToDocBar}
+  class:room-chat--viewport={inPlayViewport}
   role="group"
   aria-label="Room chat"
   style={open ? anchorStyle : undefined}
@@ -379,11 +430,7 @@
       {/if}
       <div class="chat-header">
         <div>
-          <div class="chat-title"
-            >{anchoredToPlayer && playerName
-              ? `Chat with ${playerName}`
-              : 'Room chat'}</div
-          >
+          <div class="chat-title">{chatTitle}</div>
           <div class="chat-meta">{peerLabel} · {roomLabel}</div>
         </div>
         <button
@@ -396,7 +443,7 @@
         </button>
       </div>
 
-      <div class="chat-roster" aria-label="In this room">
+      <div class="chat-roster" aria-label={ui.shellMode === 'play' ? 'In this conversation' : 'In this room'}>
         <div class="chat-roster-avatars">
           {#each rosterAvatars as person (person.id)}
             <span
@@ -414,16 +461,18 @@
             >
           {/if}
         </div>
-        <span class="chat-roster-label">
-          {participants.length === 1 ? 'just you' : `${participants.length} here`}
-        </span>
+        <span class="chat-roster-label">{rosterLabel}</span>
       </div>
 
       <div class="chat-messages" bind:this={messagesEl} aria-live="polite">
-        {#if roomChat.messages.length === 0}
-          <p class="chat-empty">Say hi to collaborators in this room.</p>
+        {#if activeMessages.length === 0}
+          <p class="chat-empty">
+            {ui.shellMode === 'play'
+              ? 'Say hi — they can hear you here.'
+              : 'Say hi to collaborators in this room.'}
+          </p>
         {:else}
-          {#each roomChat.messages as line (line.peerId + ':' + line.at)}
+          {#each activeMessages as line (line.peerId + ':' + line.at)}
             <div class="chat-message" class:mine={line.mine}>
               <div
                 class="chat-avatar"
@@ -455,9 +504,7 @@
         <input
           type="text"
           maxlength="280"
-          placeholder={session.connected
-            ? 'Message the room…'
-            : 'Connect to chat…'}
+          placeholder={composerPlaceholder}
           disabled={!session.connected}
           bind:this={inputEl}
           bind:value={draft}
@@ -537,6 +584,13 @@
   /* Edit mode: position is set inline from #doc-bar-chat-anchor rect. */
   .room-chat--doc-bar {
     bottom: auto;
+  }
+
+  /* Play mode: live inside the 3D viewport overlay stack. */
+  .room-chat--viewport {
+    position: absolute;
+    inset: auto;
+    z-index: 10;
   }
 
   @media (max-width: 767px) {

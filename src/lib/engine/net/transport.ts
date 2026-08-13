@@ -69,10 +69,14 @@ export type NetMessage =
 	| { t: 'durable'; id: string; patch: DurablePatch }
 	/** Cross-peer Transform edit on a player avatar (edit mode). */
 	| { t: 'authoring'; id: string; patch: DurablePatch }
-	/** Ephemeral room chat message. */
-	| { t: 'chat'; id: string; message: RoomChatWire }
-	/** Peer asked to open the room chat (walk-up interact). */
-	| { t: 'chat_open'; id: string }
+	/** Ephemeral scoped chat message — delivered only to listed members. */
+	| { t: 'chat'; id: string; convoId: string; members: string[]; message: RoomChatWire }
+	/** Peer opened a proximity conversation (walk-up interact). */
+	| { t: 'chat_open'; id: string; convoId: string; members: string[] }
+	/** Third player joined an existing conversation. */
+	| { t: 'convo_join'; id: string; convoId: string; members: string[] }
+	/** Peer left a proximity conversation. */
+	| { t: 'convo_leave'; id: string; convoId: string }
 	/** Ephemeral typing indicator — peers expire it if the `false` edge is lost. */
 	| { t: 'typing'; id: string; typing: boolean }
 	/** Host-authored room transition in multi-room games (play mode). */

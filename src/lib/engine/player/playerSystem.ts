@@ -5,6 +5,7 @@
  */
 import './spawnPlayer';
 import { roomChat } from '$lib/engine/collab/roomChat.svelte';
+import { session } from '$lib/engine/net/session.svelte';
 import { world } from '$lib/engine/runtime/world.svelte';
 import type { TickContext } from '$lib/engine/ontology/schema';
 import { groundStore } from '$lib/engine/player/groundStore.svelte';
@@ -19,7 +20,7 @@ import {
 	integrateGroundVelocity
 } from './playerMovementUtils';
 import { clipHorizontalVelocity, resolveHorizontalPlayerMove } from './playerCollision';
-import { applyChatTalkingClip, applyLocomotionClip } from './playerLocomotionClips';
+import { applyChatSocialClip, applyLocomotionClip } from './playerLocomotionClips';
 
 /** Latest ground normal from GroundSensor — used by slope movement. */
 export let lastGroundNormal: [number, number, number] = [0, 1, 0];
@@ -65,11 +66,18 @@ const YAW_DEADBAND = (4 * Math.PI) / 180;
 
 /** rad/s — body yaw blends toward move facing instead of snapping. */
 const YAW_TURN_RATE = 10;
+/** rad/s — snap back toward conversation partner after releasing movement keys. */
+const CHAT_YAW_TURN_RATE = 25;
 
-function stepYaw(current: number, target: number, dt: number): number {
+function stepYaw(
+	current: number,
+	target: number,
+	dt: number,
+	rate = YAW_TURN_RATE
+): number {
 	const delta = shortestAngleDelta(current, target);
 	if (Math.abs(delta) < 1e-5) return target;
-	const maxStep = YAW_TURN_RATE * dt;
+	const maxStep = rate * dt;
 	if (Math.abs(delta) <= maxStep) return target;
 	return current + Math.sign(delta) * maxStep;
 }
@@ -151,7 +159,7 @@ export function playerSystem(ctx: TickContext) {
 		// the clip back to locomotion (which no-ops mid-air, keeping jump clips).
 		const chatting = ui.shellMode === 'play' && roomChat.open;
 		if (chatting && move.tier === 'idle' && motorGrounded) {
-			applyChatTalkingClip(entity);
+			applyChatSocialClip(entity, roomChat.isComposing(session.clientId));
 		} else {
 			applyLocomotionClip(entity, move.tier);
 		}
@@ -256,24 +264,26 @@ export function playerSystem(ctx: TickContext) {
 		const faceZ = wishMag > 0.01 ? wishZ : velocityZ;
 		let targetYaw = Math.hypot(faceX, faceZ) > 0.01 ? Math.atan2(faceX, faceZ) : null;
 
-		// Standing in a conversation: face the peer we're talking to. Moving always
-		// wins, so walking away turns the body along the walk direction.
-		if (chatting && targetYaw === null) {
+		// Not actively moving during a conversation: face the peer even while coasting.
+		// Movement input still wins when wishMag > 0.01.
+		const chatFacing = chatting && wishMag <= 0.01;
+		if (chatFacing) {
 			const partner = chatPartnerPosition(entity.id, transform.position);
 			if (partner) {
-				const dx = partner[0] - transform.position[0];
-				const dz = partner[2] - transform.position[2];
-				if (Math.hypot(dx, dz) > 0.01) targetYaw = Math.atan2(dx, dz);
+				const pdx = partner[0] - transform.position[0];
+				const pdz = partner[2] - transform.position[2];
+				if (Math.hypot(pdx, pdz) > 0.01) targetYaw = Math.atan2(pdx, pdz);
 			}
 		}
 
 		if (targetYaw !== null) {
 			const currentYaw = yawFromQuat(transform.rotation);
 			const delta = shortestAngleDelta(currentYaw, targetYaw);
+			const yawRate = chatFacing ? CHAT_YAW_TURN_RATE : YAW_TURN_RATE;
 			if (Math.abs(delta) >= YAW_DEADBAND || move.source === 'keyboard' || chatting) {
 				const nextYaw =
 					move.source === 'keyboard' || chatting
-						? stepYaw(currentYaw, targetYaw, ctx.dt)
+						? stepYaw(currentYaw, targetYaw, ctx.dt, yawRate)
 						: targetYaw;
 				transform.rotation = quatFromYaw(nextYaw);
 			}

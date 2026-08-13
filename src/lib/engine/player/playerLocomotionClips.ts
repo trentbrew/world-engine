@@ -17,6 +17,8 @@ import type { LocomotionTier } from '$lib/engine/player/playInput';
 
 /** Social loop while the room chat panel is open in play mode. */
 export const CHAT_TALKING_CLIP = 'Idle_Talking_Loop';
+/** Resting pose while chat is open but the player is not composing. */
+export const CHAT_IDLE_CLIP = 'Idle_Loop';
 
 /** Hold land clip briefly so it reads before locomotion resumes. */
 const LAND_HOLD_MS = 280;
@@ -163,6 +165,18 @@ function tierClip(entity: Entity, tier: LocomotionTier): string {
 export function applyChatTalkingClip(entity: Entity): void {
 	if (!('Mesh3DAnimator' in entity.components)) return;
 	setAnimClip(entity, CHAT_TALKING_CLIP);
+}
+
+/** Resting conversation pose — listening while chat is open. */
+export function applyChatIdleClip(entity: Entity): void {
+	if (!('Mesh3DAnimator' in entity.components)) return;
+	setAnimClip(entity, CHAT_IDLE_CLIP);
+}
+
+/** Talking while composing, idle loop while listening. */
+export function applyChatSocialClip(entity: Entity, composing: boolean): void {
+	if (composing) applyChatTalkingClip(entity);
+	else applyChatIdleClip(entity);
 }
 
 /** Grounded locomotion tiers only — skip while airborne or landing hold. */

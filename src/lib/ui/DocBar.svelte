@@ -38,9 +38,13 @@
 			<span class="score-chip" title="Collected">★ {score.value}</span>
 		{/if}
 		<RoomPresenceBar />
-		<span class="chat-anchor" id="doc-bar-chat-anchor">
-			<ChatDocBarButton />
-		</span>
+		{#if !inPlay}
+		{#if !inPlay}
+			<span class="chat-anchor" id="doc-bar-chat-anchor">
+				<ChatDocBarButton />
+			</span>
+		{/if}
+		{/if}
 		<PublishDocBarButton />
 		<div class="shell-mode-tabs-slot">
 			<ShellModeTabs />

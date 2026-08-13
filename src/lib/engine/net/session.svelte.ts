@@ -29,7 +29,7 @@ import { isPeerTransformAuthoring } from '$lib/engine/player/access';
 import { ui } from '$lib/ui/ui.svelte';
 import { collab } from '$lib/engine/collab/collab.svelte';
 import { peerColor } from '$lib/engine/collab/peerColor';
-import { roomChat } from '$lib/engine/collab/roomChat.svelte';
+import { roomChat, ROOM_CONVO_ID } from '$lib/engine/collab/roomChat.svelte';
 import type { DurablePatch } from '$lib/engine/ontology/durableStore';
 import { isFieldPatch } from '$lib/engine/ontology/durablePatch';
 import type { Entity } from '$lib/engine/ontology/schema';
@@ -45,6 +45,7 @@ import { warmAdjacentRoomAssets } from '$lib/engine/room/warmRoomAssets';
 import { scheduler } from '$lib/engine/systems/scheduler.svelte';
 import { buildPlayer } from '$lib/engine/player/spawnPlayer';
 import { resetPlayerMovementState } from '$lib/engine/player/playerSystem';
+import { adoptChatPartnerByClientId } from '$lib/engine/systems/behaviors/playerInteract';
 import { applyPlayerLayout, LOCAL_PLAYER_LAYOUT_KEY } from '$lib/engine/dev/editorSession';
 import {
 	reconcilePlayerSpawnPositions,
@@ -195,19 +196,38 @@ class NetSession {
 		world.isOwner = () => true;
 	}
 
-	/** Broadcast an ephemeral chat line to the room. */
+	/** Broadcast an ephemeral chat line to conversation members. */
 	sendChat(text: string) {
 		const trimmed = text.trim().slice(0, 280);
 		if (!trimmed || !this.connected) return;
+		if (ui.shellMode === 'edit') {
+			roomChat.ensureRoomConvo(this.members);
+		} else if (!roomChat.convoId) {
+			return;
+		}
+		const convoId = roomChat.convoId ?? ROOM_CONVO_ID;
+		const members = roomChat.members.length ? roomChat.members : this.members;
 		const message = { text: trimmed, at: Date.now(), name: collab.localDisplayName() };
-		roomChat.ingest(this.clientId, message, true);
-		this.#send({ t: 'chat', id: this.clientId, message });
+		roomChat.ingest(this.clientId, message, { convoId, members, mine: true });
+		this.#send({ t: 'chat', id: this.clientId, convoId, members, message });
 	}
 
-	/** Ask the room to open its chat (walk-up interact with a peer). */
-	sendChatOpen() {
-		if (!this.connected || ui.shellMode !== 'play') return;
-		this.#send({ t: 'chat_open', id: this.clientId });
+	/** Ask peers to open a proximity conversation (walk-up interact). */
+	sendChatOpen(convoId: string, members: string[]) {
+		if (!this.connected || ui.shellMode !== 'play' || !convoId || members.length === 0) return;
+		this.#send({ t: 'chat_open', id: this.clientId, convoId, members });
+	}
+
+	/** Broadcast updated membership when a third player joins a group convo. */
+	sendConvoJoin(convoId: string, members: string[]) {
+		if (!this.connected || ui.shellMode !== 'play' || !convoId || members.length === 0) return;
+		this.#send({ t: 'convo_join', id: this.clientId, convoId, members });
+	}
+
+	/** Notify peers when leaving a proximity conversation. */
+	sendConvoLeave(convoId: string) {
+		if (!this.connected || ui.shellMode !== 'play' || !convoId || convoId === ROOM_CONVO_ID) return;
+		this.#send({ t: 'convo_leave', id: this.clientId, convoId });
 	}
 
 	/** Broadcast this peer's composing state (ephemeral; peers expire it). */
@@ -313,16 +333,42 @@ class NetSession {
 				this.#applyAuthoring(msg.id, msg.patch);
 				break;
 			case 'chat':
-				if (msg.id !== this.clientId && msg.message?.text) {
+				if (msg.id !== this.clientId && msg.message?.text && msg.convoId && msg.members) {
 					this.#touch(msg.id);
-					roomChat.ingest(msg.id, msg.message);
+					roomChat.ingest(msg.id, msg.message, {
+						convoId: msg.convoId,
+						members: msg.members
+					});
 				}
 				break;
 			case 'chat_open':
-				if (msg.id !== this.clientId) {
+				if (msg.id !== this.clientId && msg.convoId && msg.members?.length) {
 					this.#touch(msg.id);
-					// Open the shared chat so the peer we walked up to sees it too.
-					if (ui.shellMode === 'play') roomChat.setOpen(true);
+					roomChat.notePeerConvo(msg.convoId, msg.members);
+					if (ui.shellMode === 'play' && msg.members.includes(this.clientId)) {
+						adoptChatPartnerByClientId(msg.id);
+						roomChat.joinConvo(msg.convoId, msg.members);
+					}
+				}
+				break;
+			case 'convo_join':
+				if (msg.id !== this.clientId && msg.convoId && msg.members?.length) {
+					this.#touch(msg.id);
+					roomChat.mergeConvoMembers(msg.convoId, msg.members);
+					if (ui.shellMode === 'play' && msg.members.includes(this.clientId)) {
+						if (!roomChat.open) {
+							adoptChatPartnerByClientId(msg.id);
+							roomChat.joinConvo(msg.convoId, msg.members);
+						} else if (roomChat.convoId === msg.convoId) {
+							roomChat.mergeConvoMembers(msg.convoId, msg.members);
+						}
+					}
+				}
+				break;
+			case 'convo_leave':
+				if (msg.id !== this.clientId && msg.convoId) {
+					this.#touch(msg.id);
+					roomChat.clearPeerConvo(msg.id);
 				}
 				break;
 			case 'typing':

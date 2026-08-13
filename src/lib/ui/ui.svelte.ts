@@ -7,6 +7,7 @@ import { syncShellModeToUrl } from '$lib/engine/shellUrl';
 import { primePlayMenuButtons } from '$lib/engine/player/gamepad.svelte';
 import { reconcilePlayerSpawnPositions } from '$lib/engine/player/spawnPoints';
 import { resetPlayerMovementState } from '$lib/engine/player/playerSystem';
+import { roomChat } from '$lib/engine/collab/roomChat.svelte';
 import { session } from '$lib/engine/net/session.svelte';
 import {
 	bootstrapFormulas,
@@ -401,9 +402,15 @@ class UIState {
 		syncShellModeToUrl('play');
 	}
 
+	#closePlayChat() {
+		const convoId = roomChat.endPlayConversation();
+		if (convoId) session.sendConvoLeave(convoId);
+	}
+
 	exitPlay() {
 		if (this.shellMode !== 'play') return;
 
+		this.#closePlayChat();
 		this.playPaused = false;
 		stopSimulation();
 		world.roomHistory = [];
@@ -476,6 +483,7 @@ class UIState {
 
 	#applyPlayReset() {
 		if (this.playPaused) this.resumePlay();
+		this.#closePlayChat();
 		world.resetToPlaySnapshot();
 		score.reset();
 		scheduler.reset();
