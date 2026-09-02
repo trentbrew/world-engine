@@ -17,3 +17,9 @@ Fixed e2e blockers from review REJECT:
 - `collections`: parse component from `add_collection_field` response; poll `list_records` for `price=42`
 
 **Look at:** `e2e/webmcp-tools.spec.ts:264-274`, `:405-428`
+
+## 2026-09-02 — executor · ship (pathway A)
+
+Committed `5adb552` on `issue/TRL-224-spec-agent-focus-highlights-for-webmcp` — 29 files, agent focus pipeline + docs + e2e.
+
+**Look at:** `git log -1`, branch `issue/TRL-224-spec-agent-focus-highlights-for-webmcp`
