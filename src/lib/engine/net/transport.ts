@@ -35,6 +35,14 @@ export type PeerSelection = {
 	name: string;
 };
 
+/** Ephemeral agent tool focus — outline + badge on manipulated entities. */
+export type AgentFocusWire = {
+	agentId: string;
+	displayName: string;
+	entityIds: string[];
+	expiresAt: number;
+};
+
 export const PRESENCE_OFFSCREEN = -1;
 
 /** Ephemeral collaborator identity (display name + color). */
@@ -64,6 +72,7 @@ export type NetMessage =
 	 * apply it only while their own simulation is running, never in edit. */
 	| { t: 'despawn'; id: string; entityId: string; runtime?: boolean }
 	| { t: 'selection'; id: string; selection: PeerSelection }
+	| { t: 'agent_focus'; id: string; focus: AgentFocusWire }
 	| { t: 'presence'; id: string; presence: PeerPresence }
 	/** Host-authored durable field edit — immediate peer sync (Trellis is async). */
 	| { t: 'durable'; id: string; patch: DurablePatch }

@@ -7,7 +7,8 @@ import type { DurablePatch } from '$lib/engine/ontology/durableStore';
 import type { Entity } from '$lib/engine/ontology/schema';
 import { world } from '$lib/engine/runtime/world.svelte';
 import { RelayTransport } from '$lib/engine/net/relay';
-import type { NetEntity, NetMessage, NetTransport } from '$lib/engine/net/transport';
+import { bindAgentFocusBroadcast } from '$lib/engine/agent/agentFocus.svelte';
+import type { AgentFocusWire, NetEntity, NetMessage, NetTransport } from '$lib/engine/net/transport';
 
 const HEARTBEAT_MS = 1000;
 const PEER_TIMEOUT_MS = 3000;
@@ -48,11 +49,15 @@ class HeadlessNetSession {
 		});
 		this.#send({ t: 'join', id: this.clientId });
 		this.#transport.whenReady(() => this.#send({ t: 'join', id: this.clientId }));
+		bindAgentFocusBroadcast((focus: AgentFocusWire) => {
+			this.#send({ t: 'agent_focus', id: this.clientId, focus });
+		});
 		this.#heartbeatTimer = setInterval(() => this.#heartbeat(), HEARTBEAT_MS);
 	}
 
 	disconnect() {
 		clearInterval(this.#heartbeatTimer);
+		bindAgentFocusBroadcast(null);
 		this.#send({ t: 'leave', id: this.clientId });
 		this.#unsub?.();
 		this.#transport.disconnect();

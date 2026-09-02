@@ -6,6 +6,8 @@
  *
  * See docs/webmcp.md (API) and docs/webmcp-tools.md (design).
  */
+import { defaultBrowserAgentContext } from '$lib/engine/agent/agentIdentity';
+import { executeWithAgentFocus } from '$lib/engine/agent/webmcp/focusWrap';
 import { WEBMCP_TOOLS, type JsonSchema } from './manifest';
 import { WEBMCP_HANDLERS, MAX_OUTPUT_CHARS, type ToolExecute } from './handlers';
 import { webmcp } from './state.svelte';
@@ -52,8 +54,15 @@ export async function registerWebMcpTools(): Promise<RegisterResult> {
 	const registered: string[] = [];
 
 	for (const entry of WEBMCP_TOOLS) {
-		const execute = WEBMCP_HANDLERS[entry.name];
-		if (!execute) continue;
+		const handler = WEBMCP_HANDLERS[entry.name];
+		if (!handler) continue;
+
+		const execute: ToolExecute = (input, opts) =>
+			executeWithAgentFocus(entry.name, input, {
+				signal: opts.signal,
+				agent: defaultBrowserAgentContext()
+			}, handler);
+
 		try {
 			await ctx.registerTool(
 				{

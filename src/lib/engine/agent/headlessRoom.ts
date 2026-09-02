@@ -50,6 +50,7 @@ export type HeadlessRoom = {
 	game: string;
 	room: string;
 	clientId: string;
+	displayName: string;
 	relayUrl: string;
 	close(): void;
 };
@@ -163,6 +164,7 @@ export async function openHeadlessRoom(opts: HeadlessRoomOptions = {}): Promise<
 		game,
 		room,
 		clientId: transport.clientId,
+		displayName,
 		relayUrl,
 		close() {
 			disconnectHeadlessSession();

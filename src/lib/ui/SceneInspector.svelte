@@ -24,6 +24,7 @@
   import CameraSceneFields from '$lib/ui/scene/CameraSceneFields.svelte';
   import ShadersSceneFields from '$lib/ui/scene/ShadersSceneFields.svelte';
   import CollaborationSection from '$lib/ui/CollaborationSection.svelte';
+  import { clearAgentFocus } from '$lib/engine/agent/agentFocus.svelte';
   import { ui, DEFAULT_GRID, DEFAULT_GROUND_GRID } from '$lib/ui/ui.svelte';
 
   const skyPresetOptions = skySelectOptions;
@@ -313,6 +314,17 @@
           options={[...NONE_ON_OPTIONS]}
           onChange={(value) =>
             (ui.chrome.selectionOutline = noneOnToBool(value))}
+        />
+        <InspectorField
+          id="scene-agent-focus"
+          label="Agent focus highlights"
+          kind="select"
+          value={boolToNoneOn(ui.chrome.agentFocus)}
+          options={[...NONE_ON_OPTIONS]}
+          onChange={(value) => {
+            ui.chrome.agentFocus = noneOnToBool(value);
+            if (!ui.chrome.agentFocus) clearAgentFocus();
+          }}
         />
       </Accordion.Content>
     </Accordion.Item>

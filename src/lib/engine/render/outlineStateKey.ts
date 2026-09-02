@@ -11,7 +11,7 @@ export function outlineStateKey(
 	const layerKey = layers
 		.map(
 			(layer) =>
-				`${layer.id}:${layer.entityIds.join('+')}:${layer.emphasized}:${layer.color}:${layer.edgeStrength ?? ''}`
+				`${layer.id}:${layer.entityIds.join('+')}:${layer.emphasized}:${layer.color}:${layer.edgeStrength ?? ''}:${layer.pulseSpeed ?? ''}`
 		)
 		.join('|');
 

@@ -1,4 +1,8 @@
 import { Color } from 'three';
+import {
+	activeAgentFocus,
+	agentFocusPulseSpeed
+} from '$lib/engine/agent/agentFocus.svelte';
 import { peerColor } from '$lib/engine/collab/peerColor';
 import {
 	isPlayerEntity,
@@ -17,6 +21,8 @@ export type OutlineLayer = {
 	emphasized: boolean;
 	/** Optional edge strength override for non-emphasized passes. */
 	edgeStrength?: number;
+	/** OutlineEffect pulse speed (0 = steady). */
+	pulseSpeed?: number;
 };
 
 function playPlayerOutlineLayers(): OutlineLayer[] {
@@ -37,12 +43,40 @@ function playPlayerOutlineLayers(): OutlineLayer[] {
 	return layers;
 }
 
+function agentFocusLayers(): OutlineLayer[] {
+	if (!ui.chrome.agentFocus) return [];
+
+	const showInEdit = ui.shellMode === 'edit' && ui.chrome.selectionOutline;
+	const showInPlay = ui.shellMode === 'play';
+	if (!showInEdit && !showInPlay) return [];
+
+	const pulse = agentFocusPulseSpeed();
+	const layers: OutlineLayer[] = [];
+
+	for (const entry of activeAgentFocus()) {
+		const ids = entry.entityIds.filter((id) => world.canTransformEntity(id));
+		if (ids.length === 0) continue;
+		layers.push({
+			id: `agent:${entry.agentId}`,
+			color: peerColor(entry.agentId),
+			entityIds: ids,
+			emphasized: true,
+			pulseSpeed: pulse
+		});
+	}
+
+	return layers;
+}
+
 /** Active outline passes derived from hover + local/remote selection. */
 export function outlineLayers(): OutlineLayer[] {
-	const playLayers = playPlayerOutlineLayers();
-	if (playLayers.length > 0) return playLayers;
+	if (ui.shellMode === 'play') {
+		return [...playPlayerOutlineLayers(), ...agentFocusLayers()];
+	}
 
-	if (ui.shellMode !== 'edit' || !ui.chrome.selectionOutline) return [];
+	const agentLayers = agentFocusLayers();
+
+	if (ui.shellMode !== 'edit' || !ui.chrome.selectionOutline) return agentLayers;
 
 	const layers: OutlineLayer[] = [];
 
@@ -87,7 +121,7 @@ export function outlineLayers(): OutlineLayer[] {
 		});
 	}
 
-	return layers;
+	return [...layers, ...agentLayers];
 }
 
 export function hexToOutlineColor(css: string): number {

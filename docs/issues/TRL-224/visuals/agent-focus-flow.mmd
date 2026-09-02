@@ -1,0 +1,18 @@
+```mermaid
+sequenceDiagram
+  participant Agent as Agent (WebMCP / headless)
+  participant Exec as executeWebMcpTool
+  participant Store as agentFocus store
+  participant Net as NetSession
+  participant VP as Viewport (outline + badge)
+
+  Agent->>Exec: spawn_prop / set_entity_field / …
+  Exec->>Exec: handler mutates world
+  Exec->>Store: track(agentId, displayName, entityIds)
+  alt session.connected
+    Store->>Net: send agent_focus
+    Net-->>VP: remote peers apply focus
+  end
+  Store->>VP: outlineLayers + badge projector
+  Note over Store,VP: TTL 3.5s → prune → fade out
+```

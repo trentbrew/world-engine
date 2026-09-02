@@ -116,6 +116,12 @@ test('list_entities describes the loaded world', async ({ page }) => {
 	expect(filtered).toMatch(/entities:|No entities match/);
 });
 
+test('read-only list_entities does not set agent focus', async ({ page }) => {
+	await call(page, 'list_entities', { limit: 1 });
+	const status = await page.locator('[data-agent-focus-status]').textContent();
+	expect(status?.trim() ?? '').toBe('');
+});
+
 test('describe_component reports the Transform schema', async ({ page }) => {
 	const out = await call(page, 'describe_component', { component: 'Transform' });
 	expect(out).toContain('position');
@@ -148,6 +154,15 @@ test('spawn, edit, and remove a prop round-trips through the world', async ({ pa
 
 	const id = spawned.replace('Placed ', '').split(' at ')[0];
 	expect(await page.evaluate((i) => !!window.__webmcp && i.length > 0, id)).toBe(true);
+
+	await expect
+		.poll(
+			async () => page.locator('[data-agent-focus-status]').textContent(),
+			{ timeout: 2_000 }
+		)
+		.toMatch(/updated entity:/);
+
+	await expect(page.locator('.agent-badge-name')).toContainText('Chrome');
 
 	const described = await call(page, 'describe_entity', { entityId: id });
 	expect(described).toContain('Transform');
@@ -250,8 +265,8 @@ test('world_status and get_scene read the live editor', async ({ page }) => {
 	const status = await call(page, 'world_status');
 	expect(status).toContain('mode: edit');
 	expect(status).toMatch(/entities: \d+/);
-	// No avatar exists until play starts — the scheduler is stopped in edit mode.
-	expect(status).toContain('player: none');
+	// Session connects in edit mode and spawns a local player for multiplayer.
+	expect(status).toMatch(/player: entity:player\//);
 
 	const scene = await call(page, 'get_scene');
 	expect(scene).toContain('background:');
@@ -392,19 +407,24 @@ test('collections hold records the agent can create and delete', async ({ page }
 
 	expect(await call(page, 'define_collection', { name, plural: `${name}s` }))
 		.toContain(`Defined collection ${name}`);
-	expect(await call(page, 'add_collection_field', {
+	const added = await call(page, 'add_collection_field', {
 		collection: name,
 		field: 'price',
 		spec: { t: 'number', default: 0 }
-	})).toContain('price');
+	});
+	expect(added).toContain('price');
+	const component = added.split('.')[1] ?? `${name}Data`;
 
 	const created = await call(page, 'create_record', {
 		collection: name,
-		values: { [`${name}Data`]: { price: 42 } }
+		values: { [component]: { price: 42 } }
 	});
 	expect(created).toContain('Created');
 	const recordId = created.replace('Created ', '').replace(/\.$/, '');
 
-	expect(await call(page, 'list_records', { collection: name })).toContain('42');
+	await expect
+		.poll(() => call(page, 'list_records', { collection: name }), { timeout: 5_000 })
+		.toMatch(/price=42/);
+	expect(await call(page, 'list_records', { collection: name })).toContain(recordId);
 	expect(await call(page, 'delete_record', { recordId })).toContain('Deleted');
 });

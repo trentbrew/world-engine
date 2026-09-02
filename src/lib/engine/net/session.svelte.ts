@@ -58,6 +58,12 @@ import {
 	resyncBotSpawnPositions
 } from '$lib/engine/agent/botPlayer';
 import { displayNameForBot } from '$lib/engine/agent/bots';
+import {
+	applyRemoteAgentFocus,
+	bindAgentFocusBroadcast,
+	clearAgentFocus,
+	pruneAgentFocus
+} from '$lib/engine/agent/agentFocus.svelte';
 import { applyPlayerLayout, LOCAL_PLAYER_LAYOUT_KEY } from '$lib/engine/dev/editorSession';
 import {
 	reconcilePlayerSpawnPositions,
@@ -173,6 +179,11 @@ class NetSession {
 		this.#removeSelectionListener = world.onSelectionChange((entityId) => {
 			this.#sendSelection(entityId);
 		});
+		bindAgentFocusBroadcast((focus) => {
+			if (this.connected) {
+				this.#send({ t: 'agent_focus', id: this.clientId, focus });
+			}
+		});
 
 		if (spawnPlayer) {
 			// Spawn locally on a client-id ring slot, then join before announcing so peers
@@ -215,6 +226,8 @@ class NetSession {
 		}
 		this.#removeSelectionListener?.();
 		this.#removeSelectionListener = null;
+		bindAgentFocusBroadcast(null);
+		clearAgentFocus();
 		this.#unsub?.();
 		this.#transport?.disconnect();
 		this.#transport = null;
@@ -398,6 +411,12 @@ class NetSession {
 				break;
 			case 'selection':
 				this.#applySelection(msg.id, msg.selection);
+				break;
+			case 'agent_focus':
+				if (msg.id !== this.clientId) {
+					this.#touch(msg.id);
+					applyRemoteAgentFocus(msg.focus);
+				}
 				break;
 			case 'presence':
 				this.#applyPresence(msg.id, msg.presence);
@@ -631,6 +650,7 @@ class NetSession {
 
 	/** Broadcast realtime fields for every entity the local client owns. */
 	#publish() {
+		pruneAgentFocus();
 		const patch = buildPatch((id) => this.ownerOf(id) === this.clientId);
 		if (Object.keys(patch).length > 0) this.#send({ t: 'state', id: this.clientId, patch });
 		this.#publishPresence();

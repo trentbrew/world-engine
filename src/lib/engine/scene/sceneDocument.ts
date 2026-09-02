@@ -52,6 +52,7 @@ export function defaultSceneDocument(gameTitle?: string): SceneDocument {
 		chrome: {
 			grid: true,
 			selectionOutline: true,
+			agentFocus: true,
 			statsHud: true,
 			playToolbar: false
 		},
@@ -133,6 +134,10 @@ export function parseSceneDocument(raw: unknown, gameTitle?: string): SceneDocum
 				typeof doc.chrome?.selectionOutline === 'boolean'
 					? doc.chrome.selectionOutline
 					: base.chrome.selectionOutline,
+			agentFocus:
+				typeof doc.chrome?.agentFocus === 'boolean'
+					? doc.chrome.agentFocus
+					: base.chrome.agentFocus,
 			statsHud:
 				typeof doc.chrome?.statsHud === 'boolean' ? doc.chrome.statsHud : base.chrome.statsHud,
 			playToolbar:

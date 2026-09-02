@@ -40,7 +40,9 @@ export async function runAgentRoomMcp(opts: AgentRoomMcpOptions = {}): Promise<v
 	server.setRequestHandler(CallToolRequestSchema, async (request) => {
 		const name = request.params.name;
 		const args = (request.params.arguments ?? {}) as Record<string, unknown>;
-		const text = await executeWebMcpTool(name, args);
+		const text = await executeWebMcpTool(name, args, {
+			agent: { agentId: room.clientId, displayName: room.displayName }
+		});
 		const isError = text.startsWith('Error:');
 		return {
 			content: [{ type: 'text', text }],

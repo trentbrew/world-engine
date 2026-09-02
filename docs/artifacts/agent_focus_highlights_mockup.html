@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Playlab — Agent Focus Highlights (TRL-224 design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --viewport: #0e0e0e;
+      --viewport-grid: #1a1a1a;
+      --surface: #141414;
+      --surface-raised: #1c1c1c;
+      --text: #e8e8e8;
+      --text-muted: #8a8a8a;
+      --border: #333333;
+      --border-focus: #737373;
+      --peer-blue: #0f62fe;
+      --peer-pink: #ee5396;
+      --peer-green: #42be65;
+      --peer-orange: #ff832b;
+      --peer-purple: #a56eff;
+      --peer-teal: #08bdba;
+      --rounded-pill: 999px;
+      --doc-bar-height: 36px;
+      --right-panel-width: 280px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--surface);
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: var(--doc-bar-height) 1fr;
+      height: 100%;
+    }
+
+    .doc-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: var(--surface-raised);
+      border-bottom: 1px solid var(--border);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+    }
+
+    .doc-bar .title { color: var(--text-muted); }
+    .doc-bar .title strong { color: var(--text); font-weight: 500; }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1fr var(--right-panel-width);
+      min-height: 0;
+    }
+
+    .viewport-wrap {
+      position: relative;
+      background: var(--viewport);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .viewport-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--viewport-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--viewport-grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    /* Fake 3D props */
+    .scene-objects {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 80px;
+      pointer-events: none;
+    }
+
+    .prop {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      transform: rotateX(12deg) rotateY(-18deg);
+      transform-style: preserve-3d;
+    }
+
+    .prop-cube {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(145deg, #c0392b 0%, #922b21 100%);
+      border-radius: 4px;
+      box-shadow: 0 12px 40px rgb(0 0 0 / 0.5);
+    }
+
+    .prop-cube.blue {
+      background: linear-gradient(145deg, #3498db 0%, #2471a3 100%);
+    }
+
+    /* Outline rings (CSS approximation of OutlineEffect) */
+    .outline-ring {
+      position: absolute;
+      inset: -6px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .outline-ring.peer {
+      box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.95),
+        0 0 0 4px var(--peer-blue),
+        0 0 20px rgba(15, 98, 254, 0.35);
+    }
+
+    .outline-ring.agent {
+      animation: agent-pulse 1.2s ease-in-out infinite;
+      box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.95),
+        0 0 0 4px var(--peer-purple),
+        0 0 24px rgba(165, 110, 255, 0.5);
+    }
+
+    @keyframes agent-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.72; transform: scale(1.04); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .outline-ring.agent { animation: none; opacity: 1; transform: none; }
+    }
+
+    /* Badges */
+    .badge-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .badge {
+      position: absolute;
+      transform: translate(-50%, -120%);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--rounded-pill);
+      border: 1px solid;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .badge.peer {
+      left: 62%;
+      top: 38%;
+      background: color-mix(in srgb, var(--peer-blue) 85%, transparent);
+      border-color: color-mix(in srgb, var(--peer-blue) 50%, transparent);
+    }
+
+    .badge.agent {
+      left: 38%;
+      top: 38%;
+      background: color-mix(in srgb, var(--peer-purple) 85%, transparent);
+      border-color: color-mix(in srgb, var(--peer-purple) 50%, transparent);
+    }
+
+    .badge-kind {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      opacity: 0.85;
+    }
+
+    .badge-dot { opacity: 0.6; font-weight: 400; }
+
+    /* Legend + demo controls */
+    .legend {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 14px;
+      background: color-mix(in srgb, var(--surface-raised) 92%, transparent);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      backdrop-filter: blur(8px);
+      max-width: 280px;
+      z-index: 3;
+    }
+
+    .legend h3 {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .legend-swatch.peer { background: var(--peer-blue); box-shadow: 0 0 0 1px #fff; }
+    .legend-swatch.agent { background: var(--peer-purple); animation: agent-pulse 1.2s ease-in-out infinite; }
+
+    .demo-controls {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      display: flex;
+      gap: 8px;
+      z-index: 3;
+    }
+
+    .demo-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-raised);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .demo-btn:hover { border-color: var(--border-focus); }
+    .demo-btn:active { transform: scale(0.98); }
+
+    /* Right panel — Scene inspector excerpt */
+    .panel {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .panel h2 {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+      font-size: 12px;
+    }
+
+    .toggle {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--peer-green);
+      position: relative;
+      cursor: pointer;
+      border: none;
+    }
+
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 120ms;
+    }
+
+    .toggle.off { background: var(--border); }
+    .toggle.off::after { transform: translateX(-16px); }
+
+    .note {
+      margin-top: 16px;
+      padding: 10px 12px;
+      background: color-mix(in srgb, var(--peer-purple) 12%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--peer-purple) 30%, transparent);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .hidden-focus .outline-ring.agent,
+    .hidden-focus .badge.agent { opacity: 0; transition: opacity 200ms; }
+
+    .sim-expired .outline-ring.agent,
+    .sim-expired .badge.agent { opacity: 0; transition: opacity 400ms ease-in; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="doc-bar">
+      <span class="title"><strong>Playlab</strong> · orbit.jsonld</span>
+      <span style="color: var(--text-muted)">TRL-224 design mock</span>
+    </header>
+
+    <div class="main">
+      <div class="viewport-wrap" id="viewport" data-design-note="Agent focus renders in this layer — outline on canvas (postprocessing) + badge overlay">
+        <div class="viewport-grid"></div>
+        <div
+          id="agent-focus-status"
+          class="sr-only"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-agent-focus-status
+        ></div>
+
+        <div class="scene-objects">
+          <!-- Agent-touched prop -->
+          <div class="prop" style="margin-top: 20px" data-design-note="Agent focus target — pulsing outline">
+            <div class="outline-ring agent"></div>
+            <div class="prop-cube"></div>
+          </div>
+          <!-- Human peer selection -->
+          <div class="prop" style="margin-top: -10px" data-design-note="Human peer selection — steady outline">
+            <div class="outline-ring peer"></div>
+            <div class="prop-cube blue"></div>
+          </div>
+        </div>
+
+        <div class="badge-layer" aria-hidden="true">
+          <span class="badge agent" id="agent-badge">
+            <span class="badge-kind">AGENT</span>
+            <span class="badge-dot">·</span>
+            <span id="agent-name">ChatGPT</span>
+          </span>
+          <span class="badge peer">
+            Alex
+          </span>
+        </div>
+
+        <div class="legend">
+          <h3>Compare</h3>
+          <div class="legend-row">
+            <span class="legend-swatch agent"></span>
+            <span><strong>Agent focus</strong> — pulsing, ~3.5s TTL, <code>AGENT · {platform}</code></span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-swatch peer"></span>
+            <span><strong>Peer selection</strong> — steady while held, display name only</span>
+          </div>
+        </div>
+
+        <div class="demo-controls">
+          <button type="button" class="demo-btn" id="btn-spawn">Simulate spawn_prop</button>
+          <button type="button" class="demo-btn" id="btn-expire">Simulate TTL expire</button>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <h2>Scene</h2>
+        <div class="field">
+          <span>Selection outline</span>
+          <button type="button" class="toggle" aria-label="Show selection outline in viewport"></button>
+        </div>
+        <div class="field">
+          <span>Agent focus highlights</span>
+          <button type="button" class="toggle" id="toggle-agent" aria-label="Show agent focus highlights in viewport"></button>
+        </div>
+
+        <div class="note" data-design-note="Inspector toggle — ui.chrome.agentFocus; subordinate to selectionOutline master">
+          When an agent calls <code>spawn_prop</code> or edits an entity, a pulsing outline and platform badge appear briefly. Toggle off to hide all agent focus chrome.
+        </div>
+
+        <h2 style="margin-top: 20px">Agent label</h2>
+        <div class="field" style="flex-direction: column; align-items: stretch; gap: 8px">
+          <label for="platform-select" style="font-size: 11px; color: var(--text-muted)">Platform (demo)</label>
+          <select id="platform-select" style="padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font-size: 12px">
+            <option value="ChatGPT">ChatGPT</option>
+            <option value="Cursor">Cursor</option>
+            <option value="Chrome">Chrome</option>
+            <option value="Architect">Architect (headless)</option>
+            <option value="Agent">Agent (fallback)</option>
+          </select>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const viewport = document.getElementById('viewport');
+    const agentBadge = document.getElementById('agent-badge');
+    const agentName = document.getElementById('agent-name');
+    const toggleAgent = document.getElementById('toggle-agent');
+    const platformSelect = document.getElementById('platform-select');
+    const btnSpawn = document.getElementById('btn-spawn');
+    const btnExpire = document.getElementById('btn-expire');
+
+    platformSelect.addEventListener('change', () => {
+      agentName.textContent = platformSelect.value;
+    });
+
+    toggleAgent.addEventListener('click', () => {
+      toggleAgent.classList.toggle('off');
+      viewport.classList.toggle('hidden-focus', toggleAgent.classList.contains('off'));
+    });
+
+    btnSpawn.addEventListener('click', () => {
+      viewport.classList.remove('sim-expired', 'hidden-focus');
+      toggleAgent.classList.remove('off');
+      agentBadge.style.animation = 'none';
+      agentBadge.offsetHeight;
+      agentBadge.style.animation = '';
+      agentBadge.style.opacity = '1';
+      document.querySelector('.outline-ring.agent').style.opacity = '1';
+      const name = platformSelect.value;
+      document.getElementById('agent-focus-status').textContent =
+        `${name} updated entity:prop/demo`;
+    });
+
+    btnExpire.addEventListener('click', () => {
+      viewport.classList.add('sim-expired');
+      setTimeout(() => viewport.classList.remove('sim-expired'), 600);
+    });
+  </script>
+</body>
+</html>

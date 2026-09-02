@@ -133,6 +133,8 @@ export type AssetPickTarget =
 export type ChromeToggles = {
 	grid: boolean;
 	selectionOutline: boolean;
+	/** Ephemeral outline + badge when WebMCP agents manipulate entities. */
+	agentFocus: boolean;
 	statsHud: boolean;
 	/** Bottom-center Pause/Reset pill in play mode. Off by default — Esc/P/R + gamepad still work. */
 	playToolbar: boolean;
@@ -316,6 +318,7 @@ class UIState {
 	chrome = $state<ChromeToggles>({
 		grid: true,
 		selectionOutline: true,
+		agentFocus: true,
 		statsHud: true,
 		playToolbar: false
 	});

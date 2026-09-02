@@ -66,6 +66,8 @@ const INSPECTOR_FIELD_HELP: Record<string, string> = {
 
 	// Selection / developer
 	'scene-selection-outline': 'Highlight outline on the selected entity.',
+	'scene-agent-focus':
+		'Brief outline and badge when an agent edits the world via WebMCP tools.',
 	'scene-stats-hud': 'FPS and draw-call overlay during play mode (top-right).',
 
 	// Component fields (right panel)
