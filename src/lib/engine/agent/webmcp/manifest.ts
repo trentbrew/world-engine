@@ -153,7 +153,7 @@ const getScene: ToolManifestEntry = {
 	name: 'get_scene',
 	title: 'Get scene settings',
 	description:
-		'Return the scene’s presentation settings: display name, background colour, shadows, sky preset, ground grid, and art style. These are the knobs the Scene panel exposes. Change one with set_scene_setting.',
+		'Return the scene’s presentation and post-processing settings: display name, background, shadows, grid, sky preset, art style, tone mapping, exposure, and the fog, bloom, vignette, grain, outline and sketch effect groups with all their knobs. Change any of them with set_scene_setting.',
 	inputSchema: { type: 'object', properties: {} },
 	annotations: READ_TRUSTED,
 	target: 'ui.scene'
@@ -794,16 +794,33 @@ const setSceneSetting: ToolManifestEntry = {
 	name: 'set_scene_setting',
 	title: 'Set scene setting',
 	description:
-		'Change one of the scene’s presentation settings. Keys are name, background (hex), shadows (boolean), sky (noon, afternoon, sunset, night, or off), artStyle (realistic, toon, ink, clay, noir), and grid (boolean). Read the current values with get_scene.',
+		'Change one of the scene’s presentation or post-processing settings — this is how the world’s mood is authored. Scalars: name, background (hex), shadows, grid, sky (noon, afternoon, sunset, night, off), artStyle (realistic, toon, ink, clay, noir), toneMapping, exposure. Effect groups: fog, bloom, vignette, grain, outline, sketch — pass true/false to toggle, or an object of knobs such as {"enabled":true,"color":"#2a1a4a","far":90}. Read current values with get_scene.',
 	inputSchema: {
 		type: 'object',
 		properties: {
 			key: {
 				type: 'string',
-				enum: ['name', 'background', 'shadows', 'sky', 'artStyle', 'grid'],
+				enum: [
+					'name',
+					'background',
+					'shadows',
+					'grid',
+					'sky',
+					'artStyle',
+					'toneMapping',
+					'exposure',
+					'fog',
+					'bloom',
+					'vignette',
+					'grain',
+					'outline',
+					'sketch'
+				],
 				description: 'Which setting to change.'
 			},
-			value: { description: 'The new value: a string for name, background, sky and artStyle.' }
+			value: {
+				description: 'Scalar for scalar keys; true/false or a knobs object for effect groups.'
+			}
 		},
 		required: ['key', 'value']
 	},

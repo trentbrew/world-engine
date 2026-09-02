@@ -29,6 +29,7 @@ import type {
 	FieldSchema
 } from '$lib/engine/ontology/schema';
 import { world } from '$lib/engine/runtime/world.svelte';
+import type { SceneStyle } from '$lib/scene/artStyles';
 
 /** Chrome's recommended per-output ceiling (docs/webmcp.md). */
 export const MAX_OUTPUT_CHARS = 1500;
@@ -184,6 +185,48 @@ async function browserOnly<T>(load: () => Promise<T>, what: string): Promise<T |
 const uiModule = () => import('$lib/ui/ui.svelte');
 const focusModule = () => import('$lib/scene/focusEntity');
 
+/** Post-processing groups on `SceneStyle`, each a bag of knobs behind `enabled`. */
+const EFFECT_GROUPS = ['fog', 'bloom', 'vignette', 'grain', 'outline', 'sketch'] as const;
+const TONE_MAPPINGS = ['none', 'linear', 'reinhard', 'cineon', 'aces', 'agx', 'neutral'];
+
+function describeEffectGroup(group: Record<string, unknown>): string {
+	return Object.entries(group)
+		.map(([knob, v]) => `${knob}=${formatValue(v)}`)
+		.join(' ');
+}
+
+/**
+ * Merge agent input into one effect group. `true`/`false` toggles it; an object
+ * sets named knobs (and implies `enabled` unless the agent says otherwise), so
+ * "turn on fog" and "make the fog purple and close" are both one call.
+ */
+function applyEffectKnobs(
+	group: Record<string, unknown>,
+	value: unknown,
+	name: string
+): string {
+	if (typeof value === 'boolean' || value === 'true' || value === 'false') {
+		group.enabled = value === true || value === 'true';
+		return describeEffectGroup(group);
+	}
+	if (!value || typeof value !== 'object' || Array.isArray(value)) {
+		return fail(`${name} takes true/false or an object of knobs: ${Object.keys(group).join(', ')}.`);
+	}
+
+	const patch = value as Record<string, unknown>;
+	const unknown = Object.keys(patch).filter((knob) => !(knob in group));
+	if (unknown.length > 0) {
+		return fail(
+			`${name} has no knob "${unknown[0]}". Knobs: ${suggestList(unknown[0], Object.keys(group))}`
+		);
+	}
+	for (const [knob, v] of Object.entries(patch)) {
+		group[knob] = typeof group[knob] === 'number' ? Number(v) : v;
+	}
+	if (!('enabled' in patch)) group.enabled = true;
+	return describeEffectGroup(group);
+}
+
 export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 	// ---- read: world -------------------------------------------------------
 
@@ -304,16 +347,21 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 		const mod = await browserOnly(uiModule, 'get_scene');
 		if (isError(mod)) return mod;
 		const scene = mod.ui.scene;
-		return clamp(
-			[
-				`name: ${scene.displayName}`,
-				`background: ${scene.background}`,
-				`shadows: ${scene.shadows}`,
-				`sky: ${scene.sky.enabled ? scene.sky.preset : 'off'}`,
-				`artStyle: ${scene.style.artStyle}`,
-				`grid: ${scene.groundGrid.enabled}`
-			].join('\n')
-		);
+		const style = scene.style;
+		const lines = [
+			`name: ${scene.displayName}`,
+			`background: ${scene.background}`,
+			`shadows: ${scene.shadows}`,
+			`grid: ${scene.groundGrid.enabled}`,
+			`sky: ${scene.sky.enabled ? scene.sky.preset : 'off'}`,
+			`artStyle: ${style.artStyle}`,
+			`toneMapping: ${style.toneMapping}`,
+			`exposure: ${formatValue(style.exposure)}`
+		];
+		for (const group of EFFECT_GROUPS) {
+			lines.push(`${group}: ${describeEffectGroup(style[group] as Record<string, unknown>)}`);
+		}
+		return clamp(lines.join('\n'));
 	},
 
 	// ---- read: ontology ----------------------------------------------------
@@ -985,6 +1033,36 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 				}
 				mod.ui.setArtStyle(style as Parameters<typeof mod.ui.setArtStyle>[0]);
 				return `Art style is now ${style}.`;
+			}
+			case 'toneMapping': {
+				const tone = String(value ?? '');
+				if (!TONE_MAPPINGS.includes(tone)) {
+					return fail(`toneMapping must be one of: ${TONE_MAPPINGS.join(', ')}.`);
+				}
+				scene.style.toneMapping = tone as SceneStyle['toneMapping'];
+				mod.ui.touchStyleCustom();
+				return `Tone mapping is now ${tone}.`;
+			}
+			case 'exposure': {
+				const exposure = Number(value);
+				if (!Number.isFinite(exposure) || exposure < 0 || exposure > 8) {
+					return fail('exposure must be a number between 0 and 8.');
+				}
+				scene.style.exposure = exposure;
+				mod.ui.touchStyleCustom();
+				return `Exposure is now ${formatValue(exposure)}.`;
+			}
+			case 'fog':
+			case 'bloom':
+			case 'vignette':
+			case 'grain':
+			case 'outline':
+			case 'sketch': {
+				const group = scene.style[key] as Record<string, unknown>;
+				const applied = applyEffectKnobs(group, value, key);
+				if (isError(applied)) return applied;
+				mod.ui.touchStyleCustom();
+				return `${key}: ${applied}`;
 			}
 			default:
 				return fail(`Unknown setting "${key}". Use get_scene to see what can be changed.`);

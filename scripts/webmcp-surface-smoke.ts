@@ -65,6 +65,8 @@ await step('describe_component', { component: 'Transform' }, 'Transform (built-i
 await step('describe_component', { component: 'Trasnform' }, isError);
 await step('describe_type', { type: 'Prop' }, 'Prop');
 await step('get_scene', {}, headlessOk);
+// No session in a headless smoke, so "no local player yet" is the correct answer.
+await step('get_player', {}, (o) => o.startsWith('id:') || o.includes('No local player'));
 
 // Primitives must be reachable from list_assets — the gap that stopped an agent
 // from spawning a box at all.

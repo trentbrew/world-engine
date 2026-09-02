@@ -250,7 +250,8 @@ test('world_status and get_scene read the live editor', async ({ page }) => {
 	const status = await call(page, 'world_status');
 	expect(status).toContain('mode: edit');
 	expect(status).toMatch(/entities: \d+/);
-	expect(status).toMatch(/player: entity:player\//);
+	// No avatar exists until play starts — the scheduler is stopped in edit mode.
+	expect(status).toContain('player: none');
 
 	const scene = await call(page, 'get_scene');
 	expect(scene).toContain('background:');
@@ -260,8 +261,13 @@ test('world_status and get_scene read the live editor', async ({ page }) => {
 test('get_player returns the local avatar position in play mode', async ({ page }) => {
 	await call(page, 'set_mode', { mode: 'play' });
 
+	// The avatar spawns asynchronously — session connect, then spawn-point
+	// reconciliation — so poll rather than reading on the next tick.
+	await expect
+		.poll(() => call(page, 'get_player'), { timeout: 15_000 })
+		.toMatch(/^id: entity:player\//);
+
 	const player = await call(page, 'get_player');
-	expect(player).toMatch(/^id: entity:player\//);
 	expect(player).toMatch(/position: \[/);
 
 	const status = await call(page, 'world_status');
@@ -277,6 +283,41 @@ test('set_scene_setting changes the scene and get_scene reads it back', async ({
 
 	const bad = await call(page, 'set_scene_setting', { key: 'artStyle', value: 'neon' });
 	expect(bad).toContain('Error:');
+});
+
+test('the agent can author the scene mood through post-processing', async ({ page }) => {
+	// The look-dev beat: fog + bloom are what separate a lit box field from an
+	// atmosphere, and both must be reachable without touching the editor.
+	expect(await call(page, 'get_scene')).toContain('fog:');
+
+	const fog = await call(page, 'set_scene_setting', {
+		key: 'fog',
+		value: { color: '#2a1a4a', near: 8, far: 90 }
+	});
+	expect(fog).toContain('enabled=true'); // implied when knobs are set
+	expect(fog).toContain('#2a1a4a');
+
+	const bloom = await call(page, 'set_scene_setting', {
+		key: 'bloom',
+		value: { intensity: 1.4, threshold: 0.6 }
+	});
+	expect(bloom).toContain('enabled=true');
+
+	// Bare toggle is the other accepted shape.
+	expect(await call(page, 'set_scene_setting', { key: 'vignette', value: true }))
+		.toContain('enabled=true');
+
+	expect(await call(page, 'set_scene_setting', { key: 'exposure', value: 1.8 }))
+		.toContain('1.8');
+
+	const scene = await call(page, 'get_scene');
+	expect(scene).toContain('#2a1a4a');
+	expect(scene).toContain('artStyle: custom'); // knob edits flip the preset
+
+	// Unknown knobs self-correct rather than silently no-op.
+	const typo = await call(page, 'set_scene_setting', { key: 'fog', value: { colour: '#fff' } });
+	expect(typo).toContain('Error:');
+	expect(typo).toContain('color');
 });
 
 test('set_mode drives play, pause, and back to edit', async ({ page }) => {
