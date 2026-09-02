@@ -44,8 +44,20 @@ import { roomTransition } from '$lib/engine/room/roomTransition.svelte';
 import { warmAdjacentRoomAssets } from '$lib/engine/room/warmRoomAssets';
 import { scheduler } from '$lib/engine/systems/scheduler.svelte';
 import { buildPlayer } from '$lib/engine/player/spawnPlayer';
+import { applyStoredPlayerAvatarMesh } from '$lib/engine/player/playerAvatarPrefs';
+import {
+	mergePlayerAvatarVisual,
+	playerAvatarVisualFromComponents
+} from '$lib/engine/player/playerAvatarVisual';
 import { resetPlayerMovementState } from '$lib/engine/player/playerSystem';
 import { adoptChatPartnerByClientId } from '$lib/engine/systems/behaviors/playerInteract';
+import { emitHumanChat } from '$lib/engine/agent/chatHooks';
+import {
+	botSpawnRoster,
+	despawnAllBots,
+	resyncBotSpawnPositions
+} from '$lib/engine/agent/botPlayer';
+import { displayNameForBot } from '$lib/engine/agent/bots';
 import { applyPlayerLayout, LOCAL_PLAYER_LAYOUT_KEY } from '$lib/engine/dev/editorSession';
 import {
 	reconcilePlayerSpawnPositions,
@@ -56,6 +68,11 @@ import { PRESENCE_OFFSCREEN } from './transport';
 
 export { PRESENCE_OFFSCREEN } from './transport';
 export type { PeerPresence } from './transport';
+
+export type SessionConnectOptions = {
+	/** Spawn a local player avatar on connect (default true). */
+	spawnPlayer?: boolean;
+};
 
 const PUBLISH_MS = 50; // ~20 Hz
 const HEARTBEAT_MS = 1000;
@@ -74,8 +91,8 @@ class NetSession {
 
 	#transport: NetTransport | null = null;
 	#unsub: (() => void) | null = null;
-	#publishTimer = 0;
-	#heartbeatTimer = 0;
+	#publishTimer: ReturnType<typeof setInterval> | 0 = 0;
+	#heartbeatTimer: ReturnType<typeof setInterval> | 0 = 0;
 	#myPlayerId: string | null = null;
 	#removeSelectionListener: (() => void) | null = null;
 	#heartbeatCount = 0;
@@ -88,6 +105,11 @@ class NetSession {
 	/** All present ids (self + peers), sorted; smallest is host. */
 	get members(): string[] {
 		return [this.clientId, ...Object.keys(this.peers)].filter(Boolean).sort();
+	}
+
+	/** Spawn roster including synthetic bot players. */
+	get spawnRoster(): string[] {
+		return botSpawnRoster(this.members);
 	}
 
 	get host(): string {
@@ -121,8 +143,14 @@ class NetSession {
 		return this.owners[entityId] ?? this.host;
 	}
 
-	connect(room: string, transport: NetTransport, kind: 'local' | 'relay' = 'local') {
-		if (this.connected || typeof window === 'undefined') return;
+	connect(
+		room: string,
+		transport: NetTransport,
+		kind: 'local' | 'relay' = 'local',
+		opts: SessionConnectOptions = {}
+	) {
+		if (this.connected) return;
+		const spawnPlayer = opts.spawnPlayer !== false;
 		this.#transport = transport;
 		this.transportKind = kind;
 		transport.connect(room);
@@ -146,27 +174,35 @@ class NetSession {
 			this.#sendSelection(entityId);
 		});
 
-		// Spawn locally on a client-id ring slot, then join before announcing so peers
-		// never receive a stacked spawn position from the first network tick.
-		const spawn = spawnPositionForClient(this.clientId, [this.clientId]);
-		const player = buildPlayer(this.clientId, spawn);
-		if (ui.shellMode !== 'play') applyPlayerLayout(player, LOCAL_PLAYER_LAYOUT_KEY);
-		this.#myPlayerId = player.id;
-		this.owners[player.id] = this.clientId;
-		world.localPlayerId = player.id;
-		// A stale copy of our player can survive soft reloads (HMR keeps world
-		// entities) or arrive from room state — spawn() would silently keep it,
-		// including corrupt Transform/Jump data. Always rebuild our own avatar.
-		if (world.getEntity(player.id)) world.despawn(player.id);
-		world.spawn(player);
+		if (spawnPlayer) {
+			// Spawn locally on a client-id ring slot, then join before announcing so peers
+			// never receive a stacked spawn position from the first network tick.
+			const spawn = spawnPositionForClient(this.clientId, [this.clientId]);
+			const player = buildPlayer(this.clientId, spawn);
+			if (ui.shellMode !== 'play') applyPlayerLayout(player, LOCAL_PLAYER_LAYOUT_KEY);
+			this.#myPlayerId = player.id;
+			this.owners[player.id] = this.clientId;
+			world.localPlayerId = player.id;
+			// A stale copy of our player can survive soft reloads (HMR keeps world
+			// entities) or arrive from room state — spawn() would silently keep it,
+			// including corrupt Transform/Jump data. Always rebuild our own avatar.
+			if (world.getEntity(player.id)) world.despawn(player.id);
+			world.spawn(player);
+			applyStoredPlayerAvatarMesh(player);
+		} else {
+			this.#myPlayerId = null;
+			world.localPlayerId = null;
+		}
 
 		// Handshake immediately (relay outbox queues until open) and again on (re)connect.
 		this.#handshakeJoin();
 		transport.whenReady(() => this.#handshakeJoin());
 		queueMicrotask(() => this.#bootstrapSpawns());
-		this.#heartbeatTimer = window.setInterval(() => this.#heartbeat(), HEARTBEAT_MS);
-		this.#publishTimer = window.setInterval(() => this.#publish(), PUBLISH_MS);
-		window.addEventListener('pagehide', this.#leave);
+		this.#heartbeatTimer = setInterval(() => this.#heartbeat(), HEARTBEAT_MS);
+		this.#publishTimer = setInterval(() => this.#publish(), PUBLISH_MS);
+		if (typeof window !== 'undefined') {
+			window.addEventListener('pagehide', this.#leave);
+		}
 	}
 
 	disconnect() {
@@ -174,7 +210,9 @@ class NetSession {
 		this.#leave();
 		clearInterval(this.#heartbeatTimer);
 		clearInterval(this.#publishTimer);
-		window.removeEventListener('pagehide', this.#leave);
+		if (typeof window !== 'undefined') {
+			window.removeEventListener('pagehide', this.#leave);
+		}
 		this.#removeSelectionListener?.();
 		this.#removeSelectionListener = null;
 		this.#unsub?.();
@@ -191,6 +229,7 @@ class NetSession {
 		this.peerSelections = {};
 		roomChat.reset();
 		resetPeerEditToasts();
+		despawnAllBots();
 		world.bindDurableNet(null);
 		world.bindRuntimeNet(null);
 		world.isOwner = () => true;
@@ -210,6 +249,38 @@ class NetSession {
 		const message = { text: trimmed, at: Date.now(), name: collab.localDisplayName() };
 		roomChat.ingest(this.clientId, message, { convoId, members, mine: true });
 		this.#send({ t: 'chat', id: this.clientId, convoId, members, message });
+		emitHumanChat({ fromClientId: this.clientId, text: trimmed, convoId, members });
+	}
+
+	/** Broadcast chat as another client id (synthetic bot players). */
+	sendChatAs(
+		text: string,
+		opts: { fromClientId: string; convoId: string; members: string[]; displayName?: string }
+	) {
+		const trimmed = text.trim().slice(0, 280);
+		if (!trimmed || !this.connected) return;
+		const wireName =
+			opts.displayName?.trim() ||
+			displayNameForBot(opts.fromClientId) ||
+			collab.displayNameFor(opts.fromClientId);
+		const message = { text: trimmed, at: Date.now(), name: wireName };
+		roomChat.ingest(opts.fromClientId, message, {
+			convoId: opts.convoId,
+			members: opts.members
+		});
+		this.#send({
+			t: 'chat',
+			id: opts.fromClientId,
+			convoId: opts.convoId,
+			members: opts.members,
+			message
+		});
+	}
+
+	/** Broadcast typing state for a synthetic bot player. */
+	sendTypingAs(fromClientId: string, typing: boolean) {
+		if (!this.connected) return;
+		this.#send({ t: 'typing', id: fromClientId, typing });
 	}
 
 	/** Ask peers to open a proximity conversation (walk-up interact). */
@@ -273,6 +344,11 @@ class NetSession {
 	replicateSpawn(entity: Entity) {
 		this.owners[entity.id] = this.clientId;
 		if (this.connected) this.#sendSpawn(entity);
+	}
+
+	/** Re-broadcast the local player spawn (avatar mesh heal for peers). */
+	announcePlayer() {
+		this.#announcePlayer();
 	}
 
 	#receive(msg: NetMessage) {
@@ -426,7 +502,17 @@ class NetSession {
 	#addRemote(entity: NetEntity, owner: string) {
 		const id = entity.id;
 		if (id === this.#myPlayerId || id === world.localPlayerId) return;
-		if (world.getEntity(id)) return;
+
+		const existing = world.getEntity(id);
+		if (existing && id.startsWith('entity:player/')) {
+			const visual = playerAvatarVisualFromComponents(entity.components);
+			if (mergePlayerAvatarVisual(existing, visual)) {
+				this.owners[id] = owner;
+				world.entities = [...world.entities];
+			}
+			return;
+		}
+		if (existing) return;
 
 		let components = entity.components;
 		let type = entity.type ?? 'Prop';
@@ -434,7 +520,7 @@ class NetSession {
 		if (id.startsWith('entity:player/')) {
 			const clientId = id.slice('entity:player/'.length);
 			if (!clientId) return;
-			const spawn = spawnPositionForClient(clientId, this.members);
+			const spawn = spawnPositionForClient(clientId, this.spawnRoster);
 			const hasVisual =
 				!!components?.Render || (!!components?.SkinnedMesh && !!components?.Mesh3DAnimator);
 			if (!components?.Player || !components?.Transform || !hasVisual) {
@@ -500,7 +586,7 @@ class NetSession {
 		const player = world.getEntity(this.#myPlayerId);
 		if (!player) return;
 
-		const spawn = spawnPositionForClient(this.clientId, this.members);
+		const spawn = spawnPositionForClient(this.clientId, this.spawnRoster);
 		let components = $state.snapshot(player.components) as NetEntity['components'];
 		const hasVisual =
 			!!components?.Render || (!!components?.SkinnedMesh && !!components?.Mesh3DAnimator);
@@ -657,15 +743,16 @@ class NetSession {
 	}
 
 	#spawnPoint(): [number, number, number] {
-		return spawnPositionForClient(this.clientId, this.members);
+		return spawnPositionForClient(this.clientId, this.spawnRoster);
 	}
 
 	/** Re-slot players when the room roster changes (each client initially spawns alone). */
 	#syncMemberSpawns() {
-		const key = this.members.join('\0');
+		const key = this.spawnRoster.join('\0');
 		if (key === this.#membersKey) return;
 		this.#membersKey = key;
-		reconcilePlayerSpawnPositions(this.members);
+		reconcilePlayerSpawnPositions(this.spawnRoster);
+		resyncBotSpawnPositions();
 		if (this.#myPlayerId && world.localPlayerId === this.#myPlayerId) {
 			resetPlayerMovementState();
 		}

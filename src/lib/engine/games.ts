@@ -7,6 +7,8 @@
  */
 import { discoveredGames } from '$lib/engine/discoveredGames';
 import { defaultRoomForGame } from '$lib/engine/net/roomUrl';
+import { replaceBrowserUrl } from '$lib/engine/replaceBrowserUrl';
+import { resolveRemoteWorld, worldRegistry } from '$lib/engine/worldRegistry.svelte';
 import {
 	DEFAULT_GAME_PARAM,
 	GAME_ORDER,
@@ -21,6 +23,10 @@ export interface GameEntry {
 	dimensions: '2d' | '3d';
 	/** Feature demos — grouped separately in the scene picker. */
 	category?: 'demo';
+	/** Bundled static/games vs remote turtlehq/worlds registry. */
+	source?: 'local' | 'registry';
+	/** Absolute URL for registry worlds (`?world=`). */
+	worldUrl?: string;
 }
 
 const RECENT_GAMES_KEY = 'scene-selector:recent-games';
@@ -103,9 +109,20 @@ export function gameUrl(param?: string): string {
 	return `/games/${param}.jsonld`;
 }
 
+export function currentWorldUrl(): string | null {
+	if (typeof location === 'undefined') return null;
+	return new URLSearchParams(location.search).get('world');
+}
+
+export function resolveWorldSourceUrl(param?: string): string {
+	return currentWorldUrl() ?? gameUrl(param);
+}
+
 export function currentGameParam(): string | undefined {
 	if (typeof location === 'undefined') return DEFAULT_GAME_PARAM;
-	return new URLSearchParams(location.search).get('game') ?? DEFAULT_GAME_PARAM;
+	const params = new URLSearchParams(location.search);
+	if (params.get('world')) return undefined;
+	return params.get('game') ?? DEFAULT_GAME_PARAM;
 }
 
 /** Add `?game=` when missing so the default world is explicit in the URL. */
@@ -113,15 +130,18 @@ export function ensureGameInUrl(): string {
 	if (typeof location === 'undefined') return DEFAULT_GAME_PARAM;
 
 	const url = new URL(location.href);
+	if (url.searchParams.get('world')) return DEFAULT_GAME_PARAM;
 	const existing = url.searchParams.get('game');
 	if (existing) return existing;
 
 	url.searchParams.set('game', DEFAULT_GAME_PARAM);
-	history.replaceState(history.state, '', url);
+	replaceBrowserUrl(url);
 	return DEFAULT_GAME_PARAM;
 }
 
 export function currentGame(): GameEntry {
+	const worldUrl = currentWorldUrl();
+	if (worldUrl) return resolveRemoteWorld(worldUrl);
 	return resolveGame(currentGameParam());
 }
 
@@ -135,7 +155,10 @@ export function recentGameParams(): string[] {
 		const raw = localStorage.getItem(RECENT_GAMES_KEY);
 		const parsed = raw ? JSON.parse(raw) : [];
 		if (!Array.isArray(parsed)) return [];
-		const known = new Set(GAMES.map((game) => gameKey(game.param)));
+		const known = new Set([
+			...GAMES.map((game) => gameKey(game.param)),
+			...worldRegistry.registryGames.map((game) => gameKey(game.param))
+		]);
 		return parsed.filter((value): value is string => typeof value === 'string' && known.has(value));
 	} catch {
 		return [];
@@ -143,7 +166,10 @@ export function recentGameParams(): string[] {
 }
 
 export function recentGames(): GameEntry[] {
-	const byKey = new Map(GAMES.map((game) => [gameKey(game.param), game]));
+	const byKey = new Map([
+		...GAMES.map((game) => [gameKey(game.param), game] as const),
+		...worldRegistry.registryGames.map((game) => [gameKey(game.param), game] as const)
+	]);
 	return recentGameParams()
 		.map((param) => byKey.get(param))
 		.filter((game): game is GameEntry => Boolean(game));
@@ -159,12 +185,34 @@ function rememberGame(param?: string): void {
 	localStorage.setItem(RECENT_GAMES_KEY, JSON.stringify(next));
 }
 
+/** Navigate to a registry world by absolute JSON-LD URL. */
+export function loadRegistryWorld(entry: GameEntry) {
+	if (typeof location === 'undefined' || !entry.worldUrl) return;
+	const roomId = entry.param?.replace(/^registry:/, '') ?? 'registry';
+	rememberGame(entry.param);
+	const url = new URL(location.href);
+	url.searchParams.delete('game');
+	url.searchParams.set('world', entry.worldUrl);
+	url.searchParams.set('room', defaultRoomForGame(roomId));
+	url.searchParams.delete('play');
+	url.searchParams.set('mode', 'edit');
+	location.href = url.toString();
+}
+
 /** Navigate to a game (full reload — each game is its own multiplayer room). */
 export function loadGame(param?: string) {
 	if (typeof location === 'undefined') return;
+	if (param?.startsWith('registry:')) {
+		const entry = worldRegistry.findByParam(param);
+		if (entry) {
+			loadRegistryWorld(entry);
+			return;
+		}
+	}
 	const next = param || DEFAULT_GAME_PARAM;
 	rememberGame(next);
 	const url = new URL(location.href);
+	url.searchParams.delete('world');
 	url.searchParams.set('game', next);
 	url.searchParams.set('room', defaultRoomForGame(next));
 	// Always land in edit mode when switching worlds — play is an explicit choice.

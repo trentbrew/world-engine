@@ -1,3 +1,5 @@
+import { ensureWebMcpRegistered } from '$lib/engine/agent/webmcp/register';
+import { world } from '$lib/engine/runtime/world.svelte';
 import { flushEditorSession, markHmrPending } from './editorSession';
 import { prepareRuntimeForHmr, rehydrateRuntimeAfterHmr } from './hmrLifecycle';
 import { hmrScene } from './hmrScene.svelte';
@@ -26,6 +28,9 @@ export function installDevHmrHooks(): void {
 
 	import.meta.hot.on('vite:afterUpdate', () => {
 		rehydrateRuntimeAfterHmr();
+		if (world.status === 'ready') {
+			void ensureWebMcpRegistered();
+		}
 	});
 
 	import.meta.hot.dispose(() => {

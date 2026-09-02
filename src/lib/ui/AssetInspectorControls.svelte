@@ -7,6 +7,7 @@
 		type MaterialChannel
 	} from '$lib/ui/assetPreview.svelte';
 	import { ui } from '$lib/ui/ui.svelte';
+	import { resolveAssetUrl } from '$lib/engine/render/meshRef';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
 	import BoneIcon from '@lucide/svelte/icons/bone';
 	import Grid3x3Icon from '@lucide/svelte/icons/grid-3x3';
@@ -188,7 +189,7 @@
 			{#if asset && isVideoFile(asset.name)}
 				<p class="hint">Use the video controls in the preview stage.</p>
 			{:else if asset}
-				<a class="file-open" href={asset.url} target="_blank" rel="noopener noreferrer">
+				<a class="file-open" href={resolveAssetUrl(asset.url)} target="_blank" rel="noopener noreferrer">
 					Open file
 					<ExternalLinkIcon class="size-3" aria-hidden="true" />
 				</a>

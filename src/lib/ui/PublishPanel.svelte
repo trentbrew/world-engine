@@ -1,17 +1,34 @@
 <script lang="ts">
 	import UploadIcon from '@lucide/svelte/icons/upload';
+	import DownloadIcon from '@lucide/svelte/icons/download';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { ui } from '$lib/ui/ui.svelte';
+	import {
+		downloadWorldJsonld,
+		exportWorldGraph,
+		slugifyWorldFilename
+	} from '$lib/engine/authoring/exportWorldGraph';
+	import { isPlayerEntity } from '$lib/engine/player/access';
+	import { currentGame, currentWorldUrl } from '$lib/engine/games';
 	import { world } from '$lib/engine/runtime/world.svelte';
+	import { ui } from '$lib/ui/ui.svelte';
 
-	const title = $derived(ui.scene.displayName?.trim() || 'Untitled game');
-	const entityCount = $derived(world.selectableEntities.length);
+	const title = $derived(ui.scene.displayName?.trim() || currentGame().title || 'Untitled game');
+	const entityCount = $derived(world.entities.filter((entity) => !isPlayerEntity(entity)).length);
+	const isRegistryWorld = $derived(Boolean(currentWorldUrl()));
+	const publishStatus = $derived(isRegistryWorld ? 'Registry fork' : 'Draft');
 
 	function copyShareLink() {
 		const url = new URL(location.href);
 		url.searchParams.set('mode', 'play');
 		void navigator.clipboard?.writeText(url.toString());
 		ui.modeMessage = 'Play link copied';
+	}
+
+	function downloadJsonld() {
+		const doc = exportWorldGraph({ entities: world.entities });
+		const filename = `${slugifyWorldFilename(title)}.jsonld`;
+		downloadWorldJsonld(doc, filename);
+		ui.modeMessage = `Downloaded ${filename}`;
 	}
 </script>
 
@@ -33,18 +50,29 @@
 				<dd>{entityCount}</dd>
 			</div>
 			<div>
-				<dt>Mode</dt>
-				<dd>Draft</dd>
+				<dt>Status</dt>
+				<dd>{publishStatus}</dd>
 			</div>
 		</dl>
 
 		<p class="publish-body">
-			Share a play link now. Hosted publish (build, version, listing) lands here next — kept out of
-			the rail so authoring tools stay focused.
+			{#if isRegistryWorld}
+				This world loads from the community registry — edits here are a local fork. Download the
+				JSON-LD and open a PR to
+				<a href="https://github.com/turtlehq/worlds" target="_blank" rel="noreferrer">turtlehq/worlds</a>
+				to publish an update.
+			{:else}
+				Download freezes the world graph as JSON-LD. Share a play link for a live session, or submit
+				the file to the community registry.
+			{/if}
 		</p>
 
 		<div class="publish-actions">
-			<Button variant="default" size="sm" onclick={copyShareLink}>Copy play link</Button>
+			<Button variant="default" size="sm" onclick={downloadJsonld}>
+				<DownloadIcon class="publish-action-icon" aria-hidden="true" />
+				Download .jsonld
+			</Button>
+			<Button variant="outline" size="sm" onclick={copyShareLink}>Copy play link</Button>
 			<Button variant="outline" size="sm" onclick={() => ui.exitPublish()}>Back to edit</Button>
 		</div>
 	</div>
@@ -158,9 +186,21 @@
 		color: var(--muted-foreground);
 	}
 
+	.publish-body a {
+		color: var(--foreground);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
 	.publish-actions {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 8px;
+	}
+
+	:global(.publish-action-icon) {
+		width: 14px;
+		height: 14px;
+		margin-right: 4px;
 	}
 </style>

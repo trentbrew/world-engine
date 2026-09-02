@@ -51,6 +51,7 @@ import {
 	isEditableType,
 	listAddableTypeComponents
 } from '$lib/engine/runtime/typeAccess';
+import { reapplyStoredLocalPlayerAvatar } from '$lib/engine/player/playerAvatarPrefs';
 import { warmLocomotionPack } from '$lib/engine/player/playerLocomotionClips';
 import { createComponentBag } from '$lib/engine/ontology/resolveComponentBag';
 import {
@@ -88,12 +89,7 @@ import {
 import { resolveCharacterDefaults } from '$lib/engine/animation/characterMeshDefaults';
 import type { MeshAnchor } from '$lib/engine/render/meshAnchor';
 import { isPrimitiveMesh } from '$lib/engine/render/meshRef';
-import { toast } from 'svelte-sonner';
-import { bootstrapFormulas } from '$lib/engine/systems';
-import { resetEventState } from '$lib/engine/systems/eventSystem';
-import { resetAlarmState } from '$lib/engine/systems/alarmRuntime';
-import { resetCollisionState } from '$lib/engine/systems/collisionSystem';
-import { resetInputEventState } from '$lib/engine/systems/inputEventSystem';
+import { formulaSystem } from '$lib/engine/systems/formulaSystem';
 import { scheduler } from '$lib/engine/systems/scheduler.svelte';
 import { worldProfile } from '$lib/engine/world/worldProfile.svelte';
 import {
@@ -135,6 +131,30 @@ import {
 	setEntityClipboard
 } from '$lib/engine/runtime/entityClipboard.svelte';
 import { nextPasteId } from '$lib/engine/runtime/entityIds';
+
+function toastError(message: string, opts?: { id?: string }) {
+	if (typeof window === 'undefined') {
+		console.error(message);
+		return;
+	}
+	void import('svelte-sonner').then(({ toast }) => toast.error(message, opts));
+}
+
+function bootstrapFormulas() {
+	formulaSystem({ dt: 0, t: 0, tick: 0 });
+}
+
+function resetPlayRuntimeSystems() {
+	if (typeof window === 'undefined') return;
+	void import('$lib/engine/systems/eventSystem').then(({ resetEventState }) => resetEventState());
+	void import('$lib/engine/systems/alarmRuntime').then(({ resetAlarmState }) => resetAlarmState());
+	void import('$lib/engine/systems/collisionSystem').then(({ resetCollisionState }) =>
+		resetCollisionState()
+	);
+	void import('$lib/engine/systems/inputEventSystem').then(({ resetInputEventState }) =>
+		resetInputEventState()
+	);
+}
 
 const PICKABLE_COMPONENTS = ['Render', 'Sprite', 'Ground', 'Marker'];
 
@@ -313,10 +333,7 @@ class WorldRuntime {
 		this.entities = [...entitiesForRoom(normalized, catalog), ...players];
 		this.activeRoomId = normalized;
 
-		resetEventState();
-		resetAlarmState();
-		resetCollisionState();
-		resetInputEventState();
+		resetPlayRuntimeSystems();
 		bootstrapFormulas();
 		if (opts?.members?.length) reconcilePlayerSpawnPositions(opts.members);
 		this.snapshotPlayState();
@@ -530,7 +547,7 @@ class WorldRuntime {
 	}
 
 	#notifyTransformDenied() {
-		toast.error("You can't transform this entity — another peer owns it", {
+		toastError("You can't transform this entity — another peer owns it", {
 			id: TRANSFORM_DENIED_TOAST_ID
 		});
 	}
@@ -827,7 +844,7 @@ class WorldRuntime {
 					return;
 				}
 				console.error('[durable] update failed', error);
-				toast.error('Failed to save durable edit');
+				toastError('Failed to save durable edit');
 			});
 	}
 
@@ -1738,9 +1755,8 @@ class WorldRuntime {
 	/** Reset the live play session without leaving play mode. */
 	resetToPlaySnapshot() {
 		this.#restorePlaySnapshot(false);
-		// Avatar / anim choices live on the Player type (pause menu). Snapshot
-		// restore would otherwise wipe SkinnedMesh back to play-entry bags.
-		this.#reapplyPlayerTypeVisualDefaults();
+		// Pause-menu avatar is per-entity + localStorage — restore after snapshot rewind.
+		reapplyStoredLocalPlayerAvatar();
 	}
 
 	/**

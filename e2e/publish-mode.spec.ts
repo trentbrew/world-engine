@@ -46,6 +46,7 @@ test.describe('publish mode', () => {
 			'true'
 		);
 		await expect(page.getByRole('complementary', { name: 'Publish' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Download .jsonld' })).toBeVisible();
 		await expect(page.getByRole('navigation', { name: 'World navigation' })).toHaveCount(0);
 		await expect(modeTabs.getByRole('tab')).toHaveCount(2);
 

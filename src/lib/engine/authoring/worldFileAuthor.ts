@@ -3,9 +3,10 @@
  * Realtime ontology fields (Transform.position) are authored here without
  * changing sync policy or multiplayer semantics.
  */
-import { dev } from '$app/environment';
 import type { DurablePatch } from '$lib/engine/ontology/durablePatch';
 import { readShellModeFromUrl } from '$lib/engine/shellUrl';
+
+const isDevBuild = typeof import.meta !== 'undefined' && Boolean(import.meta.env?.DEV);
 
 let gameName: string | undefined;
 const pending = new Map<string, DurablePatch>();
@@ -24,7 +25,7 @@ function patchKey(patch: DurablePatch): string {
 }
 
 export function shouldAuthorToWorldFile(): boolean {
-	return dev && readShellModeFromUrl() !== 'play';
+	return isDevBuild && readShellModeFromUrl() !== 'play';
 }
 
 export function queueWorldFilePatch(patch: DurablePatch): void {

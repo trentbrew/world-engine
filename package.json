@@ -13,6 +13,10 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"webmcp:budget": "tsx scripts/webmcp-budget.ts",
+		"agent:room": "node scripts/run-with-vite.mjs scripts/agent-room.ts",
+		"test:agent-room": "AGENT_ROOM_OFFLINE=1 node scripts/run-with-vite.mjs scripts/agent-room-smoke.ts",
+		"test:webmcp-surface": "node scripts/run-with-vite.mjs scripts/webmcp-surface-smoke.ts",
 		"dev:status": "node scripts/dev-status.mjs",
 		"test:eav": "tsx --tsconfig .svelte-kit/tsconfig.json scripts/eav-smoke.ts",
 		"test:durable": "tsx --tsconfig .svelte-kit/tsconfig.json scripts/durable-smoke.ts",
@@ -83,7 +87,7 @@
 		"tailwindcss": "^4.3.1",
 		"three": "^0.184.0",
 		"three-viewport-gizmo": "2.2.0",
-		"trellis": "file:../../TRELLIS/trellis-node",
+		"trellis": "^4.0.2",
 		"zod": "^4.4.3"
 	}
 }

@@ -8,6 +8,22 @@ import { museumGamesCatalogPlugin } from './src/lib/engine/gamesCatalogPlugin';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const patchedInitRapier = path.resolve(root, 'src/lib/engine/physics/initRapier.svelte.ts');
 
+/** Inject WebMCP origin-trial token at build when `VITE_WEBMCP_ORIGIN_TRIAL_TOKEN` is set. */
+function webmcpOriginTrial(): Plugin {
+	const token = process.env.VITE_WEBMCP_ORIGIN_TRIAL_TOKEN?.trim();
+	return {
+		name: 'webmcp-origin-trial',
+		transformIndexHtml: {
+			order: 'pre',
+			handler(html) {
+				if (!token) return html;
+				const meta = `<meta http-equiv="origin-trial" content="${token}" />`;
+				return html.replace('</head>', `\t\t${meta}\n\t</head>`);
+			}
+		}
+	};
+}
+
 /** @threlte/rapier World imports initRapier via a relative path — alias alone misses it. */
 function rapierInitPatch(): Plugin {
 	return {
@@ -23,7 +39,17 @@ function rapierInitPatch(): Plugin {
 }
 
 export default defineConfig({
-	plugins: [rapierInitPatch(), museumGamesCatalogPlugin(root), tailwindcss(), sveltekit()],
+	plugins: [
+		webmcpOriginTrial(),
+		rapierInitPatch(),
+		museumGamesCatalogPlugin(root),
+		tailwindcss(),
+		sveltekit()
+	],
+	optimizeDeps: {
+		// Keep initRapier.svelte.js as a separate module so rapierInitPatch() can swap it.
+		exclude: ['@threlte/rapier']
+	},
 	resolve: {
 		alias: {
 			'@threlte/rapier/dist/lib/initRapier.svelte.js': patchedInitRapier

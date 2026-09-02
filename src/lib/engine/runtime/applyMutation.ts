@@ -19,7 +19,10 @@ import { buildComponentsFromJson } from '$lib/engine/runtime/entityJson';
 import { world } from '$lib/engine/runtime/world.svelte';
 import { bootstrapFormulas } from '$lib/engine/systems';
 import { renderBounds } from '$lib/engine/render/renderBounds.svelte';
-import { warmLocomotionPack } from '$lib/engine/player/playerLocomotionClips';
+import {
+	mergePlayerAvatarVisual,
+	type PlayerAvatarVisualComponents
+} from '$lib/engine/player/playerAvatarVisual';
 
 export function applyDurableMutation(patch: DurablePatch) {
 	switch (patchKind(patch)) {
@@ -154,14 +157,18 @@ function applyDefineTypeLocal(patch: DurableDefineTypePatch) {
 		collection: patch.collection === true,
 		collectionMeta: patch.collectionMeta
 	});
+	let visualsChanged = false;
 	for (const entity of world.entities) {
 		if (entity.type !== patch.name) continue;
 		if (entity.raw.events) continue;
 		entity.events = events ? structuredClone(events) : undefined;
 		// Re-apply visual Player defaults to already-spawned avatars so peers
 		// already in the room adopt a GM-changed mesh/anim without respawning.
-		if (patch.name === 'Player') reapplyPlayerVisualDefaults(entity, patch.defaults);
+		if (patch.name === 'Player') {
+			visualsChanged = reapplyPlayerVisualDefaults(entity, patch.defaults) || visualsChanged;
+		}
 	}
+	if (visualsChanged) world.entities = [...world.entities];
 	if (patch.applyToEntityId) {
 		const entity = world.getEntity(patch.applyToEntityId);
 		if (entity) entity.type = patch.name;
@@ -177,23 +184,14 @@ function applyDefineTypeLocal(patch: DurableDefineTypePatch) {
 function reapplyPlayerVisualDefaults(
 	entity: Entity,
 	defaults: DurableDefineTypePatch['defaults']
-): void {
-	if (!defaults) return;
+): boolean {
+	if (!defaults) return false;
+	const incoming: PlayerAvatarVisualComponents = {};
 	for (const component of ['SkinnedMesh', 'Mesh3DAnimator'] as const) {
 		const next = defaults[component];
-		if (!next) continue;
-		const bag = entity.components[component];
-		if (!bag) continue;
-		for (const [field, value] of Object.entries(next)) {
-			bag[field] = value;
-		}
-		if (component === 'SkinnedMesh' && ('mesh' in next || 'anchor' in next)) {
-			renderBounds.clear(entity.id);
-		}
-		if (component === 'Mesh3DAnimator' && ('catalog' in next || 'locomotion' in next)) {
-			warmLocomotionPack(entity);
-		}
+		if (next) incoming[component] = next;
 	}
+	return mergePlayerAvatarVisual(entity, incoming);
 }
 
 function applyDefineComponentLocal(patch: DurableDefineComponentPatch) {

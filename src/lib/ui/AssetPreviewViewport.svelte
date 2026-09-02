@@ -13,6 +13,7 @@
 	import { assetPreview } from '$lib/ui/assetPreview.svelte';
 	import { hmrScene } from '$lib/engine/dev/hmrScene.svelte';
 	import { ui } from '$lib/ui/ui.svelte';
+	import { resolveAssetUrl } from '$lib/engine/render/meshRef';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
 
 	const preview = $derived(ui.previewContext);
@@ -125,7 +126,7 @@
 						class="texture-stage"
 						class:uv-checker={view.materialChannel === 'uvChecker'}
 					>
-						<img src={asset.url} alt="" />
+						<img src={resolveAssetUrl(asset.url)} alt="" />
 					</div>
 				{:else if asset?.kind === 'audio'}
 					<div class="media-stage">
@@ -133,7 +134,7 @@
 						<!-- svelte-ignore a11y_media_has_caption -->
 						<audio
 							bind:this={audioEl}
-							src={asset.url}
+							src={resolveAssetUrl(asset.url)}
 							controls
 							preload="metadata"
 							loop={assetPreview.audioLoop}
@@ -143,15 +144,15 @@
 					{#if isVideoFile(asset.name)}
 						<div class="media-stage video-stage">
 							<!-- svelte-ignore a11y_media_has_caption -->
-							<video src={asset.url} controls preload="metadata"></video>
+							<video src={resolveAssetUrl(asset.url)} controls preload="metadata"></video>
 						</div>
 					{:else}
 						<div class="media-stage">
 							{#if fileExtension(asset.name) === '.pdf'}
-								<iframe src={asset.url} title={asset.name} class="file-frame"></iframe>
+								<iframe src={resolveAssetUrl(asset.url)} title={asset.name} class="file-frame"></iframe>
 							{:else}
 								<AssetThumbnail {asset} size="md" />
-								<a class="file-open" href={asset.url} target="_blank" rel="noopener noreferrer">
+								<a class="file-open" href={resolveAssetUrl(asset.url)} target="_blank" rel="noopener noreferrer">
 									Open file
 									<ExternalLinkIcon class="size-3" aria-hidden="true" />
 								</a>

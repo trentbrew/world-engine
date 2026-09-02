@@ -9,8 +9,8 @@ import type {
 	DurableSetEventsPatch
 } from '$lib/engine/ontology/durablePatch';
 import { isFieldPatch, patchKind } from '$lib/engine/ontology/durablePatch';
+import { readShellModeFromUrl } from '$lib/engine/shellUrl';
 import { world } from '$lib/engine/runtime/world.svelte';
-import { ui } from '$lib/ui/ui.svelte';
 
 const MAX_STEPS = 100;
 const DEBOUNCE_MS = 400;
@@ -56,8 +56,9 @@ class EditHistoryStore {
 	shouldRecord(): boolean {
 		if (this.applying) return false;
 		if (world.applyingRemoteDurable || world.applyingRemoteAuthoring) return false;
-		if (ui.shellMode !== 'edit') return false;
-		return true;
+		if (typeof window === 'undefined') return true;
+		const mode = readShellModeFromUrl();
+		return (mode ?? 'edit') === 'edit';
 	}
 
 	hasOpenTransaction(): boolean {

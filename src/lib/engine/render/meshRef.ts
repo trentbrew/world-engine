@@ -75,6 +75,15 @@ export function resolveMeshUrl(mesh: string): string {
 	return trimmed;
 }
 
+/**
+ * Resolve any asset ref to a fetchable URL — `trellis-blob:<sha256>` → `/blob/<sha256>`,
+ * everything else (paths, `asset:` ids, primitives) passes through unchanged.
+ * Used by the asset library previews so blob-backed textures/audio/video/files render.
+ */
+export function resolveAssetUrl(ref: string): string {
+	return resolveMeshUrl(ref);
+}
+
 /** Build a durable mesh ref from a content hash returned by blob PUT / upload. */
 export function trellisBlobRef(hash: string): string {
 	const h = hash.trim().toLowerCase();

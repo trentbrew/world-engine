@@ -34,8 +34,18 @@ server, default `http://localhost:8230` via Vite proxy at `/trellis-db`).
 **Production (Vercel):** static worlds and BroadcastChannel multiplayer work out
 of the box. `?durable=trellis` is **dev/local only** until a hosted Trellis
 backend is wired (see TRL-40). For cross-machine MP on Vercel, point
-`VITE_RELAY_URL` at a deployed Trellis relay (e.g.
-`wss://relay.example.com/rt`) at build time.
+`VITE_RELAY_URL` at the live relay sprite at build time.
+
+**Live sprite:** `fractals-demo-0610` — `https://fractals-demo-0610-bnsoz.sprites.app`
+(the shared Trellis deploy target, also used by
+`~/TURTLE/Projects/trellis/fractal-playground`). It runs the `trellis-db` service
+(durable TurtleDB room, `:8080`); the realtime relay (`/rt` WebSocket + `/blob`
+content-addressed store) is added as a second service on the same sprite.
+
+```env
+VITE_RELAY_URL=wss://fractals-demo-0610-bnsoz.sprites.app/rt
+VITE_RELAY_HTTP=https://fractals-demo-0610-bnsoz.sprites.app
+```
 
 ---
 

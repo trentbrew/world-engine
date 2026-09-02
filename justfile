@@ -137,6 +137,20 @@ run vite_port=vite_port trellis_port=trellis_port relay_port=relay_port:
 
     wait
 
+# One-command production deploy: Trellis sprite (durable DB + realtime relay)
+# then Vercel. See scripts/deploy.mjs. `just deploy --stub` is a dry run.
+deploy *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd "{{justfile_directory()}}"
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+    if [ -s "$NVM_DIR/nvm.sh" ]; then
+        # shellcheck disable=SC1090
+        . "$NVM_DIR/nvm.sh"
+        nvm use 2>/dev/null || true
+    fi
+    node scripts/deploy.mjs {{args}}
+
 # E2E — requires dev stack on :9292 (fail-fast via scripts/test-e2e.mjs)
 e2e *args:
     #!/usr/bin/env bash

@@ -1,3 +1,5 @@
+import { relayBlobHttpOrigin, trellisBlobRef } from '$lib/engine/render/meshRef';
+
 export type AssetKind = 'models' | 'textures' | 'audio' | 'files';
 
 const FILE_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov', '.m4v', '.ogv'] as const;
@@ -96,7 +98,35 @@ export async function fetchAssets(): Promise<AssetEntry[]> {
 	return data.assets;
 }
 
-export async function uploadAsset(kind: AssetKind, file: File): Promise<AssetEntry> {
+const BLOB_HASH_RE = /^[a-f0-9]{64}$/i;
+
+/**
+ * PUT bytes to the relay blob store (content-addressed by SHA-256).
+ * Returns the hex hash, or null when the relay is unreachable so callers can
+ * fall back to the dev-only `/api/assets` path.
+ */
+async function putRelayBlob(file: File): Promise<string | null> {
+	try {
+		const origin = relayBlobHttpOrigin();
+		const res = await fetch(`${origin}/blob`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': file.type || 'application/octet-stream',
+				'X-Trellis-Filename': file.name.slice(0, 255)
+			},
+			body: file
+		});
+		if (!res.ok) return null;
+		const json = (await res.json().catch(() => null)) as { hash?: unknown } | null;
+		const hash = json?.hash;
+		if (typeof hash !== 'string' || !BLOB_HASH_RE.test(hash)) return null;
+		return hash.toLowerCase();
+	} catch {
+		return null;
+	}
+}
+
+async function uploadViaApi(kind: AssetKind, file: File): Promise<AssetEntry> {
 	const form = new FormData();
 	form.set('kind', kind);
 	form.set('file', file);
@@ -109,6 +139,17 @@ export async function uploadAsset(kind: AssetKind, file: File): Promise<AssetEnt
 
 	const data = (await res.json()) as { asset: AssetEntry };
 	return data.asset;
+}
+
+/**
+ * Upload an asset. Preferred path: PUT to the relay blob store and return a
+ * `trellis-blob:<sha256>` ref that every peer resolves from `/blob/<hash>`.
+ * Falls back to the dev-only `/api/assets` filesystem write when the relay is down.
+ */
+export async function uploadAsset(kind: AssetKind, file: File): Promise<AssetEntry> {
+	const hash = await putRelayBlob(file);
+	if (hash) return { kind, name: file.name, url: trellisBlobRef(hash) };
+	return uploadViaApi(kind, file);
 }
 
 export function formatBytes(bytes?: number): string {

@@ -7,6 +7,7 @@
 	import DocBarBreadcrumb from '$lib/ui/DocBarBreadcrumb.svelte';
 	import DocBarHistory from '$lib/ui/DocBarHistory.svelte';
 	import EditingIndicator from '$lib/ui/EditingIndicator.svelte';
+	import WebMcpIndicator from '$lib/ui/WebMcpIndicator.svelte';
 	import ViewportBottomLeft from '$lib/ui/ViewportBottomLeft.svelte';
 	import { sceneLoading } from '$lib/ui/sceneLoading.svelte';
 	import { ui } from '$lib/ui/ui.svelte';
@@ -37,6 +38,7 @@
 		{#if score.value > 0}
 			<span class="score-chip" title="Collected">★ {score.value}</span>
 		{/if}
+		<WebMcpIndicator />
 		<RoomPresenceBar />
 		{#if !inPlay}
 		{#if !inPlay}

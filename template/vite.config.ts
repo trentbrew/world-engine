@@ -24,6 +24,9 @@ function rapierInitPatch(): Plugin {
 
 export default defineConfig({
 	plugins: [rapierInitPatch(), museumGamesCatalogPlugin(root), tailwindcss(), sveltekit()],
+	optimizeDeps: {
+		exclude: ['@threlte/rapier']
+	},
 	resolve: {
 		alias: {
 			'@threlte/rapier/dist/lib/initRapier.svelte.js': patchedInitRapier

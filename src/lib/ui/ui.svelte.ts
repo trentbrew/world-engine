@@ -485,6 +485,7 @@ class UIState {
 		if (this.playPaused) this.resumePlay();
 		this.#closePlayChat();
 		world.resetToPlaySnapshot();
+		session.announcePlayer();
 		score.reset();
 		scheduler.reset();
 		resetJumpInputState();

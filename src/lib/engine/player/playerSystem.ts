@@ -4,6 +4,7 @@
  * component is registered by importing spawnPlayer for its side effects.
  */
 import './spawnPlayer';
+import { isBotClientId } from '$lib/engine/agent/botPlayer';
 import { roomChat } from '$lib/engine/collab/roomChat.svelte';
 import { session } from '$lib/engine/net/session.svelte';
 import { world } from '$lib/engine/runtime/world.svelte';
@@ -21,6 +22,7 @@ import {
 } from './playerMovementUtils';
 import { clipHorizontalVelocity, resolveHorizontalPlayerMove } from './playerCollision';
 import { applyChatSocialClip, applyLocomotionClip } from './playerLocomotionClips';
+import { playerClientId } from './access';
 
 /** Latest ground normal from GroundSensor — used by slope movement. */
 export let lastGroundNormal: [number, number, number] = [0, 1, 0];
@@ -138,6 +140,8 @@ function chatPartnerPosition(
 export function playerSystem(ctx: TickContext) {
 	for (const entity of world.query('Player')) {
 		if (!world.isOwner(entity.id)) continue;
+		const clientId = playerClientId(entity);
+		if (clientId && isBotClientId(clientId)) continue;
 		const player = entity.components.Player as PlayerMotorData;
 		const transform = entity.components.Transform as
 			| {

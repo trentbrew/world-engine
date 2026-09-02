@@ -3,6 +3,7 @@
 	import AssetThumbnail from '$lib/ui/AssetThumbnail.svelte';
 	import { formatBytes, isVideoFile, fileExtension } from '$lib/assets/catalog';
 	import { ui } from '$lib/ui/ui.svelte';
+	import { resolveAssetUrl } from '$lib/engine/render/meshRef';
 	import { isAssetRoute } from '$lib/ui/assetRoutes';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
 
@@ -33,19 +34,19 @@
 			<div class="preview-stage">
 				{#if asset}
 					{#if asset.kind === 'textures'}
-						<img src={asset.url} alt="" />
+						<img src={resolveAssetUrl(asset.url)} alt="" />
 					{:else if asset.kind === 'audio'}
-						<audio src={asset.url} controls preload="metadata"></audio>
+						<audio src={resolveAssetUrl(asset.url)} controls preload="metadata"></audio>
 					{:else if asset.kind === 'files'}
 						{#if isVideoFile(asset.name)}
 							<!-- svelte-ignore a11y_media_has_caption -->
-							<video src={asset.url} controls preload="metadata"></video>
+							<video src={resolveAssetUrl(asset.url)} controls preload="metadata"></video>
 						{:else if fileExtension(asset.name) === '.pdf'}
-							<iframe src={asset.url} title={asset.name} class="file-frame"></iframe>
+							<iframe src={resolveAssetUrl(asset.url)} title={asset.name} class="file-frame"></iframe>
 						{:else}
 							<div class="file-preview">
 								<AssetThumbnail {asset} size="md" />
-								<a class="file-open" href={asset.url} target="_blank" rel="noopener noreferrer">
+								<a class="file-open" href={resolveAssetUrl(asset.url)} target="_blank" rel="noopener noreferrer">
 									Open file
 									<ExternalLinkIcon class="size-3" aria-hidden="true" />
 								</a>

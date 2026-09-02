@@ -1,5 +1,6 @@
 /** Persist edit/play/publish shell mode in the URL (`?mode=edit|play|publish`). */
 
+import { replaceBrowserUrl } from '$lib/engine/replaceBrowserUrl';
 import type { ShellMode } from '$lib/ui/ui.svelte';
 
 export function readShellModeFromUrl(search?: URLSearchParams | string): ShellMode | null {
@@ -29,7 +30,7 @@ export function ensureShellModeInUrl(defaultMode: ShellMode = 'edit'): ShellMode
 	url.searchParams.set('mode', mode);
 
 	if (url.toString() !== location.href) {
-		history.replaceState(history.state, '', url);
+		replaceBrowserUrl(url);
 	}
 
 	return mode;
@@ -44,5 +45,5 @@ export function syncShellModeToUrl(mode: ShellMode) {
 	if (url.searchParams.get('mode') === mode) return;
 
 	url.searchParams.set('mode', mode);
-	history.replaceState(history.state, '', url);
+	replaceBrowserUrl(url);
 }

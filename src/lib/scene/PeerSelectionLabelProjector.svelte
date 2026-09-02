@@ -32,11 +32,12 @@
 			for (const entity of world.query('Player')) {
 				const clientId = playerClientId(entity);
 				if (!clientId) continue;
+				const self = clientId === session.clientId;
 				result.push({
 					key: `player:${clientId}`,
 					entityId: entity.id,
-					name: collab.displayNameFor(clientId),
-					color: peerColor(clientId)
+					name: self ? 'You' : collab.displayNameFor(clientId),
+					color: self ? collab.localAvatarColor() : peerColor(clientId)
 				});
 			}
 			return result;

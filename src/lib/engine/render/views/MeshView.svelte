@@ -43,6 +43,8 @@
 			mesh?: string;
 			color?: string;
 			anchor?: MeshAnchor;
+			emissive?: string;
+			emissiveIntensity?: number;
 			map?: string;
 			visible?: boolean;
 			deferUntilSplat?: boolean;
@@ -71,6 +73,10 @@
 			: (comp<{ scale?: [number, number, number] }>(entity, 'Transform')?.scale ?? [1, 1, 1])
 	);
 	const color = $derived(render.color ?? DEFAULT_COLOR);
+	const emissive = $derived(typeof render.emissive === 'string' ? render.emissive : undefined);
+	const emissiveIntensity = $derived(
+		typeof render.emissiveIntensity === 'number' ? render.emissiveIntensity : 1
+	);
 	const mapUrl = $derived(typeof render.map === 'string' && render.map ? render.map : '');
 	const anchor = $derived(render.anchor ?? 'origin');
 	const meshUrl = $derived(render.mesh ? resolveMeshUrl(render.mesh) : '');
@@ -252,7 +258,7 @@
 			{:else if isLocalPlayer}
 				<StyledMeshMaterial {color} emissive={color} emissiveIntensity={0.4} />
 			{:else}
-				<StyledMeshMaterial {color} />
+				<StyledMeshMaterial {color} {emissive} {emissiveIntensity} />
 			{/if}
 		</T.Mesh>
 		{#if isPlayer && primitiveKind === 'capsule' && !showPeerGhost}

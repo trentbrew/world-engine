@@ -16,6 +16,7 @@ import {
 } from '$lib/scene/placementSession';
 import { writePlacementDrag } from '$lib/scene/placementDrag';
 import { world } from '$lib/engine/runtime/world.svelte';
+import { resolveAssetUrl } from '$lib/engine/render/meshRef';
 import { ui } from '$lib/ui/ui.svelte';
 import { isAssetRoute } from '$lib/ui/assetRoutes';
 import { catalogPrefs } from '$lib/ui/catalogPrefs.svelte';
@@ -141,7 +142,7 @@ class AssetLibraryState {
 		}
 
 		this.#audioPreview?.pause();
-		const audio = new Audio(url);
+		const audio = new Audio(resolveAssetUrl(url));
 		this.#audioPreview = audio;
 		this.playingAudioUrl = url;
 

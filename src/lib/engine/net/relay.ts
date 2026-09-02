@@ -34,7 +34,7 @@ export class RelayTransport implements NetTransport {
 	#closed = false;
 	#reconnectTimer = 0;
 
-	constructor(relayUrl = DEFAULT_RELAY_URL, clientId = crypto.randomUUID()) {
+	constructor(relayUrl = DEFAULT_RELAY_URL, clientId: string = crypto.randomUUID()) {
 		this.#base = toWsUrl(relayUrl).replace(/\/$/, '');
 		this.clientId = clientId;
 	}
@@ -70,7 +70,7 @@ export class RelayTransport implements NetTransport {
 
 	#scheduleReconnect() {
 		clearTimeout(this.#reconnectTimer);
-		this.#reconnectTimer = window.setTimeout(() => this.#open(), RECONNECT_MS);
+		this.#reconnectTimer = setTimeout(() => this.#open(), RECONNECT_MS) as unknown as number;
 	}
 
 	disconnect() {

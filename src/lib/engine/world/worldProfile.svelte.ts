@@ -1,5 +1,4 @@
 import { camera } from '$lib/engine/render/camera.svelte';
-import { ui } from '$lib/ui/ui.svelte';
 import type { Entity } from '$lib/engine/ontology/schema';
 import {
 	DEFAULT_WORLD_PROFILE,
@@ -7,6 +6,11 @@ import {
 	resolveWorldProfile,
 	type WorldProfileData
 } from './worldProfile';
+
+function withUi(fn: (ui: typeof import('$lib/ui/ui.svelte').ui) => void) {
+	if (typeof window === 'undefined') return;
+	void import('$lib/ui/ui.svelte').then(({ ui }) => fn(ui));
+}
 
 class WorldProfileStore {
 	profile = $state<WorldProfileData>({ ...DEFAULT_WORLD_PROFILE });
@@ -20,20 +24,24 @@ class WorldProfileStore {
 		if (!this.is2d) return;
 		camera.projection = 'orthographic';
 		camera.setMode('orbit');
-		ui.scene.sky.enabled = false;
-		ui.scene.shadows = false;
-		ui.scene.style.fog.enabled = false;
+		withUi((ui) => {
+			ui.scene.sky.enabled = false;
+			ui.scene.shadows = false;
+			ui.scene.style.fog.enabled = false;
+		});
 	}
 
 	/** One-time chrome defaults when a 2D world loads (not on every mode toggle). */
 	apply2dChromeDefaults() {
 		if (!this.is2d) return;
-		ui.chrome.grid = true;
-		ui.scene.groundGrid.enabled = true;
-		ui.grid.cellColor = '#2e2e3a';
-		ui.grid.sectionColor = '#45455a';
-		ui.scene.groundGrid.cellColor = '#2e2e3a';
-		ui.scene.groundGrid.sectionColor = '#45455a';
+		withUi((ui) => {
+			ui.chrome.grid = true;
+			ui.scene.groundGrid.enabled = true;
+			ui.grid.cellColor = '#2e2e3a';
+			ui.grid.sectionColor = '#45455a';
+			ui.scene.groundGrid.cellColor = '#2e2e3a';
+			ui.scene.groundGrid.sectionColor = '#45455a';
+		});
 	}
 
 	/** Apply profile from loaded entities and sync viewer defaults (ortho for 2D worlds). */

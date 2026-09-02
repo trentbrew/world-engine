@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount, tick } from 'svelte';
-	import { currentGame, ensureGameInUrl, gameUrl } from '$lib/engine/games';
+	import { currentGame, ensureGameInUrl, resolveWorldSourceUrl } from '$lib/engine/games';
 	import { loadOntology } from '$lib/engine/ontology/loadOntology';
 	import { staticSource, type WorldSource } from '$lib/engine/ontology/source';
 	import {
@@ -25,6 +25,9 @@
 	import { ensureShellModeInUrl } from '$lib/engine/shellUrl';
 	import { initEditingPolicy } from '$lib/engine/collab/editingPolicy';
 	import { session } from '$lib/engine/net/session.svelte';
+	import { spawnAgentBotsIfEnabled } from '$lib/engine/agent/botPlayer';
+	import { ensureAgentForDemoGame } from '$lib/engine/agent/bots';
+	import '$lib/engine/agent/agentBridge.svelte';
 	import { collab } from '$lib/engine/collab/collab.svelte';
 	import { world } from '$lib/engine/runtime/world.svelte';
 	import { worldProfile } from '$lib/engine/world/worldProfile.svelte';
@@ -85,6 +88,12 @@
 	import { ui } from '$lib/ui/ui.svelte';
 	import { handlePlayKeydown } from '$lib/ui/playKeyboard';
 	import { handleShellKeydown, handleShellKeydownCapture } from '$lib/ui/shellKeyboard';
+	import { DEFAULT_REGISTRY_URL } from '$lib/engine/worldRegistry';
+	import { worldRegistry } from '$lib/engine/worldRegistry.svelte';
+	import {
+		ensureWebMcpRegistered,
+		teardownWebMcpRegistration
+	} from '$lib/engine/agent/webmcp/register';
 
 	let releaseEditorSession: (() => void) | null = null;
 
@@ -106,19 +115,23 @@
 
 		ensureGameInUrl();
 		ensureRoomInUrl();
+		ensureAgentForDemoGame();
 		const params = new URLSearchParams(location.search);
+		const registryUrl = params.get('registry') ?? DEFAULT_REGISTRY_URL;
+		void worldRegistry.load(registryUrl);
 		if (params.get('inspectorTabs') === '1') {
 			ui.inspectorTabsVisible = true;
 		}
 		initEditingPolicy(params);
 		const shellMode = ensureShellModeInUrl('edit');
-		const game = params.get('game') ?? currentGame().param;
-		const url = gameUrl(game ?? undefined);
+		const remoteWorldUrl = params.get('world');
+		const game = remoteWorldUrl ? null : (params.get('game') ?? currentGame().param);
+		const url = resolveWorldSourceUrl(game ?? undefined);
 		const gameTitle = currentGame().title;
 		const durableMode = params.get('durable') === 'trellis' ? 'trellis' : 'static';
 		const worldId = resolveRoomId(params);
 		releaseEditorSession = bindEditorSession(worldId);
-		bindWorldFileAuthor(game);
+		bindWorldFileAuthor(remoteWorldUrl ? null : game);
 
 		if (softReload && world.status === 'ready') {
 			const room = resolveRoomId(params);
@@ -126,6 +139,7 @@
 				const { transport, kind } = await resolveTransport(room);
 				session.connect(room, transport, kind);
 			}
+			spawnAgentBotsIfEnabled(params);
 			startSystems();
 			rehydrateRuntimeAfterHmr();
 			const savedSelection = restoreViewerState();
@@ -212,6 +226,7 @@
 			const transportLabel = kind === 'relay' ? 'relay' : 'local tabs';
 			sceneLoading.setPhase('Joining multiplayer session', transportLabel);
 			session.connect(room, transport, kind);
+			spawnAgentBotsIfEnabled(params);
 			if (savedSelection && world.getEntity(savedSelection)) {
 				world.select(savedSelection);
 			}
@@ -238,6 +253,7 @@
 	onDestroy(() => {
 		releaseEditorSession?.();
 		releaseEditorSession = null;
+		teardownWebMcpRegistration();
 
 		if (isHmrTeardown()) {
 			return;
@@ -248,6 +264,19 @@
 		session.disconnect();
 		disconnectDurableSync();
 		world.bindDurable(null, null);
+	});
+
+	// WebMCP — register when the world is live; re-register after HMR / reload.
+	$effect(() => {
+		if (world.status !== 'ready') return;
+		let cancelled = false;
+		void ensureWebMcpRegistered().then((result) => {
+			if (cancelled) result.teardown();
+		});
+		return () => {
+			cancelled = true;
+			teardownWebMcpRegistration();
+		};
 	});
 
 	const showLoadingOverlay = $derived(

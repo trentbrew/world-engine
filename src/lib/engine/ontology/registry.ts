@@ -180,6 +180,15 @@ registerComponent({
 		mesh: { t: 'ref', default: 'primitive:box' },
 		color: { t: 'color', default: '#d4d4d4' },
 		anchor: { t: 'string', default: 'bottom' },
+		/**
+		 * Self-lit colour. Unset leaves the material unlit-free (emissive black), which is
+		 * the historical behaviour. The composer renders to a half-float buffer and
+		 * tone-maps *after* bloom, so an `emissiveIntensity` above 1 genuinely clears
+		 * `bloom.threshold` — that is what makes a neon world glow rather than just look
+		 * bright. See ViewportComposer.svelte.
+		 */
+		emissive: { t: 'color' },
+		emissiveIntensity: { t: 'number', default: 1 },
 		/** Diffuse texture URL for primitive meshes (Frame Shift art frames, etc.). */
 		map: { t: 'ref' },
 		visible: { t: 'boolean', default: true },

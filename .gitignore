@@ -28,6 +28,9 @@ docs/scratch/
 # Scratch logs & debug screenshots (root level)
 /*.log
 /*.txt
+
+# Separate git repo — canonical source is github.com/turtlehq/worlds
+/worlds-registry/
 /*.png
 /*.jpeg
 /*.out
@@ -52,6 +55,9 @@ vite.config.ts.timestamp-*
 # Local Trellis durable DB — contains an API key / JWT secret; never commit
 .trellis-db/
 .trellis-db.json
+
+# Sprite deploy record (writes .trellis-db.json with live apiKey/jwtSecret)
+.trellis-deploy/
 
 # Local realtime-relay blob store (content-addressed uploads; regenerable)
 .trellis-relay/

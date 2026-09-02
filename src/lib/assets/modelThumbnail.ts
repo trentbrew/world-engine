@@ -1,5 +1,7 @@
 /** Renders glTF assets to a cached PNG data URL for the asset library grid. */
 
+import { resolveAssetUrl } from '$lib/engine/render/meshRef';
+
 const CACHE_VERSION = 2;
 
 const cache = new Map<string, string>();
@@ -52,7 +54,7 @@ async function renderThumbnail(url: string, size: number): Promise<string | null
 		renderer.setSize(size, size);
 		renderer.setPixelRatio(1);
 
-		const gltf = await createConfiguredGltfLoader().loadAsync(url);
+		const gltf = await createConfiguredGltfLoader().loadAsync(resolveAssetUrl(url));
 		const box = new THREE.Box3().setFromObject(gltf.scene);
 		const center = box.getCenter(new THREE.Vector3());
 		const dimensions = box.getSize(new THREE.Vector3());

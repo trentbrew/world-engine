@@ -1,7 +1,11 @@
 import type { DurablePatch, DurableStore } from '$lib/engine/ontology/durableStore';
 import { isFieldPatch, patchKind } from '$lib/engine/ontology/durablePatch';
+import {
+	SCENE_SETTINGS_COMPONENT,
+	SCENE_SETTINGS_ENTITY_ID,
+	SCENE_SETTINGS_FIELD
+} from '$lib/engine/scene/sceneConstants';
 import { applyDurableMutation } from '$lib/engine/runtime/applyMutation';
-import { sceneSettings } from '$lib/engine/scene/sceneSettings.svelte';
 import { world } from '$lib/engine/runtime/world.svelte';
 
 const MAX_OPS = 50;
@@ -44,6 +48,27 @@ export function notifyDurableOffline() {
 
 function sameValue(a: unknown, b: unknown): boolean {
 	return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function isSceneSettingsPatch(patch: DurablePatch): boolean {
+	return (
+		isFieldPatch(patch) &&
+		patch.entityId === SCENE_SETTINGS_ENTITY_ID &&
+		patch.component === SCENE_SETTINGS_COMPONENT &&
+		patch.field === SCENE_SETTINGS_FIELD
+	);
+}
+
+type SceneSettingsStore = {
+	isSceneSettingsPatch(patch: DurablePatch): boolean;
+	applyRemotePatch(patch: DurablePatch): void;
+};
+
+let sceneSettingsStore: SceneSettingsStore | null = null;
+if (typeof window !== 'undefined') {
+	void import('$lib/engine/scene/sceneSettings.svelte').then(({ sceneSettings }) => {
+		sceneSettingsStore = sceneSettings;
+	});
 }
 
 /** Append a durable op to the in-memory ring buffer (newest first). */
@@ -100,8 +125,10 @@ export function recordDurableOp(patch: DurablePatch) {
 
 /** Apply a remote durable patch without writing back to Trellis. */
 export function applyDurablePatch(patch: DurablePatch) {
-	if (sceneSettings.isSceneSettingsPatch(patch)) {
-		sceneSettings.applyRemotePatch(patch);
+	if (isSceneSettingsPatch(patch)) {
+		if (sceneSettingsStore) {
+			sceneSettingsStore.applyRemotePatch(patch);
+		}
 		return;
 	}
 	world.applyingRemoteDurable = true;

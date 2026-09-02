@@ -9,6 +9,13 @@ export type DiscoveredGame = {
 
 export const discoveredGames: DiscoveredGame[] = [
 	{
+		"param": "agent-demo",
+		"title": "Agent Demo",
+		"description": "",
+		"dimensions": "3d",
+		"category": "demo"
+	},
+	{
 		"param": "alarms-demo",
 		"title": "Alarms Demo",
 		"description": "",
@@ -159,6 +166,12 @@ export const discoveredGames: DiscoveredGame[] = [
 		"description": "",
 		"dimensions": "3d",
 		"category": "demo"
+	},
+	{
+		"param": "silicon-city",
+		"title": "Silicon City",
+		"description": "Walk the machine you're running on. Every building is a live IORegistry node on this MacBookPro18,2 (Apple M1 Max, 64 GB) — height is how much of the system …",
+		"dimensions": "3d"
 	},
 	{
 		"param": "sprites-demo",

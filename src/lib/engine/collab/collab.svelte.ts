@@ -1,6 +1,7 @@
 /** Frontend-only collaboration identity + room alias (localStorage). */
 
 import { peerColor, peerDisplayName, PEER_COLORS } from '$lib/engine/collab/peerColor';
+import { displayNameForBot } from '$lib/engine/agent/bots';
 
 const USERNAME_KEY = 'collab:username';
 const PROMPTED_KEY = 'collab:username-prompted';
@@ -43,6 +44,8 @@ class CollabState {
 
 	displayNameFor(clientId: string, wireName = ''): string {
 		if (wireName.trim()) return wireName.trim();
+		const botName = displayNameForBot(clientId);
+		if (botName) return botName;
 		return peerDisplayName(clientId, clientId === this.#clientId ? this.username : '');
 	}
 

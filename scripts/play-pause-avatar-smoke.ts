@@ -4,6 +4,7 @@
  */
 import assert from 'node:assert/strict';
 import {
+	applyLocalPlayerAvatarMesh,
 	applyPlayerAvatarMesh,
 	avatarLabel,
 	isAvatarModelAsset
@@ -55,6 +56,26 @@ assert.equal(
 	applyPlayerAvatarMesh(() => true, '/models/barrel.glb'),
 	false,
 	'reject unconfigured mesh'
+);
+
+const entity = {
+	id: 'entity:player/test',
+	type: 'Player',
+	components: {
+		SkinnedMesh: { mesh: '/models/characters/mannequin.glb', color: '#fff' },
+		Mesh3DAnimator: { catalog: 'catalog:mesh2motion-human', clip: 'Idle_Loop' }
+	},
+	raw: {}
+};
+assert.equal(
+	applyLocalPlayerAvatarMesh(entity, '/models/player.glb'),
+	true,
+	'entity avatar apply'
+);
+assert.equal(
+	(entity.components.SkinnedMesh as { mesh?: string }).mesh,
+	'/models/player.glb',
+	'entity mesh updated'
 );
 
 console.log('play-pause-avatar-smoke: ok');

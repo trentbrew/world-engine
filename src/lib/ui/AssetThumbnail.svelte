@@ -6,6 +6,7 @@
 	import FileTextIcon from '@lucide/svelte/icons/file-text';
 	import ImageIcon from '@lucide/svelte/icons/image';
 	import MusicIcon from '@lucide/svelte/icons/music';
+	import { resolveAssetUrl } from '$lib/engine/render/meshRef';
 	import VideoIcon from '@lucide/svelte/icons/video';
 
 	interface Props {
@@ -49,7 +50,7 @@
 
 <div class="asset-thumb" class:md={size === 'md'} aria-hidden="true">
 	{#if isTexturePreview && !textureFailed}
-		<img src={asset.url} alt="" loading="lazy" decoding="async" onerror={() => (textureFailed = true)} />
+		<img src={resolveAssetUrl(asset.url)} alt="" loading="lazy" decoding="async" onerror={() => (textureFailed = true)} />
 	{:else if asset.kind === 'models' && modelThumb}
 		<img src={modelThumb} alt="" />
 	{:else if asset.kind === 'models'}

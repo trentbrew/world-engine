@@ -82,13 +82,13 @@
           : [session.clientId].filter(Boolean);
     return ids.map((id) => {
       const self = id === session.clientId;
-      const name = collab.displayNameFor(id);
+      const name = self ? 'You' : collab.displayNameFor(id);
       return {
         id,
         name,
         self,
         color: self ? collab.localAvatarColor() : peerColor(id),
-        initials: peerInitials(name),
+        initials: self ? 'YO' : peerInitials(name),
       };
     });
   });

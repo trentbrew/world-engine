@@ -1,3 +1,5 @@
+import { replaceBrowserUrl } from '$lib/engine/replaceBrowserUrl';
+
 /** Resolve and persist the multiplayer `?room=` query param. */
 
 export function defaultRoomForGame(game: string | null): string {
@@ -22,6 +24,6 @@ export function ensureRoomInUrl(): string {
 	if (url.searchParams.get('room') === room) return room;
 
 	url.searchParams.set('room', room);
-	history.replaceState(history.state, '', url);
+	replaceBrowserUrl(url);
 	return room;
 }

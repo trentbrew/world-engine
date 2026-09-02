@@ -7,9 +7,11 @@
 		primePlayMenuButtons
 	} from '$lib/engine/player/gamepad.svelte';
 	import { world } from '$lib/engine/runtime/world.svelte';
+	import { session } from '$lib/engine/net/session.svelte';
+	import { setStoredPlayerAvatarMesh } from '$lib/engine/player/playerAvatarPrefs';
 	import { assetLibrary } from '$lib/ui/assetLibrary.svelte';
 	import {
-		applyPlayerAvatarMesh,
+		applyLocalPlayerAvatarMesh,
 		avatarLabel,
 		isAvatarModelAsset
 	} from '$lib/ui/playPauseAvatar';
@@ -23,13 +25,13 @@
 	const visible = $derived(ui.shellMode === 'play' && ui.playPaused);
 
 	const currentMesh = $derived.by(() => {
-		void world.typeRevision;
 		void world.entities;
-		const fromType = world.typeDefaultValue('Player', 'SkinnedMesh', 'mesh');
-		if (typeof fromType === 'string' && fromType) return fromType;
 		const local = world.localPlayerEntity;
 		const skin = local?.components.SkinnedMesh as { mesh?: string } | undefined;
-		return skin?.mesh ?? '';
+		if (typeof skin?.mesh === 'string' && skin.mesh) return skin.mesh;
+		void world.typeRevision;
+		const fromType = world.typeDefaultValue('Player', 'SkinnedMesh', 'mesh');
+		return typeof fromType === 'string' ? fromType : '';
 	});
 
 	const avatarOptions = $derived.by(() => {
@@ -49,12 +51,15 @@
 
 	function selectAvatar(url: string) {
 		if (url === currentMesh) return;
-		const ok = applyPlayerAvatarMesh(
-			(typeName, component, field, value) => world.setTypeDefault(typeName, component, field, value),
-			url
-		);
-		if (ok) toast.success(`Avatar → ${avatarLabel(url)}`);
-		else toast.error('Could not change avatar');
+		const local = world.localPlayerEntity;
+		if (!local || !applyLocalPlayerAvatarMesh(local, url)) {
+			toast.error('Could not change avatar');
+			return;
+		}
+		setStoredPlayerAvatarMesh(url);
+		world.entities = [...world.entities];
+		session.announcePlayer();
+		toast.success(`Avatar → ${avatarLabel(url)}`);
 	}
 
 	onMount(() => {

@@ -113,8 +113,20 @@ Every `static/games/*.jsonld` is a runnable lesson. Open any with `?game=<name>`
 | `animated-npc-demo` | Skinned-mesh NPC animation (`Character`) |
 | `parkour` | Player controller platforming — platforms, coins, gravity |
 | `collect` | A complete risk/reward loop — a real game, not a demo |
+| `agent-demo` | **Brave** bot player spawns automatically — walk up and Press E to talk |
 
 The full folder is [`static/games/`](static/games/).
+
+### Agent bot (optional)
+
+Add `?agent=brave` in play mode to spawn **Brave**, a host-owned bot player you can talk to like any other player (Press E when nearby). The **agent-demo** world enables Brave automatically. Replies use a server-side Ollama-compatible API with mock fallback when Ollama is offline:
+
+```
+AGENT_OLLAMA_URL=http://127.0.0.1:11434
+AGENT_OLLAMA_MODEL=muse-glimmer
+```
+
+Demo: `http://localhost:9292/?game=agent-demo&mode=play`
 
 ## Deploy to Vercel
 

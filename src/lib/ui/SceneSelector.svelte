@@ -1,6 +1,7 @@
 <script lang="ts">
 	import BoxIcon from '@lucide/svelte/icons/box';
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
+	import GlobeIcon from '@lucide/svelte/icons/globe';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import { tick } from 'svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -9,13 +10,15 @@
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import {
-		GAMES,
+		currentGame,
 		currentGameParam,
+		GAMES,
 		loadGame,
 		recentGames,
 		resolveGame,
 		type GameEntry
 	} from '$lib/engine/games';
+	import { worldRegistry } from '$lib/engine/worldRegistry.svelte';
 	import { ui } from '$lib/ui/ui.svelte';
 
 	type SceneFilter = 'all' | '2d' | '3d';
@@ -34,9 +37,8 @@
 	let sceneFilter = $state<SceneFilter>('all');
 	let triggerRef = $state<HTMLButtonElement | null>(null);
 
-	const activeParam = $derived(currentGameParam() ?? '');
-
-	const activeGame = $derived(resolveGame(activeParam || undefined));
+	const activeGame = $derived(currentGame());
+	const activeParam = $derived(activeGame.param ?? currentGameParam() ?? '');
 
 	function sceneLabel(game: GameEntry): string {
 		return game.title;
@@ -47,6 +49,13 @@
 	);
 
 	function sceneFile(game: GameEntry): string {
+		if (game.worldUrl) {
+			try {
+				return new URL(game.worldUrl).pathname.split('/').pop() ?? game.worldUrl;
+			} catch {
+				return game.worldUrl;
+			}
+		}
 		return game.param === 'sandbox' || !game.param ? 'world.jsonld' : `${game.param}.jsonld`;
 	}
 
@@ -73,13 +82,33 @@
 	});
 	const sceneGames = $derived(nonRecentGames.filter((game) => game.category !== 'demo'));
 	const demoGames = $derived(nonRecentGames.filter((game) => game.category === 'demo'));
+	const communityGames = $derived(
+		worldRegistry.registryGames.filter((game) => {
+			if (!matchesFilter(game)) return false;
+			const recentKeys = new Set(recentSceneGames.map(gameKey));
+			return !recentKeys.has(gameKey(game));
+		})
+	);
+
+	function isActiveGame(game: GameEntry): boolean {
+		if (game.worldUrl && activeGame.worldUrl) return game.worldUrl === activeGame.worldUrl;
+		return gameKey(game) === activeParam;
+	}
 
 	function selectGame(param?: string) {
-		if ((param ?? '') === activeParam) {
+		if ((param ?? '') === activeParam && !activeGame.worldUrl) {
 			closeAndFocusTrigger();
 			return;
 		}
 		loadGame(param);
+	}
+
+	function selectRegistryGame(game: GameEntry) {
+		if (isActiveGame(game)) {
+			closeAndFocusTrigger();
+			return;
+		}
+		loadGame(game.param);
 	}
 
 	function closeAndFocusTrigger() {
@@ -195,6 +224,25 @@
 							</Command.Item>
 						{/each}
 					</Command.Group>
+					{#if communityGames.length > 0}
+						<Command.Group heading="Community" value="community">
+							{#each communityGames as game (game.param ?? game.worldUrl)}
+								<Command.Item
+									value={`community ${commandValue(game)}`}
+									onSelect={() => selectRegistryGame(game)}
+								>
+									<GlobeIcon class="scene-item-box" aria-hidden="true" />
+									<span class="scene-option">
+										<span class="scene-option-title">{sceneLabel(game)}</span>
+										<span class="scene-option-file">{sceneFile(game)}</span>
+									</span>
+									<span class:scene-badge-2d={game.dimensions === '2d'} class="scene-badge">
+										{dimensionLabel(game)}
+									</span>
+								</Command.Item>
+							{/each}
+						</Command.Group>
+					{/if}
 					{#if demoGames.length > 0}
 						<Command.Group heading="Demos" value="demos">
 							{#each demoGames as game (game.param ?? 'default')}

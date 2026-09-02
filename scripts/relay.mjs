@@ -5,7 +5,8 @@
  *   node scripts/relay.mjs      (or: pnpm dev:relay / just relay)
  *
  * Client connects via RelayTransport: ws://localhost:8231/rt/world:<room>.
- * Set VITE_RELAY_URL to a deployed sprite relay for production cross-device MP.
+ * Set VITE_RELAY_URL to the live sprite relay (`fractals-demo-0610`,
+ * https://fractals-demo-0610-bnsoz.sprites.app/rt) for production cross-device MP.
  *
  * Blob surface (trellis ≥ 3.2.5): content-addressed bytes at
  *   GET|HEAD|PUT http://localhost:8231/blob/:sha256
