@@ -140,6 +140,10 @@ function chatPartnerPosition(
 export function playerSystem(ctx: TickContext) {
 	for (const entity of world.query('Player')) {
 		if (!world.isOwner(entity.id)) continue;
+		// Only the local avatar reads keyboard/gamepad input. Any other owned
+		// Player (e.g. a stale authored `entity:player/*` NPC) must stay put —
+		// otherwise it mirrors every move with shared motor velocity.
+		if (entity.id !== world.localPlayerId) continue;
 		const clientId = playerClientId(entity);
 		if (clientId && isBotClientId(clientId)) continue;
 		const player = entity.components.Player as PlayerMotorData;

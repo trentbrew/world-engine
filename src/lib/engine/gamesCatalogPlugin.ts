@@ -13,6 +13,8 @@ export type DiscoveredGame = {
 	description: string;
 	dimensions: '2d' | '3d';
 	category?: 'demo';
+	/** File creation time (ms) — used to order the scene picker newest-first. */
+	createdAt: number;
 };
 
 function prettifyParam(param: string): string {
@@ -25,9 +27,9 @@ function prettifyParam(param: string): string {
 	);
 }
 
-function walkJsonld(dir: string, base = ''): { param: string; filePath: string }[] {
+function walkJsonld(dir: string, base = ''): { param: string; filePath: string; createdAt: number }[] {
 	if (!fs.existsSync(dir)) return [];
-	const out: { param: string; filePath: string }[] = [];
+	const out: { param: string; filePath: string; createdAt: number }[] = [];
 	for (const name of fs.readdirSync(dir)) {
 		if (name.startsWith('.')) continue;
 		const full = path.join(dir, name);
@@ -38,7 +40,8 @@ function walkJsonld(dir: string, base = ''): { param: string; filePath: string }
 			continue;
 		}
 		if (!name.endsWith('.jsonld')) continue;
-		out.push({ param: rel.replace(/\.jsonld$/i, ''), filePath: full });
+		const createdAt = stat.birthtime.getTime() || stat.mtimeMs;
+		out.push({ param: rel.replace(/\.jsonld$/i, ''), filePath: full, createdAt });
 	}
 	return out;
 }
@@ -48,7 +51,7 @@ function inferCategory(param: string): 'demo' | undefined {
 	return undefined;
 }
 
-function extractFromDoc(doc: unknown, param: string): DiscoveredGame {
+function extractFromDoc(doc: unknown, param: string): Omit<DiscoveredGame, 'createdAt'> {
 	const root = doc && typeof doc === 'object' ? (doc as Record<string, unknown>) : {};
 	let title: string | null = null;
 	let dimensions: '2d' | '3d' = '3d';
@@ -83,10 +86,10 @@ function extractFromDoc(doc: unknown, param: string): DiscoveredGame {
 	};
 }
 
-function readGame(filePath: string, param: string): DiscoveredGame {
+function readGame(filePath: string, param: string, createdAt: number): DiscoveredGame {
 	try {
 		const raw = fs.readFileSync(filePath, 'utf8');
-		return extractFromDoc(JSON.parse(raw), param);
+		return { ...extractFromDoc(JSON.parse(raw), param), createdAt };
 	} catch (err) {
 		console.warn(`[museum-games] failed to read ${param}:`, err);
 		return {
@@ -94,14 +97,15 @@ function readGame(filePath: string, param: string): DiscoveredGame {
 			title: prettifyParam(param),
 			description: '',
 			dimensions: '3d',
-			category: inferCategory(param)
+			category: inferCategory(param),
+			createdAt
 		};
 	}
 }
 
 export function scanGamesCatalog(gamesDir: string): DiscoveredGame[] {
 	return walkJsonld(gamesDir)
-		.map(({ param, filePath }) => readGame(filePath, param))
+		.map(({ param, filePath, createdAt }) => readGame(filePath, param, createdAt))
 		.sort((a, b) => a.param.localeCompare(b.param));
 }
 
@@ -114,6 +118,7 @@ export type DiscoveredGame = {
 	description: string;
 	dimensions: '2d' | '3d';
 	category?: 'demo';
+	createdAt: number;
 };
 
 export const discoveredGames: DiscoveredGame[] = ${JSON.stringify(games, null, '\t')};

@@ -1,17 +1,25 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import { AutoColliders, RigidBody } from '@threlte/rapier';
-	import type { DirectionalLight, Group, Mesh } from 'three';
+	import type { DirectionalLight, Group, Mesh, MeshStandardMaterial } from 'three';
 	import type { Entity } from '$lib/engine/ontology/schema';
 	import { comp, position, rotationQuat, scaleVec } from '$lib/engine/render/access';
 	import { pickHandlers } from '$lib/engine/render/pointerPick';
 	import EntityTransformControls from '$lib/scene/EntityTransformControls.svelte';
 	import {
 		createTerrain,
+		applyTerrainGroundDirt,
 		TERRAIN_DEFAULTS,
 		type TerrainParams
 	} from '$lib/engine/render/terrain/terrain';
 	import { createTerrainGrass, type TerrainGrassHandle } from '$lib/engine/render/grass/terrainGrass';
+	import { publishScatterSurface } from '$lib/engine/render/grass/surfaceRegistry';
+	import { createGrassFieldUniforms, type GrassFieldUniforms } from '$lib/engine/render/grass/uniforms';
+	import {
+		makePlaceholderFlowerSet,
+		type PlaceholderFlowerSet
+	} from '$lib/engine/render/grass/placeholderTextures';
 	import {
 		coerceGrassParams,
 		resolveGrassParams,
@@ -37,6 +45,13 @@
 		windDirection?: number;
 		windSpeed?: number;
 		stillInEdit?: boolean;
+		/**
+		 * Upstream's cross-billboard flowers, scattered onto the heightmap.
+		 * Spike: renders with canvas-generated placeholder textures until
+		 * authored flower sets clear provenance (see placeholderTextures.ts).
+		 * Off by default; `params.flEnabled` etc. still apply when on.
+		 */
+		flowers?: boolean;
 		params?: Record<string, unknown>;
 	};
 
@@ -44,6 +59,9 @@
 	let handle = $state<ReturnType<typeof createTerrain> | undefined>();
 	let terrainMesh = $state<Mesh | undefined>();
 	let grassHandle = $state<TerrainGrassHandle | undefined>();
+	let enableGroundDirt = $state<((v: number) => void) | null>(null);
+	// One stable grass-uniform set drives BOTH the blades and the ground blend.
+	let grassU: GrassFieldUniforms | null = null;
 
 	const { scene } = useThrelte();
 
@@ -90,6 +108,19 @@
 		transformRoot.scale.set(scale[0], scale[1], scale[2]);
 	});
 
+	// Publish this mesh as a scatter surface (see surfaceRegistry). Republish
+	// on every rebuild so consumers respawn; the returned cleanup only removes
+	// our own mesh, never a replacement. The publish call is untracked: the
+	// registry read would otherwise subscribe this effect to the same map it
+	// writes, and the unpublish cleanup would guarantee a refire loop
+	// (`effect_update_depth_exceeded`).
+	$effect(() => {
+		const mesh = terrainMesh;
+		if (!mesh) return;
+		const unpublish = untrack(() => publishScatterSurface(entity.id, mesh));
+		return () => unpublish();
+	});
+
 	const grassCfg = $derived(cfg.grass ?? null);
 	const grassEnabled = $derived(!!grassCfg?.enabled);
 	const grassParams = $derived.by<GrassParams | null>(() => {
@@ -113,17 +144,43 @@
 	// Wind runs in play by default; a world can opt in via `stillInEdit: false`.
 	const grassWind = $derived(grassEnabled && (ui.shellMode === 'play' || grassCfg?.stillInEdit === false));
 
+	/**
+	 * Spike flower textures, created once and shared: CanvasTextures are GPU
+	 * uploads, so they must not be rebuilt on every param change. Authored
+	 * texture refs will replace this lookup, not the memo shape.
+	 */
+	let placeholderFlowers: { a: PlaceholderFlowerSet; b: PlaceholderFlowerSet } | null = null;
+	function spikeFlowerSets(): { a: PlaceholderFlowerSet; b: PlaceholderFlowerSet } {
+		placeholderFlowers ??= {
+			a: makePlaceholderFlowerSet('a'),
+			b: makePlaceholderFlowerSet('b')
+		};
+		return placeholderFlowers;
+	}
+	const grassFlowers = $derived(grassCfg?.flowers === true ? spikeFlowerSets() : undefined);
+
 	// Blades scatter onto the terrain mesh in its local space, so rebuild whenever
 	// the terrain geometry or grass params change. Cosmetic param edits (wind,
 	// colors) only move uniforms — see setParams.
 	$effect(() => {
 		if (!grassEnabled || !terrainMesh || !grassParams) return;
-		const built = createTerrainGrass(terrainMesh, { params: grassParams });
+		grassU ??= createGrassFieldUniforms();
+		// Blend meadow ground dirt/lush-dry OVER the terrain's vertex-color ramp
+		// (idempotent; keep the same uniform object alongside the blades).
+		enableGroundDirt = applyTerrainGroundDirt(terrainMesh.material as MeshStandardMaterial, grassU.surface, 1).setEnabled;
+		const flowers = grassFlowers;
+		const built = createTerrainGrass(terrainMesh, { params: grassParams, uniforms: grassU, flowers });
 		grassHandle = built;
 		return () => {
 			built.dispose();
 			if (grassHandle === built) grassHandle = undefined;
 		};
+	});
+
+	// Turn the ground-dirt blend on/off live so toggling `grass.enabled` never
+	// swaps the terrain material (the patch is uniform-gated).
+	$effect(() => {
+		enableGroundDirt?.(grassEnabled ? 1 : 0);
 	});
 
 	let sun: DirectionalLight | null = null;

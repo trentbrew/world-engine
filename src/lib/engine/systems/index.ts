@@ -6,10 +6,13 @@
  * Edit mode keeps the sim paused — only play mode ticks.
  */
 import { isHmrTeardown } from '$lib/engine/dev/editorSession';
+import { clearWaterRipples } from '$lib/engine/render/water/rippleBus';
 import { input } from '$lib/engine/player/input';
 import { playerSystem, resetPlayerMovementState } from '$lib/engine/player/playerSystem';
 import { resetPlayerVisualLag } from '$lib/engine/player/playerVisualStepLag';
 import type { TickContext } from '$lib/engine/ontology/schema';
+import './behaviors/footsteps';
+import { footstepsSystem } from './behaviors/footsteps';
 import './behaviors/jump';
 import { jumpSystem, resetJumpInputState } from './behaviors/jump';
 import { eraSwapSystem, resetEraSwapState } from './behaviors/eraSwap';
@@ -17,6 +20,7 @@ import { plaqueProximitySystem, resetPlaqueProximityState } from './behaviors/pl
 import { roomPortalSystem, resetRoomPortalState } from './behaviors/roomPortal';
 import { playerInteractSystem, resetPlayerInteractState } from './behaviors/playerInteract';
 import { platformVelocitySystem, resetPlatformVelocityState } from './behaviors/platformVelocity';
+import { waterRippleSystem, resetWaterRippleState } from './behaviors/waterRipple';
 import './behaviors/physics';
 import './behaviors/collect';
 import { gravitySystem } from './behaviors/gravity';
@@ -39,6 +43,7 @@ function registerSystems() {
 	scheduler.register(jumpSystem);
 	scheduler.register(playerSystem);
 	scheduler.register(inputEventSystem);
+	scheduler.register(footstepsSystem);
 	scheduler.register(platformVelocitySystem);
 	scheduler.register(alarmSystem);
 	scheduler.register(collisionSystem);
@@ -48,6 +53,9 @@ function registerSystems() {
 	// PlayerInteract before RoomPortal so E near a player talks instead of travelling.
 	scheduler.register(playerInteractSystem);
 	scheduler.register(roomPortalSystem);
+	// After every system that can move something, so a ripple is stamped at the
+	// position the frame actually renders rather than one frame behind it.
+	scheduler.register(waterRippleSystem);
 	scheduler.register(formulaSystem);
 	registered = true;
 }
@@ -113,6 +121,8 @@ export function stopSimulation() {
 	resetPlaqueProximityState();
 	resetRoomPortalState();
 	resetPlayerInteractState();
+	resetWaterRippleState();
+	clearWaterRipples();
 }
 
 /** Freeze gameplay while staying in play mode. */

@@ -65,6 +65,8 @@ await step('describe_component', { component: 'Transform' }, 'Transform (built-i
 await step('describe_component', { component: 'Trasnform' }, isError);
 await step('describe_type', { type: 'Prop' }, 'Prop');
 await step('get_scene', {}, headlessOk);
+// Reads scene style through `ui`, so it degrades to the headless message here.
+await step('get_current_world', {}, headlessOk);
 // No session in a headless smoke, so "no local player yet" is the correct answer.
 await step('get_player', {}, (o) => o.startsWith('id:') || o.includes('No local player'));
 

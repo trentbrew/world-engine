@@ -6,18 +6,19 @@ test.describe('asset rail routes + inspector', () => {
 		await primeCollabStorage(page);
 	});
 
-	test('four asset rail routes expose catalogs and right-pane inspector tabs', async ({ page }) => {
+	test('four asset tabs expose catalogs and right-pane inspector tabs', async ({ page }) => {
 		await page.goto(`/?game=animated-npc-demo&room=asset-rail-${Date.now()}`);
 		await waitForWorldReady(page);
 
-		for (const route of ['Models', 'Textures', 'Audio', 'Files'] as const) {
-			await page.getByRole('button', { name: route, exact: true }).click();
+		await page.getByRole('button', { name: 'Assets', exact: true }).click();
+		for (const tab of ['Models', 'Textures', 'Audio', 'Files'] as const) {
+			await page.getByRole('tab', { name: tab, exact: true }).click();
 			await expect(page.getByRole('region', { name: 'Asset preview' })).toBeVisible({
 				timeout: 10_000
 			});
 		}
 
-		await page.getByRole('button', { name: 'Models', exact: true }).click();
+		await page.getByRole('tab', { name: 'Models', exact: true }).click();
 		await expect(page.getByRole('region', { name: 'Primitives', exact: true })).toBeVisible();
 		await expect(page.getByRole('region', { name: 'Models', exact: true })).toBeVisible();
 
@@ -44,7 +45,8 @@ test.describe('asset rail routes + inspector', () => {
 		await page.goto(`/?game=animated-npc-demo&room=asset-anim-${Date.now()}`);
 		await waitForWorldReady(page);
 
-		await page.getByRole('button', { name: 'Models', exact: true }).click();
+		await page.getByRole('button', { name: 'Assets', exact: true }).click();
+		await page.getByRole('tab', { name: 'Models', exact: true }).click();
 		const modelBtn =
 			(await page.getByRole('button', { name: /Preview player\.glb/i }).count()) > 0
 				? page.getByRole('button', { name: /Preview player\.glb/i }).first()

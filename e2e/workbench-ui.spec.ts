@@ -17,7 +17,8 @@ test('workbench tabs expose events and asset preview surfaces', async ({ page })
 	await page.getByRole('tab', { name: 'Ops', exact: true }).click();
 	await expect(page.getByRole('tabpanel', { name: 'Ops' })).toBeVisible();
 
-	await page.getByRole('button', { name: 'Textures', exact: true }).click();
+	await page.getByRole('button', { name: 'Assets', exact: true }).click();
+	await page.getByRole('tab', { name: 'Textures', exact: true }).click();
 	await expect(page.getByRole('searchbox', { name: /Search textures/i })).toBeVisible({
 		timeout: 10_000
 	});

@@ -1,6 +1,6 @@
 /**
  * Rooms Objects tab — place object types into the room (GameMaker model).
- * Rail Models remains for mesh library; Rooms no longer mounts Assets/Settings.
+ * Assets route remains for the mesh library; Rooms no longer mounts Assets/Settings.
  */
 import { expect, test, type Page } from '@playwright/test';
 
@@ -35,7 +35,7 @@ test.describe('rooms objects placement', () => {
 		await primeCollabStorage(page);
 	});
 
-	test('Rooms tabs are Room|Instances|Objects; type tile arms placement; rail Models works', async ({
+	test('Rooms tabs are Room|Instances|Objects; type tile arms placement; assets route works', async ({
 		page
 	}) => {
 		const errors = collectConsoleErrors(page);
@@ -104,8 +104,9 @@ test.describe('rooms objects placement', () => {
 		});
 		expect(dragType).toBe('Character');
 
-		// Rail Models still reachable for mesh library
-		await page.getByRole('button', { name: 'Models', exact: true }).click();
+		// Assets route still reachable for the mesh library (Models tab)
+		await page.getByRole('button', { name: 'Assets', exact: true }).click();
+		await page.getByRole('tab', { name: 'Models', exact: true }).click();
 		await expect(page.getByRole('region', { name: 'Primitives' })).toBeVisible({
 			timeout: 10_000
 		});

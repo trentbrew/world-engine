@@ -28,9 +28,13 @@
 		embedded?: boolean;
 		/** Compact trigger for doc-bar breadcrumbs. */
 		compact?: boolean;
+		/** Bindable pulse — a parent sets it to open the New-blank-scene dialog. */
+		openNewScene?: boolean;
+		/** Notified when the New-blank-scene dialog is opened (any path). */
+		onNewBlank?: () => void;
 	}
 
-	let { embedded = false, compact = false }: Props = $props();
+	let { embedded = false, compact = false, openNewScene = $bindable(false), onNewBlank }: Props = $props();
 
 	let open = $state(false);
 	let newSceneOpen = $state(false);
@@ -75,19 +79,33 @@
 		return sceneFilter === 'all' || game.dimensions === sceneFilter;
 	}
 
+	/** Newest first; games without a known creation date sort after dated ones. */
+	function byNewest(a: GameEntry, b: GameEntry): number {
+		const aTime = a.createdAt ?? 0;
+		const bTime = b.createdAt ?? 0;
+		if (aTime !== bTime) return bTime - aTime;
+		return a.title.localeCompare(b.title);
+	}
+
 	const recentSceneGames = $derived.by(() => recentGames().filter(matchesFilter));
 	const nonRecentGames = $derived.by(() => {
 		const recentKeys = new Set(recentSceneGames.map(gameKey));
 		return GAMES.filter((game) => matchesFilter(game) && !recentKeys.has(gameKey(game)));
 	});
-	const sceneGames = $derived(nonRecentGames.filter((game) => game.category !== 'demo'));
-	const demoGames = $derived(nonRecentGames.filter((game) => game.category === 'demo'));
+	const sceneGames = $derived(
+		[...nonRecentGames.filter((game) => game.category !== 'demo')].sort(byNewest)
+	);
+	const demoGames = $derived(
+		[...nonRecentGames.filter((game) => game.category === 'demo')].sort(byNewest)
+	);
 	const communityGames = $derived(
-		worldRegistry.registryGames.filter((game) => {
-			if (!matchesFilter(game)) return false;
-			const recentKeys = new Set(recentSceneGames.map(gameKey));
-			return !recentKeys.has(gameKey(game));
-		})
+		worldRegistry.registryGames
+			.filter((game) => {
+				if (!matchesFilter(game)) return false;
+				const recentKeys = new Set(recentSceneGames.map(gameKey));
+				return !recentKeys.has(gameKey(game));
+			})
+			.sort(byNewest)
 	);
 
 	function isActiveGame(game: GameEntry): boolean {
@@ -119,7 +137,18 @@
 	function newBlankScene() {
 		open = false;
 		newSceneOpen = true;
+		onNewBlank?.();
 	}
+
+	// External request (e.g. SceneCard's trailing +). Consume the pulse and open
+	// the same dialog; reset so a second click re-triggers.
+	$effect(() => {
+		if (openNewScene) {
+			newSceneOpen = true;
+			openNewScene = false;
+			onNewBlank?.();
+		}
+	});
 
 	function createBlankScene(dimensions: '2d' | '3d') {
 		newSceneOpen = false;

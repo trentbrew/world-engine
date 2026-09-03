@@ -15,9 +15,10 @@
 // engine where everything else is an entity. Those are worth revisiting as
 // engine systems, not as a translation.
 //
-// The ripple UNIFORMS are kept (they are part of this shader) and exposed as
-// params, but nothing emits ripples yet — upstream drove them from a
-// `useWaterRipple` gameplay hook. Count stays 0 until an engine system feeds it.
+// Ripples ARE wired. Upstream drove them from a `useWaterRipple` React hook that
+// each floating component called for itself; here the emitter is an entity with a
+// `WaterRipple` component and `waterRippleSystem` decides who is in the water.
+// This file just owns the 8 shader slots — see `rippleBus.ts` for the seam.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
@@ -52,6 +53,18 @@ export type WaterParams = {
 	deepOpacity: number;
 	fadeDistance: number;
 	fadeStrength: number;
+	/** Ring expansion rate, world units / second. */
+	rippleSpeed: number;
+	/** Ring thickness, world units. */
+	rippleWidth: number;
+	/** Peak whiteness of a ring. 0 disables ripples visually. */
+	rippleStrength: number;
+	/** Exponential falloff; higher fades a ripple sooner. */
+	rippleDecay: number;
+	/** Concentric rings per impact (1–4). */
+	rippleRings: number;
+	/** Seconds each successive ring lags the one before it. */
+	rippleSpacing: number;
 };
 
 export const WATER_DEFAULTS: WaterParams = {
@@ -72,7 +85,13 @@ export const WATER_DEFAULTS: WaterParams = {
 	opacity: 1.0,
 	deepOpacity: 0.37,
 	fadeDistance: 275,
-	fadeStrength: 1.3
+	fadeStrength: 1.3,
+	rippleSpeed: 1.5,
+	rippleWidth: 0.12,
+	rippleStrength: 5.5,
+	rippleDecay: 1.6,
+	rippleRings: 2,
+	rippleSpacing: 1.0
 };
 
 export type WaterSurfaceOptions = {
@@ -95,10 +114,20 @@ export type WaterSurfaceHandle = {
 	setParams(next: WaterParams): void;
 	/** Advance flow. `delta` is a per-frame delta, as with grass's tickGrassTime — the shader time is accumulated internally. */
 	update(delta: number, camera?: Camera): void;
+	/**
+	 * Start a ripple at a WORLD XZ point (the shader's `vWorldPos` is world-space,
+	 * so no conversion into the surface's local frame is wanted or needed).
+	 *
+	 * Stamped with this surface's internal clock, which is why emission has to go
+	 * through the handle rather than a caller writing uniforms directly.
+	 */
+	emitRipple(x: number, z: number): void;
 	dispose(): void;
 };
 
 const RIPPLE_SLOTS = 8;
+/** uTime wraps here to stay float-precise; ripple stamps wrap with it. */
+const TIME_WRAP = 3600;
 
 export function createWaterSurface(opts: WaterSurfaceOptions = {}): WaterSurfaceHandle {
 	const { size = 40, infinite = false } = opts;
@@ -124,10 +153,10 @@ export function createWaterSurface(opts: WaterSurfaceOptions = {}): WaterSurface
 		uFadeDistance: { value: 90.0 },
 		uFadeStrength: { value: 1.4 },
 		uCamXZ: { value: new Vector2() },
-		// Ripple uniforms — see the header: the shader reads them, nothing feeds
-		// them yet, and count 0 makes the whole block a no-op.
+		// Ripple uniforms. Count starts at 0, which makes the shader's whole ripple
+		// block a no-op until `emitRipple` fills the first slot.
 		uRippleCenters: { value: Array.from({ length: RIPPLE_SLOTS }, () => new Vector2()) },
-		uRippleTimes: { value: new Array(RIPPLE_SLOTS).fill(0) },
+		uRippleTimes: { value: new Array<number>(RIPPLE_SLOTS).fill(0) },
 		uRippleCount: { value: 0 },
 		uRippleSpeed: { value: 1.5 },
 		uRippleWidth: { value: 0.12 },
@@ -136,6 +165,11 @@ export function createWaterSurface(opts: WaterSurfaceOptions = {}): WaterSurface
 		uRippleRings: { value: 2 },
 		uRippleSpacing: { value: 1.0 }
 	};
+
+	// Slots are a ring buffer: the 9th concurrent impact overwrites the oldest.
+	// The shader reads slots [0, uRippleCount), so count only ever climbs to 8 —
+	// a used slot is never retired, it just decays to nothing via uRippleDecay.
+	let rippleSlot = 0;
 
 	const geometry = new PlaneGeometry(size, size);
 	const material = new ShaderMaterial({
@@ -176,6 +210,13 @@ export function createWaterSurface(opts: WaterSurfaceOptions = {}): WaterSurface
 		uniforms.uDeepOpacity.value = p.deepOpacity;
 		uniforms.uFadeDistance.value = p.fadeDistance;
 		uniforms.uFadeStrength.value = p.fadeStrength;
+		uniforms.uRippleSpeed.value = p.rippleSpeed;
+		uniforms.uRippleWidth.value = p.rippleWidth;
+		uniforms.uRippleStrength.value = p.rippleStrength;
+		uniforms.uRippleDecay.value = p.rippleDecay;
+		// The shader loops `r < uRippleRings` over a fixed 4-iteration unroll.
+		uniforms.uRippleRings.value = Math.max(0, Math.min(4, Math.round(p.rippleRings)));
+		uniforms.uRippleSpacing.value = p.rippleSpacing;
 	}
 
 	apply(opts.params ?? WATER_DEFAULTS);
@@ -187,12 +228,28 @@ export function createWaterSurface(opts: WaterSurfaceOptions = {}): WaterSurface
 			apply(next);
 		},
 
+		emitRipple(x: number, z: number) {
+			uniforms.uRippleCenters.value[rippleSlot]!.set(x, z);
+			uniforms.uRippleTimes.value[rippleSlot] = uniforms.uTime.value;
+			rippleSlot = (rippleSlot + 1) % RIPPLE_SLOTS;
+			if (uniforms.uRippleCount.value < RIPPLE_SLOTS) uniforms.uRippleCount.value += 1;
+		},
+
 		update(delta: number, camera?: Camera) {
 			// Accumulate, don't store the delta: the shader advances flow via
 			// sin(uTime * uCellSpeed) + uTime * uFlowX, so uTime must be an
 			// absolute elapsed clock. Feeding it raw delta (≈0.016) freezes the
 			// surface — that's the bug this guards against.
-			uniforms.uTime.value = (uniforms.uTime.value + delta) % 3600;
+			const wrapped = uniforms.uTime.value + delta;
+			if (wrapped >= TIME_WRAP) {
+				// Ripple stamps are absolute points on this same clock, so they have
+				// to wrap with it. Left alone, every live stamp would end up in uTime's
+				// future, `max(uTime - t, 0)` would pin elapsed at 0, and all 8 slots
+				// would re-fire as fresh rings once an hour.
+				const times = uniforms.uRippleTimes.value;
+				for (let i = 0; i < RIPPLE_SLOTS; i++) times[i] = times[i]! - TIME_WRAP;
+			}
+			uniforms.uTime.value = wrapped % TIME_WRAP;
 			// The distance fade is measured from the camera, so it needs the camera
 			// position even when the surface itself stays put. Nullable during
 			// first frames before Threlte's camera ref resolves.

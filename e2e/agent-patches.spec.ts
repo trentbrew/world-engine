@@ -83,7 +83,10 @@ let probeId: string;
  */
 test.beforeEach(async ({ page }) => {
 	await primeCollabStorage(page);
-	await page.goto(e2eWorldUrl('/?game=orbit'));
+	// Unique room per test — durable edits broadcast between pages in the SAME room
+	// (the spec's own comment warns of this), so sharing the default 'orbit' room
+	// made the world/state flakes when earlier tests' edits bled into later ones.
+	await page.goto(e2eWorldUrl(`/?game=orbit&room=agent-patch-${uniqueSuffix()}`));
 	await waitForWorldReady(page);
 
 	probeId = await page.evaluate((label) => {

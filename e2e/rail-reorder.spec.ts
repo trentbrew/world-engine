@@ -27,21 +27,21 @@ test.describe('rail reorder', () => {
 		await waitForWorldReady(page);
 
 		const nav = railNav(page);
-		await expect(nav.getByRole('button', { name: 'Graph' })).toBeVisible();
+		await expect(nav.getByRole('button', { name: 'Assets' })).toBeVisible();
 
 		const before = await nav.locator('button[aria-label]').evaluateAll((buttons) =>
 			buttons.map((button) => button.getAttribute('aria-label'))
 		);
-		expect(before[0]).toBe('Graph');
+		expect(before[0]).toBe('Assets');
 		expect(before.at(-1)).toBe('Config');
 
-		await nav.getByRole('button', { name: 'Graph' }).dragTo(nav.getByRole('button', { name: 'Rooms' }));
+		await nav.getByRole('button', { name: 'Assets' }).dragTo(nav.getByRole('button', { name: 'Rooms' }));
 
 		const after = await nav.locator('button[aria-label]').evaluateAll((buttons) =>
 			buttons.map((button) => button.getAttribute('aria-label'))
 		);
 		expect(after.at(-1)).toBe('Config');
-		expect(after.indexOf('Graph')).toBe(after.indexOf('Rooms') - 1);
+		expect(after.indexOf('Assets')).toBe(after.indexOf('Rooms') - 1);
 		expect(after).not.toEqual(before);
 
 		await page.reload();
@@ -58,8 +58,8 @@ test.describe('rail reorder', () => {
 		await page.goto('/?game=orbit');
 		await waitForWorldReady(page);
 
-		await railNav(page).getByRole('button', { name: 'Controls' }).click();
-		await expect(page.getByRole('button', { name: 'Controls' })).toHaveAttribute(
+		await railNav(page).getByRole('button', { name: 'Collections' }).click();
+		await expect(page.getByRole('button', { name: 'Collections' })).toHaveAttribute(
 			'aria-current',
 			'true'
 		);

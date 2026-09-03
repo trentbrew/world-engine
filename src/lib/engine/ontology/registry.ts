@@ -28,6 +28,7 @@ export const BUILTIN_COMPONENT_NAMES: ReadonlySet<string> = new Set([
 	'GrassField',
 	'Water',
 	'Terrain',
+	'Surface',
 	'EditorScene',
 	'WorldProfile',
 	'Sprite',
@@ -58,7 +59,9 @@ export function registerComponent(schema: ComponentSchema): void {
 	if (existing) {
 		componentSchemas.set(schema.name, {
 			name: schema.name,
-			fields: { ...existing.fields, ...schema.fields }
+			fields: { ...existing.fields, ...schema.fields },
+			// A later partial re-registration must not silently drop the doc.
+			doc: schema.doc ?? existing.doc
 		});
 		return;
 	}
@@ -307,6 +310,12 @@ registerComponent({
 		size: { t: 'number', default: 20 },
 		preset: { t: 'select', options: ['default', 'autumn', 'mars'], default: 'default' },
 		groundMesh: { t: 'string', default: 'grass-floor' },
+		/**
+		 * Cross-entity scatter surface: entity id whose mounted mesh blades
+		 * scatter onto instead of this field's own ground. Resolved through
+		 * the scatter-surface registry; unknown ids warn-and-skip.
+		 */
+		surfaceEntity: { t: 'string', optional: true },
 		density: { t: 'number', default: 120 },
 		maxCount: { t: 'number', default: 24000 },
 		bladeMinLength: { t: 'number', default: 0.15 },
@@ -344,6 +353,8 @@ registerComponent({
 		infinite: { t: 'boolean', default: false },
 		/** Animate flow in edit mode too. On by default off — see WaterSurfaceView. */
 		stillInEdit: { t: 'boolean', default: true },
+		/** Let players and `WaterRipple` entities disturb this surface. */
+		ripples: { t: 'boolean', default: true },
 		/** Full WaterParams overrides, applied last. */
 		params: { t: 'json', optional: true }
 	}
@@ -383,6 +394,20 @@ registerComponent({
 			t: 'json',
 			optional: true
 		}
+	}
+});
+
+registerComponent({
+	name: 'Surface',
+	fields: {
+		kind: {
+			t: 'select',
+			options: ['grass', 'dirt', 'sand', 'stone', 'wood', 'metal', 'snow', 'water', 'floor', 'default'],
+			default: 'default'
+		},
+		sfxBase: { t: 'ref', optional: true, sync: 'durable' },
+		sfxVol: { t: 'number', default: 1, sync: 'durable' },
+		variantCount: { t: 'number', default: 5, sync: 'durable' }
 	}
 });
 

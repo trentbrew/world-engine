@@ -9,9 +9,12 @@ import type { TickContext } from '$lib/engine/ontology/schema';
 
 registerComponent({
 	name: 'Gravity',
+	doc:
+		'Simple falling toward a FLAT height. Integrates vy and stops at the world Y given by `rest` — it does not know where the ground is, so on terrain or on top of another object it will stop in mid-air at `rest`. For falling that actually lands on terrain, floors and props, use the Physics component instead (body "dynamic"). Ignored entirely on entities that already have Physics.',
 	fields: {
 		g: { t: 'number', default: 9.8 },
 		vy: { t: 'number', sync: 'realtime', default: 0 },
+		/** ABSOLUTE world Y to stop at — not a height above whatever is below. */
 		rest: { t: 'number', default: 0.5 }
 	}
 });

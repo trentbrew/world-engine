@@ -38,7 +38,13 @@ registerType({
 	components: ['Transform', 'SkinnedMesh', 'Mesh3DAnimator', 'Player', 'Physics', 'Jump'],
 	defaults: {
 		SkinnedMesh: {
-			mesh: '/models/characters/mannequin.glb',
+			// The robot, not the grey mannequin. Already an allowlisted playable avatar
+			// (see characterMeshDefaults BY_BASENAME) on the same M2M human rig, so the
+			// locomotion catalog and forwardYaw carry over unchanged. A client that has
+			// picked an avatar keeps it — the stored preference wins, see
+			// applyStoredPlayerAvatarMesh. Authored `Character` NPCs are unaffected:
+			// they fall through to the SkinnedMesh component default, still the mannequin.
+			mesh: '/models/player.glb',
 			anchor: 'bottom',
 			rig: 'human',
 			forwardYaw: 0,

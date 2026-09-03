@@ -38,6 +38,7 @@
 	import DocBar from '$lib/ui/DocBar.svelte';
 	import PublishPanel from '$lib/ui/PublishPanel.svelte';
 	import LeftPanel from '$lib/ui/LeftPanel.svelte';
+	import SceneCard from '$lib/ui/SceneCard.svelte';
 	import ObjectBehaviorDrawer from '$lib/ui/ObjectBehaviorDrawer.svelte';
 	import ObjectClipLibrary from '$lib/ui/ObjectClipLibrary.svelte';
 	import ObjectInspectorPanel from '$lib/ui/ObjectInspectorPanel.svelte';
@@ -328,6 +329,9 @@
 
 	{#snippet leftPanel()}
 		{#if ui.railRoute === 'rooms'}
+			{#if ui.sidebarsVisible}
+				<SceneCard />
+			{/if}
 			<LeftPanel />
 		{:else if ui.railRoute === 'object'}
 			<ObjectClipLibrary />

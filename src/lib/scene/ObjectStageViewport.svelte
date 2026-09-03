@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { Canvas } from '@threlte/core';
-	import ObjectStageScene from '$lib/scene/ObjectStageScene.svelte';
+  import { Canvas } from '@threlte/core';
+  import { PCFShadowMap } from 'three';
+  import ObjectStageScene from '$lib/scene/ObjectStageScene.svelte';
 	import { ui } from '$lib/ui/ui.svelte';
 	import { world } from '$lib/engine/runtime/world.svelte';
 	import { hmrScene } from '$lib/engine/dev/hmrScene.svelte';
@@ -25,7 +26,7 @@
 	{#if entity}
 		<div class="object-stage-canvas">
 			{#key `${hmrScene.canvasGeneration}:${entity.id}`}
-				<Canvas shadows={ui.scene.shadows} renderMode="always">
+				<Canvas shadows={ui.scene.shadows ? PCFShadowMap : false} renderMode="always">
 					<ObjectStageScene {onZoomPercent} />
 				</Canvas>
 			{/key}

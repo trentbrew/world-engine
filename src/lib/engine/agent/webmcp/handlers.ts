@@ -127,6 +127,19 @@ function physicsColliderHint(entity: Entity, component: string): string {
 	);
 }
 
+/**
+ * The component's own doc, appended to the result of adding it.
+ *
+ * Agents pick components by name and act on the result — they rarely call
+ * describe_component first. So a component whose name reads right but whose
+ * behaviour is narrower than the name suggests (Gravity vs Physics) has to say
+ * so at the moment it is attached, or the mistake is silent.
+ */
+function componentDocHint(component: string): string {
+	const doc = getComponent(component)?.doc;
+	return doc ? ` ${doc}` : '';
+}
+
 function describeFieldLine(name: string, schema: FieldSchema): string {
 	const bits: string[] = [schema.t];
 	if (schema.sync && schema.sync !== 'durable') bits.push(schema.sync);
@@ -138,9 +151,16 @@ function describeFieldLine(name: string, schema: FieldSchema): string {
 
 /** Resolve an entity or explain why it could not be found. */
 function requireEntity(id: string): Entity | string {
-	const entity = world.getEntity(id);
-	if (!entity) return fail(`No entity "${id}". Use list_entities to find valid ids.`);
-	return entity;
+	const exact = world.getEntity(id);
+	if (exact) return exact;
+	// Every id is namespaced `entity:<kind>/<name>`, and agents routinely drop the
+	// prefix when copying an id out of prose. An exact match always wins; this only
+	// runs when that failed, so it cannot shadow a real id.
+	if (!id.startsWith('entity:')) {
+		const prefixed = world.getEntity(`entity:${id}`);
+		if (prefixed) return prefixed;
+	}
+	return fail(`No entity "${id}". Use list_entities to find valid ids.`);
 }
 
 const isError = (v: unknown): v is string => typeof v === 'string';
@@ -202,6 +222,24 @@ async function browserOnly<T>(load: () => Promise<T>, what: string): Promise<T |
 
 const uiModule = () => import('$lib/ui/ui.svelte');
 const focusModule = () => import('$lib/scene/focusEntity');
+
+/**
+ * Frame the camera on an entity a mutating tool just touched — best-effort.
+ *
+ * Deliberately swallows everything. This module also runs headless (no DOM), and
+ * in a browser the editor viewport may not be mounted; in both cases the spawn or
+ * edit already succeeded, so a camera that cannot move is not a failure worth
+ * turning a successful tool call into an error message.
+ */
+async function autoFocus(entity: Entity): Promise<void> {
+	if (typeof document === 'undefined') return;
+	try {
+		const mod = await focusModule();
+		if (mod.viewportFocus.active) mod.viewportFocus.focus(entity);
+	} catch {
+		/* camera framing is a nicety; never break the tool that did the real work */
+	}
+}
 
 /** Post-processing groups on `SceneStyle`, each a bag of knobs behind `enabled`. */
 const EFFECT_GROUPS = [
@@ -352,6 +390,40 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 		return clamp(lines.join('\n'));
 	},
 
+	async get_current_world() {
+		const lines: string[] = [];
+
+		const gameParam = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('game') : undefined;
+		lines.push(`game: ${gameParam ?? 'sandbox'}`);
+
+		const player = world.localPlayerEntity;
+		if (player && player.components.Transform) {
+			const pos = player.components.Transform.position;
+			if (Array.isArray(pos)) lines.push(`position: ${formatValue(pos)}`);
+			const rot = player.components.Transform.rotation;
+			if (Array.isArray(rot)) lines.push(`rotation: ${formatValue(rot)}`);
+		} else {
+			lines.push('position: —');
+			lines.push('rotation: —');
+		}
+
+		const mod = await browserOnly(uiModule, 'get_current_world');
+		if (isError(mod)) return mod;
+		const scene = mod.ui.scene;
+		const style = scene.style;
+		lines.push(`background: ${scene.background}`);
+		lines.push(`sky: ${scene.sky.enabled ? scene.sky.preset : 'off'}`);
+		lines.push(`artStyle: ${style.artStyle}`);
+		lines.push(`toneMapping: ${style.toneMapping}`);
+		lines.push(`exposure: ${formatValue(style.exposure)}`);
+
+		for (const group of EFFECT_GROUPS) {
+			lines.push(`${group}: ${describeEffectGroup(style[group] as Record<string, unknown>)}`);
+		}
+
+		return clamp(lines.join('\n'));
+	},
+
 	async list_rooms() {
 		const catalog = getRoomCatalog();
 		if (!catalog) return 'This world has no room catalog — it is a single scene.';
@@ -464,9 +536,10 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 			return fail(`No component "${name}". Closest: ${suggestList(name, listComponents())}`);
 		}
 		const editable = isBuiltinComponent(name) ? 'built-in, schema is fixed' : 'world-authored, editable';
+		const doc = schema.doc ? `${schema.doc}\n` : '';
 		const fields = Object.entries(schema.fields).map(([f, s]) => describeFieldLine(f, s));
-		if (fields.length === 0) return `${name} (${editable}) has no fields.`;
-		return clamp(`${name} (${editable}) fields:\n${fields.join('\n')}`);
+		if (fields.length === 0) return clamp(`${name} (${editable}) has no fields.\n${doc}`.trim());
+		return clamp(`${name} (${editable})\n${doc}fields:\n${fields.join('\n')}`);
 	},
 
 	async list_assets(input) {
@@ -642,7 +715,14 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 			extras.push(`scale ${formatValue(input.scale)}`);
 		}
 		const suffix = extras.length ? `, ${extras.join(', ')}` : '';
-		return `Placed ${entity.id} at ${formatValue(position)}${suffix}.`;
+		const placed = `Placed ${entity.id} at ${formatValue(position)}${suffix}.`;
+
+		// Auto-focus camera on the newly spawned prop (edit mode only)
+		if (editHistory.canUndo) {
+			await autoFocus(entity);
+		}
+
+		return placed;
 	},
 
 	async spawn_character(input) {
@@ -658,7 +738,14 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 			label: typeof input.label === 'string' ? input.label : undefined
 		});
 		if (!entity) return fail(`Could not place "${mesh}". Check the url with list_assets.`);
-		return `Placed character ${entity.id} at ${formatValue(position)}.`;
+		const placed = `Placed character ${entity.id} at ${formatValue(position)}.`;
+
+		// Auto-focus camera on the newly spawned character (edit mode only)
+		if (editHistory.canUndo) {
+			await autoFocus(entity);
+		}
+
+		return placed;
 	},
 
 	async spawn_from_type(input) {
@@ -682,7 +769,14 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 					: `Could not spawn ${typeName}.`
 			);
 		}
-		return `Spawned ${entity.id} at ${positionOf(entity)}.`;
+		const spawned = `Spawned ${entity.id} at ${positionOf(entity)}.`;
+
+		// Auto-focus camera on the newly spawned entity (edit mode only)
+		if (editHistory.canUndo) {
+			await autoFocus(entity);
+		}
+
+		return spawned;
 	},
 
 	async duplicate_entity(input) {
@@ -696,7 +790,14 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 
 		const created = world.entities.find((e) => !before.has(e.id));
 		if (!created) return fail(`Duplicated ${entity.id}, but could not identify the copy.`);
-		return `Duplicated ${entity.id} as ${created.id} at ${positionOf(created)}.`;
+		const duplicated = `Duplicated ${entity.id} as ${created.id} at ${positionOf(created)}.`;
+
+		// Auto-focus camera on the duplicated entity (edit mode only)
+		if (editHistory.canUndo) {
+			await autoFocus(created);
+		}
+
+		return duplicated;
 	},
 
 	async remove_entity(input) {
@@ -739,7 +840,14 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 
 		world.setField(id, component, field, input.value);
 		const applied = world.getEntity(id)?.components[component]?.[field];
-		return `${id}.${component}.${field} = ${formatValue(applied)}`;
+		const result = `${id}.${component}.${field} = ${formatValue(applied)}`;
+
+		// Auto-focus camera on the modified entity if in edit mode (undo available)
+		if (editHistory.canUndo && Array.isArray(input.position ?? input.value)) {
+			await autoFocus(entity);
+		}
+
+		return result;
 	},
 
 	async add_entity_component(input) {
@@ -760,7 +868,7 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 			);
 		}
 		const bag = world.getEntity(entity.id)?.components[component] ?? {};
-		return `${entity.id} now carries ${component}: ${nameList(Object.keys(bag), 10) || 'no fields'}.${physicsColliderHint(entity, component)}`;
+		return `${entity.id} now carries ${component}: ${nameList(Object.keys(bag), 10) || 'no fields'}.${componentDocHint(component)}${physicsColliderHint(entity, component)}`;
 	},
 
 	async remove_entity_component(input) {

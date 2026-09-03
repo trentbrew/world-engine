@@ -1,0 +1,9 @@
+flowchart LR
+  Consumer[GrassField view<br/>surfaceEntity set] --> Resolver[resolveScatterSurface<br/>per-scene registry]
+  Owner[Mesh-owning view<br/>publish on mount] --> Registry[(surface registry<br/>entity id → mesh + revision)]
+  Resolver --> Registry
+  Registry --> Surface[foreign mesh]
+  Surface --> Scatter[createTerrainGrass<br/>surface sampler]
+  Scatter --> Blades[blades follow<br/>foreign heightmap]
+  Revision[geometry revision bump] --> Respawn[consumer respawns]
+  Missing[unknown surface] --> Warn[warn-and-skip<br/>zero blades]

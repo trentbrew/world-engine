@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { Canvas } from '@threlte/core';
-	import ObjectTypePreviewScene from '$lib/scene/ObjectTypePreviewScene.svelte';
+  import { Canvas } from '@threlte/core';
+  import { PCFShadowMap } from 'three';
+  import ObjectTypePreviewScene from '$lib/scene/ObjectTypePreviewScene.svelte';
 	import {
 		buildTypePreviewEntity,
 		typePreviewHasVisual
@@ -42,7 +43,7 @@
 	{#if previewEntity && hasVisual}
 		<div class="preview-canvas">
 			{#key canvasKey}
-				<Canvas shadows={ui.scene.shadows} renderMode="always">
+				<Canvas shadows={ui.scene.shadows ? PCFShadowMap : false} renderMode="always">
 					<ObjectTypePreviewScene entity={previewEntity} {onZoomPercent} />
 				</Canvas>
 			{/key}

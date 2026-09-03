@@ -66,13 +66,25 @@
 		return sceneFilter === 'all' || game.dimensions === sceneFilter;
 	}
 
+	/** Newest first; games without a known creation date sort after dated ones. */
+	function byNewest(a: GameEntry, b: GameEntry): number {
+		const aTime = a.createdAt ?? 0;
+		const bTime = b.createdAt ?? 0;
+		if (aTime !== bTime) return bTime - aTime;
+		return a.title.localeCompare(b.title);
+	}
+
 	const recentSceneGames = $derived.by(() => recentGames().filter(matchesFilter));
 	const nonRecentGames = $derived.by(() => {
 		const recentKeys = new Set(recentSceneGames.map(gameKey));
 		return GAMES.filter((game) => matchesFilter(game) && !recentKeys.has(gameKey(game)));
 	});
-	const sceneGames = $derived(nonRecentGames.filter((game) => game.category !== 'demo'));
-	const demoGames = $derived(nonRecentGames.filter((game) => game.category === 'demo'));
+	const sceneGames = $derived(
+		[...nonRecentGames.filter((game) => game.category !== 'demo')].sort(byNewest)
+	);
+	const demoGames = $derived(
+		[...nonRecentGames.filter((game) => game.category === 'demo')].sort(byNewest)
+	);
 
 	function selectGame(param?: string) {
 		if ((param ?? '') === activeParam) {

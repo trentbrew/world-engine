@@ -6,6 +6,8 @@ import { registerComponent } from '$lib/engine/ontology/registry';
 
 registerComponent({
 	name: 'Physics',
+	doc:
+		'Real rigid-body physics (Rapier). This is what to add to make something fall, land on terrain and floors, and collide with other bodies — use body "dynamic". Use "fixed" for immovable scenery and "kinematic" for things moved by script. Prefer this over the Gravity component, which only falls to a flat world height and cannot see the ground.',
 	fields: {
 		body: { t: 'string', default: 'dynamic', options: ['fixed', 'dynamic', 'kinematic'] },
 		// `options` is what surfaces these shapes to agents via describe_component —

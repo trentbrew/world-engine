@@ -16,6 +16,8 @@ export interface GameEntry {
 	dimensions: '2d' | '3d';
 	/** Feature demos — grouped separately in the scene picker. */
 	category?: 'demo';
+	/** File creation time (ms) when bundled — picker orders newest-first. */
+	createdAt?: number;
 }
 
 const RECENT_GAMES_KEY = 'scene-selector:recent-games';
@@ -30,7 +32,8 @@ function buildGamesCatalog(): GameEntry[] {
 			param: discovered.param,
 			title: override.title ?? discovered.title,
 			description: override.description ?? discovered.description,
-			dimensions: override.dimensions ?? discovered.dimensions
+			dimensions: override.dimensions ?? discovered.dimensions,
+			createdAt: discovered.createdAt
 		};
 		const category = Object.hasOwn(override, 'category')
 			? override.category

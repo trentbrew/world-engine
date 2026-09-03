@@ -1,0 +1,8 @@
+flowchart LR
+  A[Terrain.grass.enabled] --> B{terrain material onBeforeCompile}
+  B --> C[vertex: vGndXZ = world XZ]
+  C --> D[GROUND_MASK_GLSL: groundDirt/_gmFbm]
+  D --> E[color base = vertex ramp vColor]
+  E --> F[+ lush/dry patch tint]
+  F --> G[+ dirt uDirtColor * groundDirt]
+  G --> H[grass blades on top TRL-235]

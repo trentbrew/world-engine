@@ -5,6 +5,7 @@ export type DiscoveredGame = {
 	description: string;
 	dimensions: '2d' | '3d';
 	category?: 'demo';
+	createdAt: number;
 };
 
 export const discoveredGames: DiscoveredGame[] = [
@@ -13,189 +14,219 @@ export const discoveredGames: DiscoveredGame[] = [
 		"title": "Agent Demo",
 		"description": "",
 		"dimensions": "3d",
-		"category": "demo"
+		"category": "demo",
+		"createdAt": 1786591390194
 	},
 	{
 		"param": "alarms-demo",
 		"title": "Alarms Demo",
 		"description": "",
 		"dimensions": "3d",
-		"category": "demo"
+		"category": "demo",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "animated-npc-demo",
 		"title": "Animated Npc Demo",
 		"description": "",
 		"dimensions": "3d",
-		"category": "demo"
+		"category": "demo",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "arena",
 		"title": "Arena",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "blank",
 		"title": "Blank",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "blank2d",
 		"title": "Blank2d",
 		"description": "",
-		"dimensions": "2d"
+		"dimensions": "2d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "circuit",
 		"title": "Circuit",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784630498000
 	},
 	{
 		"param": "collect",
 		"title": "Collect",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "collect-race",
 		"title": "Collect Race",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "collections-demo",
 		"title": "Collections Demo",
 		"description": "",
 		"dimensions": "3d",
-		"category": "demo"
+		"category": "demo",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "collision-demo",
 		"title": "Collision Demo",
 		"description": "",
 		"dimensions": "3d",
-		"category": "demo"
+		"category": "demo",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "craftpunk/commons",
 		"title": "Craftpunk Commons",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "events-demo",
 		"title": "Events Demo",
 		"description": "",
 		"dimensions": "3d",
-		"category": "demo"
+		"category": "demo",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "gallery",
 		"title": "Gallery",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "input-demo",
 		"title": "Input Demo",
 		"description": "",
 		"dimensions": "3d",
-		"category": "demo"
+		"category": "demo",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "meadow",
 		"title": "Meadow",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1788404288820
 	},
 	{
 		"param": "orbit",
 		"title": "Orbit",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "parkour",
 		"title": "Parkour",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499884000
 	},
 	{
 		"param": "physics",
 		"title": "Physics",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "physics-pit",
 		"title": "Physics Pit",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "platformer2d",
 		"title": "Platformer2d",
 		"description": "",
-		"dimensions": "2d"
+		"dimensions": "2d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "player-avatar-override",
 		"title": "Player Avatar Override",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "playground",
 		"title": "Playground",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "powder/slope",
 		"title": "Powder Slope",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "rooms-demo",
 		"title": "Rooms Demo",
 		"description": "",
 		"dimensions": "3d",
-		"category": "demo"
+		"category": "demo",
+		"createdAt": 1784632456000
 	},
 	{
 		"param": "scripts-demo",
 		"title": "Scripts Demo",
 		"description": "",
 		"dimensions": "3d",
-		"category": "demo"
+		"category": "demo",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "silicon-city",
 		"title": "Silicon City",
 		"description": "Walk the machine you're running on. Every building is a live IORegistry node on this MacBookPro18,2 (Apple M1 Max, 64 GB) — height is how much of the system …",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1788338745308
 	},
 	{
 		"param": "sprites-demo",
 		"title": "Sprites Demo",
 		"description": "",
 		"dimensions": "2d",
-		"category": "demo"
+		"category": "demo",
+		"createdAt": 1784499097000
 	},
 	{
 		"param": "terrain",
 		"title": "Terrain",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1788423125158
 	},
 	{
 		"param": "tower",
 		"title": "Tower",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1784499097000
 	}
 ];

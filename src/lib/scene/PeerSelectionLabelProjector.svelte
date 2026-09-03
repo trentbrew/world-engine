@@ -29,9 +29,13 @@
 		// Play mode: a name tag over every player avatar (who's who).
 		if (ui.shellMode === 'play') {
 			const result: BadgeSource[] = [];
+			const roster = new Set(session.spawnRoster);
 			for (const entity of world.query('Player')) {
 				const clientId = playerClientId(entity);
 				if (!clientId) continue;
+				// Skip authored `entity:player/*` NPCs that never joined the room —
+				// otherwise they render as a phantom "Peer xxxx" badge.
+				if (!roster.has(clientId)) continue;
 				const self = clientId === session.clientId;
 				result.push({
 					key: `player:${clientId}`,

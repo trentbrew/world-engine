@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import { Collider, RigidBody } from '@threlte/rapier';
-	import { DirectionalLight, Group } from 'three';
+	import { DirectionalLight, Group, Matrix4, Quaternion, Vector3 } from 'three';
 	import type { Entity } from '$lib/engine/ontology/schema';
 	import { comp, position, rotationQuat, scaleVec } from '$lib/engine/render/access';
 	import { pickHandlers } from '$lib/engine/render/pointerPick';
@@ -15,6 +15,14 @@
 		resolveGrassParams,
 		type GrassParams
 	} from '$lib/engine/render/grass/params';
+	import {
+		createTerrainGrass,
+		type TerrainGrassHandle
+	} from '$lib/engine/render/grass/terrainGrass';
+	import {
+		resolveScatterSurface,
+		scatterSurfaceRevision
+	} from '$lib/engine/render/grass/surfaceRegistry';
 	import { world } from '$lib/engine/runtime/world.svelte';
 	import { ui } from '$lib/ui/ui.svelte';
 
@@ -27,6 +35,9 @@
 		size?: number;
 		preset?: string;
 		groundMesh?: string;
+		/** Cross-entity scatter surface: entity id whose published mesh blades
+		 *  scatter onto instead of this field's own ground. */
+		surfaceEntity?: string;
 		density?: number;
 		maxCount?: number;
 		bladeMinLength?: number;
@@ -42,6 +53,8 @@
 
 	let transformRoot = $state<Group | undefined>();
 	let handle = $state<GrassFieldHandle | undefined>();
+	let foreignHandle = $state<TerrainGrassHandle | undefined>();
+	let warnedMissing: string | null = null;
 
 	const cfg = $derived(comp<GrassFieldConfig>(entity, 'GrassField') ?? {});
 	const pos = $derived(position(entity));
@@ -91,9 +104,14 @@
 	 */
 	const windRunning = $derived(ui.shellMode === 'play' || cfg.stillInEdit === false);
 
+	const surfaceId = $derived(cfg.surfaceEntity ?? null);
+	const foreignSurface = $derived(surfaceId ? resolveScatterSurface(surfaceId) : null);
+	const foreignRev = $derived(surfaceId ? scatterSurfaceRevision(surfaceId) : 0);
+
 	// Build once per structural input. Params that only move uniforms never
 	// land here — see REBUILD_KEYS.
 	$effect(() => {
+		if (surfaceId) return; // foreign-surface mode owns grass below
 		const size = groundSize;
 		const mesh = groundMesh;
 		const initial = params;
@@ -108,6 +126,53 @@
 		return () => {
 			built.dispose();
 			if (handle === built) handle = undefined;
+		};
+	});
+
+	// Foreign-surface mode: scatter onto another entity's published mesh. The
+	// foreign mesh is sampled read-only (never repainted or remounted); blades
+	// are rebased into this field's local space via mountMatrix so they align
+	// under ANY pair of entity transforms. Rebuilds on params, surface
+	// replacement, or surface revision bumps.
+	$effect(() => {
+		if (!surfaceId) return;
+		const surface = foreignSurface;
+		void foreignRev;
+		const initial = params;
+		if (!surface) {
+			if (warnedMissing !== surfaceId) {
+				warnedMissing = surfaceId;
+				console.warn(
+					`[GrassField] surface entity "${surfaceId}" has no published mesh — no grass spawned.`
+				);
+			}
+			if (foreignHandle) {
+				foreignHandle.dispose();
+				foreignHandle = undefined;
+			}
+			invalidate();
+			return;
+		}
+		warnedMissing = null;
+		surface.updateWorldMatrix(true, false);
+		const surfaceWorld = surface.matrixWorld.clone();
+		const r = rotationQuat(entity);
+		const consumerWorld = new Matrix4().compose(
+			new Vector3(pos[0], pos[1], pos[2]),
+			new Quaternion(r[0], r[1], r[2], r[3]),
+			new Vector3(scale[0], scale[1], scale[2])
+		);
+		const mountMatrix = consumerWorld.invert().multiply(surfaceWorld);
+		const built = createTerrainGrass(surface, {
+			params: initial,
+			mountMatrix,
+			onWarn: (m) => console.warn(m)
+		});
+		foreignHandle = built;
+		invalidate();
+		return () => {
+			built.dispose();
+			if (foreignHandle === built) foreignHandle = undefined;
 		};
 	});
 
@@ -157,9 +222,11 @@
 
 	useTask(
 		(delta) => {
-			handle?.update(delta, resolveSun());
+			const sunNow = resolveSun();
+			handle?.update(delta, sunNow);
+			foreignHandle?.update(delta, sunNow);
 		},
-		{ running: () => windRunning && handle !== undefined }
+		{ running: () => windRunning && (handle !== undefined || foreignHandle !== undefined) }
 	);
 </script>
 
@@ -176,6 +243,9 @@
 	{/if}
 	{#if handle}
 		<T is={handle.object3D} />
+	{/if}
+	{#if foreignHandle}
+		<T is={foreignHandle.object3D} />
 	{/if}
 </T.Group>
 

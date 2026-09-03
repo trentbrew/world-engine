@@ -27,8 +27,10 @@ import {
 	DoubleSide,
 	Mesh,
 	MeshStandardMaterial,
-	PlaneGeometry
+	PlaneGeometry,
+	type IUniform
 } from 'three';
+import { GROUND_MASK_GLSL, GROUND_MASK_UNIFORMS } from '$lib/engine/render/grass/shaders/groundMask';
 
 /** Seeded LCG — same seed always yields the same layout (see grass scatter). */
 function seededLcg(seed: number) {
@@ -235,4 +237,81 @@ export function createTerrain(opts: TerrainOptions = {}): TerrainHandle {
 			material.dispose();
 		}
 	};
+}
+
+/**
+ * Blend the grass-field ground treatment onto the terrain material WITHOUT
+ * replacing the terrain's vertex-color elevation ramp.
+ *
+ * The terrain surface stays its authored `colorLow→colorHigh` gradient; this
+ * patch overlays meadow's procedural dirt (`groundDirt`, world-XZ so it drapes
+ * over the heightmap) plus a light lush↔dry patch tint, gated by a
+ * `uGrassEnabled` uniform so toggling `Terrain.grass` never swaps materials.
+ *
+ * `surfaceUniforms` is the grass `createGrassFieldUniforms().surface` object —
+ * the SAME uniforms driving the terrain's blades — so dirt agrees with blade
+ * thinning. Idempotent (patches once). Returns a setter for the enable uniform.
+ */
+export function applyTerrainGroundDirt(
+	material: MeshStandardMaterial,
+	surfaceUniforms: Record<string, IUniform>,
+	enabled: number
+): { setEnabled: (v: number) => void } {
+	// The shader's enable uniform is stored ONCE on the material; every setter
+	// (including the idempotent re-apply path) mutates the SAME object, so live
+	// toggle-off→on keeps driving the real shader uniform.
+	const setEnabled = (v: number) => {
+		(material.userData.grassDirt as { value: number }).value = v;
+		material.userData.grassDirtSet = v;
+	};
+
+	if (material.userData.grassDirtApplied) {
+		return { setEnabled };
+	}
+
+	const grassEnabled = { value: enabled };
+	material.userData.grassDirt = grassEnabled;
+	material.userData.grassDirtApplied = true;
+	material.userData.grassDirtSet = enabled;
+
+	material.onBeforeCompile = (shader) => {
+		Object.assign(shader.uniforms, surfaceUniforms);
+		shader.uniforms.uGrassEnabled = grassEnabled;
+
+		// Vertex: carry world XZ so the mask is world-anchored (drapes over hills).
+		shader.vertexShader =
+			'varying vec2 vGndXZ;\n' + shader.vertexShader;
+		shader.vertexShader = shader.vertexShader.replace(
+			'#include <begin_vertex>',
+			`#include <begin_vertex>
+			vGndXZ = ( modelMatrix * vec4( transformed, 1.0 ) ).xz;`
+		);
+
+		// Fragment: dirt mask + a gentle lush/dry tint over the vertex-color ramp.
+		shader.fragmentShader =
+			`varying vec2 vGndXZ;
+			uniform float uGrassEnabled;
+			uniform float uPatchScale;
+			uniform float uPatchBias;
+			uniform vec3  uPatchLush;
+			uniform vec3  uPatchDry;
+			uniform float uPatchStrength;
+			uniform float uBrightness;\n` +
+			GROUND_MASK_UNIFORMS +
+			GROUND_MASK_GLSL +
+			shader.fragmentShader;
+		shader.fragmentShader = shader.fragmentShader.replace(
+			'#include <color_fragment>',
+			`#include <color_fragment>
+			if ( uGrassEnabled > 0.5 ) {
+				float _pt = pow( clamp( _gmFbm( vGndXZ * uPatchScale ), 0.0, 1.0 ), uPatchBias );
+				vec3 _tint = mix( diffuseColor.rgb, mix( uPatchLush, uPatchDry, _pt ), uPatchStrength );
+				float _dirt = groundDirt( vGndXZ );
+				diffuseColor.rgb = mix( _tint, uDirtColor * uBrightness, _dirt );
+			}`
+		);
+	};
+	material.needsUpdate = true;
+
+	return { setEnabled };
 }

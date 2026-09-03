@@ -27,7 +27,7 @@
 			"@id": "entity:light/ambient",
 			"@type": "Thing",
 			"conformsTo": "AmbientLight",
-			"components": { "Light": { "intensity": 0.5, "color": "#cfe8ff" } }
+			"components": { "Light": { "intensity": 2.0, "color": "#f5e7c3" } }
 		},
 		{
 			"@id": "entity:light/sun",
@@ -35,13 +35,13 @@
 			"conformsTo": "DirectionalLight",
 			"components": {
 				"Light": {
-					"intensity": 1.15,
-					"color": "#fff2d0",
-					"shadowMapSize": 2048,
+					"intensity": 3.0,
+					"color": "#ffffff",
+					"shadowMapSize": 4096,
 					"shadowCamSize": 34,
-					"shadowNormalBias": 0.02
+					"shadowNormalBias": 0.22
 				},
-				"Transform": { "position": [14, 16, 10], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
+				"Transform": { "position": [-37, 14, -8], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
 			}
 		},
 		{
@@ -66,7 +66,9 @@
 						"bladeMinLength": 0.12,
 						"bladeMaxLength": 0.32,
 						"windStrength": 0.12,
-						"windDirection": 243
+						"windDirection": 243,
+						"flowers": true,
+						"params": { "flMaxCount": 1200, "flSize": 0.4 }
 					}
 				},
 				"Transform": { "position": [0, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
@@ -97,14 +99,6 @@
 			"@type": "Thing",
 			"conformsTo": "SpawnPoint",
 			"components": { "Transform": { "position": [0, 5.6, -8], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] } }
-		},
-		{
-			"@id": "entity:player/avatar",
-			"@type": "Thing",
-			"conformsTo": "Player",
-			"components": {
-				"Transform": { "position": [0, 5.8, -8], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
-			}
 		}
 	]
 }

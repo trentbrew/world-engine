@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Raster — Scene selector card (TRL-239 design mock)</title>
+<!-- trellis-design-adopted: slug=scene_selector_card -->
+<style>
+  /* Tokens mirror docs/artifacts/scene_selector_card_design.md front matter */
+  :root {
+    --background: #0c0c0e;
+    --surface: #141418;
+    --text: #e8e8ec;
+    --text-muted: #888894;
+    --primary: #e85d4c;
+    --accent: #2f80ed;
+    --border: #2a2a32;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --scene-card-h: 44px;
+    --crumb-h: 32px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html,body { height: 100%; }
+  body {
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 13px; color: var(--text); background: var(--background);
+    padding: var(--spacing-lg); line-height: 1.5;
+  }
+  .mock-title { color: var(--text); font-weight: 600; margin-bottom: var(--spacing-md); }
+  .mock-sub { color: var(--text-muted); font-size: 12px; margin-bottom: var(--spacing-lg); }
+  .row { display:flex; gap: var(--spacing-lg); flex-wrap: wrap; align-items: flex-start; }
+
+  /* ── Shell canvas ─────────────────────────────────────── */
+  .canvas {
+    position: relative; width: 620px; height: 420px;
+    border-radius: var(--radius-md); background: #101014;
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .docbar {
+    position: absolute; top: 8px; left: 8px; right: 8px; height: 40px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 12px; background: color-mix(in srgb, var(--surface) 92%, transparent);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+  }
+  .crumb-pill {
+    display: inline-flex; align-items: center; gap: 6px; height: var(--crumb-h);
+    padding: 0 12px; border-radius: 999px; background: var(--surface);
+    border: 1px solid var(--border); font-weight: 600; font-size: 12px; color: var(--text);
+  }
+  .crumb-pill .chev { opacity: .5; }
+  .crumb-pill[hidden] { display: none; }
+
+  .sidebar {
+    position: absolute; top: 56px; left: 8px; width: 250px; bottom: 8px;
+    display: flex; flex-direction: column;
+  }
+
+  /* ── THE SCENE CARD (state A: panel visible) ─────────── */
+  .scene-card {
+    width: 100%; height: var(--scene-card-h);
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 var(--spacing-md); margin-bottom: var(--spacing-sm);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    cursor: pointer;
+  }
+  .scene-card:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+  .scene-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .scene-title { font-weight: 600; font-size: 13px; flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .badge { flex-shrink:0; min-width: 30px; height: 18px; border-radius: 999px;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; font-weight: 700;
+    letter-spacing: .04em; color: var(--text-muted);
+    border: 1px solid var(--border); background: color-mix(in srgb, var(--text-muted) 14%, transparent); }
+  .badge.badge-2d { color: #9dccff; border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+    background: color-mix(in srgb, var(--accent) 22%, transparent); }
+  .chev { opacity: .5; }
+  .new-scene {
+    display:inline-flex; align-items:center; justify-content:center;
+    width: 26px; height: 26px; border-radius: var(--radius-sm);
+    background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+    cursor: pointer; }
+  .new-scene:hover { color: var(--text); background: color-mix(in srgb, var(--text) 8%, transparent); }
+
+  .tabs { display:flex; gap:2px; margin-bottom: var(--spacing-sm); }
+  .tab { padding: 6px 12px; font-size: 12px; font-weight: 500; color: var(--text-muted);
+    border-bottom: 1px solid transparent; }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .panel-list { flex: 1; border-top: 1px solid var(--border); padding-top: var(--spacing-sm); }
+  .item { padding: 6px 12px; border-radius: var(--radius-sm); color: var(--text-muted); }
+  .item.self { color: var(--text); }
+  .item .tag { float: right; color: var(--text-muted); font-family:ui-monospace, monospace; font-size: 10px; }
+
+  .state-label { color: var(--text-muted); font-size: 11px; margin: var(--spacing-md) 0 var(--spacing-xs); }
+  .note { color: var(--text-muted); font-size: 11px; }
+  [data-design-note] { position: relative; }
+  [data-design-note]:hover::after {
+    content: attr(data-design-note); position: absolute; left: 0; bottom: calc(100% + 6px);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 4px 8px; font-size: 11px; color: var(--text); white-space: nowrap; z-index: 5;
+  }
+</style>
+</head>
+<body>
+<div class="mock-title">Scene selector card (TRL-239) — states</div>
+<div class="mock-sub">State A: panel visible → the scene is a full-width card above the left pane. State B: panel collapsed → a slim doc-bar crumb keeps the switch reachable.</div>
+
+<div class="row">
+  <div class="canvas" data-design-note="State A — full-width scene card above left pane">
+    <div class="docbar">
+      <span class="crumb-pill" hidden data-design-note="doc-bar crumb hidden when panel open">Meadow <span class="chev">▾</span></span>
+      <span class="note" style="opacity:.7">doc bar</span>
+    </div>
+    <div class="sidebar">
+      <div class="scene-card" role="combobox" aria-expanded="false" aria-label="Select scene" data-design-note="scene card: title + 2D/3D badge + chevron">
+        <span class="scene-title">Meadow</span>
+        <span class="badge">3D</span>
+        <span class="chev">▾</span>
+        <button class="new-scene" aria-label="New blank scene" data-design-note="New blank scene">+</button>
+      </div>
+      <div class="tabs"><span class="tab active">Room</span><span class="tab">Instances</span><span class="tab">Objects</span></div>
+      <div class="panel-list">
+        <div class="item self">Player <span class="tag">you</span></div>
+        <div class="item">Prop <span class="tag">settings</span></div>
+        <div class="item">GrassField <span class="tag">meadow</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas" data-design-note="State B — panel collapsed; slim doc-bar crumb remains">
+    <div class="docbar">
+      <span class="crumb-pill" data-design-note="crumb persists (name + chevron, no New)">Meadow <span class="chev">▾</span></span>
+      <span class="note" style="opacity:.7">doc bar (crumb only)</span>
+    </div>
+    <div class="sidebar">
+      <div class="scene-card" hidden data-design-note="card hides with the panel">
+        <span class="scene-title">Meadow</span><span class="badge">3D</span><span class="chev">▾</span>
+      </div>
+      <div class="tabs"><span class="tab active">Room</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="note" style="margin-top:var(--spacing-lg)">Hover any zone for a note. Tokens in <code>:root</code> mirror <code>scene_selector_card_design.md</code>.</div>
+</body>
+</html>

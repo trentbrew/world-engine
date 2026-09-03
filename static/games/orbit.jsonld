@@ -165,6 +165,462 @@
 					"speed": 2
 				}
 			}
+		},
+		{
+			"@id": "entity:prop/probe-mtl4xgo27054wa-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5anyxhenjnl-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5iq9g5fqhj9-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5jd8hlg830m-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5jn91qf9llx-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5l464c9llsk-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop",
+			"events": {
+				"step": [
+					{
+						"set": "Transform.position.y",
+						"to": "=1 + sin(t)"
+					}
+				]
+			}
+		},
+		{
+			"@id": "entity:prop/probe-mtl5m0r163v1ym-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5m0m87zilw3-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5mdb3cpn2vm-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5mlav6tb7bf-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5repvoqjh7o-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5rpcrqg0cgb-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5rz4g9ghfgq-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5rzbw8d8qa2-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "type:ProbeTypemtl5rzczslrm6v",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render"
+			]
+		},
+		{
+			"@id": "entity:prop/probe-mtl5s8mahfkz95-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5si63vshxjw-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5sqv2x4nynn-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5t099s246e3-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5taztafm96k-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5tkfemhqv9y-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5tt6hy7croa-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5tvblo0tkw8-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
+		},
+		{
+			"@id": "entity:prop/probe-mtl5tvowl02f2i-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop",
+			"events": {
+				"step": [
+					{
+						"set": "Transform.position.y",
+						"to": "=1 + sin(t)"
+					}
+				]
+			}
+		},
+		{
+			"@id": "entity:prop/probe-mtl5u47ux5zfka-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
 		}
 	]
 }

@@ -12,6 +12,7 @@
 		type WaterParams,
 		type WaterSurfaceHandle
 	} from '$lib/engine/render/water/waterSurface';
+	import { drainWaterRipples } from '$lib/engine/render/water/rippleBus';
 	import { world } from '$lib/engine/runtime/world.svelte';
 	import { ui } from '$lib/ui/ui.svelte';
 
@@ -101,7 +102,12 @@
 
 	useTask(
 		(delta) => {
-			handle?.update(delta, camera.current ?? undefined);
+			const h = handle;
+			if (!h) return;
+			h.update(delta, camera.current ?? undefined);
+			// After update, so the stamp equals the clock this frame renders at and a
+			// new ripple starts at elapsed 0 — a ring of exactly zero radius.
+			for (const impact of drainWaterRipples(entity.id)) h.emitRipple(impact.x, impact.z);
 		},
 		{ running: () => flowRunning && handle !== undefined }
 	);

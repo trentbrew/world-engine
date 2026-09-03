@@ -28,6 +28,12 @@ export type OutlineLayer = {
 function playPlayerOutlineLayers(): OutlineLayer[] {
 	if (ui.shellMode !== 'play') return [];
 
+	// The outline exists to tell avatars apart by peer color. Alone in a room there
+	// is nothing to tell apart, and a permanent rim light on your own character just
+	// reads as a rendering artifact — so solo play gets a clean silhouette.
+	// `peerCount` counts self + peers, and is 0 offline, so <= 1 is "nobody else".
+	if (session.peerCount <= 1) return [];
+
 	const layers: OutlineLayer[] = [];
 	for (const entity of world.query('Player')) {
 		if (!isPlayerEntity(entity)) continue;

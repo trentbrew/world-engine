@@ -311,6 +311,53 @@
 					}
 				]
 			}
+		},
+		{
+			"@id": "entity:character/mannequin-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						4,
+						0,
+						2
+					]
+				},
+				"SkinnedMesh": {
+					"mesh": "/models/characters/mannequin.glb",
+					"anchor": "bottom",
+					"rig": "human",
+					"forwardYaw": 0
+				},
+				"Mesh3DAnimator": {
+					"catalog": "catalog:mesh2motion-human",
+					"clip": "Idle_Loop",
+					"speed": 1,
+					"loop": true,
+					"rootMotion": false,
+					"playing": true
+				}
+			},
+			"conformsTo": "Character"
+		},
+		{
+			"@id": "entity:prop/barrel-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						-4,
+						0,
+						2
+					]
+				},
+				"Render": {
+					"mesh": "/models/barrel.glb",
+					"color": "#d4d4d4",
+					"anchor": "bottom"
+				}
+			},
+			"conformsTo": "Prop"
 		}
 	]
 }

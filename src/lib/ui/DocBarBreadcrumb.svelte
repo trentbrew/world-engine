@@ -14,6 +14,10 @@
 	const routeLabel = $derived(worldRouteLabel(activeWorldRoute));
 	const inObjectEditor = $derived(ui.railRoute === 'object' && !!ui.objectTarget);
 	const showEditTrail = $derived(ui.shellMode === 'edit');
+	/** The scene card handles scene switching when the left panel is open on the room editor,
+	 *  so the doc-bar pill is redundant there. Keep it everywhere else (and always when the
+	 *  panel is collapsed) so a scene switcher is never unreachable. */
+	const hideSceneCrumb = $derived(ui.shellMode === 'edit' && ui.sidebarsVisible && ui.railRoute === 'rooms');
 	/** Non-null only for multi-room games — the active room as a world level. */
 	const roomLabel = $derived(resolveActiveRoomLabel());
 	/**
@@ -58,10 +62,12 @@
 			</Tooltip.Root>
 		</Breadcrumb.Item>
 
-		<Breadcrumb.Separator />
-		<Breadcrumb.Item>
-			<SceneSelector compact />
-		</Breadcrumb.Item>
+		{#if !hideSceneCrumb}
+			<Breadcrumb.Separator />
+			<Breadcrumb.Item>
+				<SceneSelector compact />
+			</Breadcrumb.Item>
+		{/if}
 
 		{#if roomLabel}
 			<Breadcrumb.Separator />

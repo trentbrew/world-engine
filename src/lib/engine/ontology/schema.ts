@@ -45,6 +45,16 @@ export interface FieldSchema {
 export interface ComponentSchema {
 	name: string;
 	fields: Record<string, FieldSchema>;
+	/**
+	 * One-line explanation of what the component actually DOES, written for an
+	 * agent choosing between components by name alone.
+	 *
+	 * Field names are not self-describing enough to pick between near-synonyms:
+	 * an agent asked for "gravity" sees a component called `Gravity` with fields
+	 * `g, vy, rest` and takes it, never learning that `Physics` is the one that
+	 * collides with the ground. Say what it does and name the alternative.
+	 */
+	doc?: string;
 }
 
 /** Display metadata for a collection-typed EntityType (Collections panel). */

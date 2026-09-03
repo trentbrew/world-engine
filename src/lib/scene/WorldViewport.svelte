@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Canvas } from '@threlte/core';
+  import { PCFShadowMap } from 'three';
   import WorldScene from '$lib/scene/WorldScene.svelte';
   import PlacementBanner from '$lib/scene/PlacementBanner.svelte';
   import PlacementSession from '$lib/scene/PlacementSession.svelte';
@@ -121,7 +122,9 @@
         ondragleave={onViewportDragLeave}
       >
         {#key hmrScene.canvasGeneration}
-          <Canvas shadows={ui.scene.shadows} {renderMode}>
+          <!-- PCFShadowMap, not Threlte's PCFSoft default: three r183+
+               deprecates PCFSoft and falls back to PCF anyway. -->
+          <Canvas shadows={ui.scene.shadows ? PCFShadowMap : false} {renderMode}>
             <WorldScene />
           </Canvas>
         {/key}

@@ -139,6 +139,16 @@ const getPlayer: ToolManifestEntry = {
 	target: 'world.localPlayerEntity'
 };
 
+const getCurrentWorld: ToolManifestEntry = {
+	name: 'get_current_world',
+	title: 'Get current world',
+	description:
+		'Return the current world identifier, local player position and orientation, and scene settings. Use “where am i” to orient yourself in the world.',
+	inputSchema: { type: 'object', properties: {} },
+	annotations: READ_TRUSTED,
+	target: 'world + ui + scene'
+};
+
 const listRooms: ToolManifestEntry = {
 	name: 'list_rooms',
 	title: 'List rooms',
@@ -957,6 +967,7 @@ export const WEBMCP_TOOLS: ToolManifestEntry[] = [
 	describeEntity,
 	worldStatus,
 	getPlayer,
+	getCurrentWorld,
 	listRooms,
 	getScene,
 	// read: ontology

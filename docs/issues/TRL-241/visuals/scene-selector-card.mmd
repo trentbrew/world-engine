@@ -1,0 +1,9 @@
+flowchart LR
+  subgraph LeftColumn
+    SC[SceneCard full-width one-row] --> LP[LeftPanel tabs+list]
+  end
+  SC --> P[SceneSelector popover]
+  SC --> N[New blank scene dialog]
+  sidebars{bars visible?} -- yes --> SC
+  sidebars -- no --> CR[doc-bar slim crumb name+chevron]
+  CR --> P

@@ -5,6 +5,7 @@ export type DiscoveredGame = {
 	description: string;
 	dimensions: '2d' | '3d';
 	category?: 'demo';
+	createdAt: number;
 };
 
 export const discoveredGames: DiscoveredGame[] = [
@@ -12,6 +13,7 @@ export const discoveredGames: DiscoveredGame[] = [
 		"param": "hello",
 		"title": "Hello",
 		"description": "",
-		"dimensions": "3d"
+		"dimensions": "3d",
+		"createdAt": 1785668672113
 	}
 ];
