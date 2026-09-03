@@ -1463,6 +1463,43 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 		}
 	},
 
+	async generate_platformer_world(input) {
+		const name = String(input.name ?? '').trim();
+		if (!name) return fail('name is required — the world slug and filename, e.g. "ascent".');
+		if (!/^[a-zA-Z0-9-]+$/.test(name)) return fail('name must contain only letters, numbers and dashes.');
+		const payload = {
+			steps: input.steps,
+			difficulty: input.difficulty,
+			seed: input.seed,
+			platformColor: input.platformColor,
+			coreColor: input.coreColor
+		};
+		try {
+			const res = await fetch(`/api/world/${encodeURIComponent(name)}/generate`, {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+			const data = (await res.json().catch(() => null)) as {
+				ok?: boolean;
+				url?: string;
+				steps?: number;
+				difficulty?: number;
+				coreValue?: number;
+				error?: string;
+			} | null;
+			if (!res.ok || !data?.ok) {
+				const msg = data?.error ?? `HTTP ${res.status}`;
+				return fail(`Generate failed: ${msg}`);
+			}
+			return (
+				`Created platformer world "${name}" (${data.steps ?? ''} platforms, difficulty ${data.difficulty ?? ''}, core value ${data.coreValue ?? ''}).\nOpen ${data.url}`
+			);
+		} catch (err) {
+			return fail(`Generate failed: ${(err as Error).message}`);
+		}
+	},
+
 	async undo() {
 		if (!editHistory.canUndo) return 'Nothing to undo.';
 		if (!editHistory.undo()) return fail('Could not undo the last edit.');

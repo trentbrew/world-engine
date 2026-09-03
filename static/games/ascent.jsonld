@@ -1,0 +1,421 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		},
+		"events": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "type:Platform",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Physics"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#44525f"
+				},
+				"Physics": {
+					"body": "fixed",
+					"collider": "box"
+				}
+			}
+		},
+		{
+			"@id": "type:Core",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Collectible"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#ffd166"
+				},
+				"Transform": {
+					"scale": [
+						0.8,
+						0.8,
+						0.8
+					]
+				},
+				"Collectible": {
+					"radius": 1.4,
+					"value": 50
+				}
+			},
+			"events": {
+				"collision": [
+					{
+						"with": "Player",
+						"do": [
+							{ "score": "=Collectible.value" },
+							{ "sfx": "=Collectible.sfx" },
+							{ "destroy": "self" }
+						]
+					}
+				]
+			}
+		},
+
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.55
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1.1
+				},
+				"Transform": {
+					"position": {
+						"x": 12,
+						"y": 26,
+						"z": 8
+					}
+				}
+			}
+		},
+
+		{
+			"@id": "entity:abyss/floor",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						20,
+						-26,
+						0
+					],
+					"scale": [
+						70,
+						0.4,
+						36
+					]
+				},
+				"Render": {
+					"color": "#08080d"
+				}
+			}
+		},
+
+		{
+			"@id": "entity:base/start",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0.5,
+						0
+					],
+					"scale": [
+						5,
+						1,
+						5
+					]
+				},
+				"Render": {
+					"color": "#2a2a33"
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/start",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						1.05,
+						0
+					]
+				}
+			}
+		},
+
+		{
+			"@id": "entity:platform/1",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						4.0,
+						1.3,
+						0.8
+					],
+					"scale": [
+						1.7,
+						0.5,
+						1.7
+					]
+				},
+				"Render": {
+					"color": "#3a4a5a"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/2",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						7.0,
+						2.2,
+						1.8
+					],
+					"scale": [
+						1.5,
+						0.5,
+						1.5
+					]
+				},
+				"Render": {
+					"color": "#3f5566"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/3",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						10.0,
+						3.3,
+						0.3
+					],
+					"scale": [
+						1.3,
+						0.5,
+						1.3
+					]
+				},
+				"Render": {
+					"color": "#44515f"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/4-peg",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						13.0,
+						4.7,
+						-1.2
+					],
+					"scale": [
+						0.95,
+						0.5,
+						0.95
+					]
+				},
+				"Render": {
+					"color": "#5d6d7d"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/5",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						16.2,
+						6.3,
+						0.6
+					],
+					"scale": [
+						1.15,
+						0.5,
+						1.15
+					]
+				},
+				"Render": {
+					"color": "#557a68"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/6-peg",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						19.6,
+						8.1,
+						1.9
+					],
+					"scale": [
+						0.9,
+						0.5,
+						0.9
+					]
+				},
+				"Render": {
+					"color": "#c9a058"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/7",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						23.0,
+						10.7,
+						0.2
+					],
+					"scale": [
+						1.15,
+						0.5,
+						1.15
+					]
+				},
+				"Render": {
+					"color": "#6c8c5a"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/8",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						26.6,
+						13.4,
+						-1.5
+					],
+					"scale": [
+						1.05,
+						0.5,
+						1.05
+					]
+				},
+				"Render": {
+					"color": "#7ca05a"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/9-peg",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						30.6,
+						16.2,
+						0.0
+					],
+					"scale": [
+						0.95,
+						0.5,
+						0.95
+					]
+				},
+				"Render": {
+					"color": "#d0b058"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/10",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						34.8,
+						17.8,
+						1.4
+					],
+					"scale": [
+						1.5,
+						0.5,
+						1.5
+					]
+				},
+				"Render": {
+					"color": "#9ecf8e"
+				}
+			}
+		},
+		{
+			"@id": "entity:platform/finish",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						39.5,
+						19.3,
+						0.0
+					],
+					"scale": [
+						3.2,
+						0.6,
+						3.2
+					]
+				},
+				"Render": {
+					"color": "#3ecf8e"
+				}
+			}
+		},
+		{
+			"@id": "entity:core/summit",
+			"@type": "Thing",
+			"conformsTo": "Core",
+			"components": {
+				"Transform": {
+					"position": [
+						39.5,
+						20.1,
+						0.0
+					]
+				},
+				"Render": {
+					"color": "#ffd166"
+				}
+			}
+		}
+	]
+}

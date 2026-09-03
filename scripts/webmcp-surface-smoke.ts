@@ -192,6 +192,11 @@ await step('redo', {}, notError);
 await step('remove_entity', { entityId: propId }, `Removed ${propId}`);
 await step('remove_entity', { entityId: propId }, isError);
 
+// generate_platformer_world persists to a dev-server endpoint, so offline it
+// must degrade to a legible error rather than throw.
+await step('generate_platformer_world', { name: 'smoke-tower', steps: 5, difficulty: 2, seed: 1 },
+	(o) => o.startsWith('Error:') && o.includes('Generate failed'));
+
 // ---- coverage --------------------------------------------------------------
 
 const registered = new Set(listWebMcpToolNames());

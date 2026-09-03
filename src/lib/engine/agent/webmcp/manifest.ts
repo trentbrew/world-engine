@@ -1003,6 +1003,27 @@ const redo: ToolManifestEntry = {
 	target: 'editHistory.redo()'
 };
 
+const generatePlatformerWorld: ToolManifestEntry = {
+	name: 'generate_platformer_world',
+	title: 'Generate a platformer world',
+	description:
+		'Build a hard platforming gauntlet — shrinking platforms rising over an abyss, with a collectible core at the summit — and save it to static/games/<name>.jsonld. Later steps grow tall enough to force the double jump, and tiny pegs appear as difficulty rises. Returns the load URL. Inputs: name (required slug), steps (3–24, default 10), difficulty (0–5, default 3), seed, platformColor, coreColor.',
+	inputSchema: {
+		type: 'object',
+		properties: {
+			name: { type: 'string', description: 'World slug and filename, e.g. "ascent". Required.' },
+			steps: { type: 'number', description: 'Gauntlet platform count (3–24). Default 10.' },
+			difficulty: { type: 'number', description: '0–5. 0 = short single jumps; 5 = tall double-jump pegs. Default 3.' },
+			seed: { type: 'number', description: 'Deterministic seed. Default 0.' },
+			platformColor: { type: 'string', description: 'Optional hex to tint every platform.' },
+			coreColor: { type: 'string', description: 'Optional hex for the summit collectible core.' }
+		},
+		required: ['name']
+	},
+	annotations: WRITE,
+	target: 'POST /api/world/<game>/generate (dev only)'
+};
+
 export const WEBMCP_TOOLS: ToolManifestEntry[] = [
 	// read: world
 	listEntities,
@@ -1055,6 +1076,8 @@ export const WEBMCP_TOOLS: ToolManifestEntry[] = [
 	addCollectionField,
 	createRecord,
 	deleteRecord,
+	// write: worlds
+	generatePlatformerWorld,
 	// write: scene, rooms, editor
 	setSceneSetting,
 	switchRoom,
