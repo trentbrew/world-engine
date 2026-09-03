@@ -40,6 +40,8 @@ export function resolveCollider(
 		}
 		return { shape: 'capsule', args: [0.25 * sy, 0.32 * Math.max(sx, sz)] };
 	}
-	// box (and hull/trimesh fallback until mesh geometry is wired) → scaled cuboid.
+	// box → scaled unit cuboid. glTF meshes never reach here: PhysicsBody routes
+	// every non-capsule glTF collider through AutoColliders so the shape is
+	// derived from real geometry. This path is for primitives and capsule fits.
 	return { shape: 'cuboid', args: [0.5 * sx, 0.5 * sy, 0.5 * sz] };
 }

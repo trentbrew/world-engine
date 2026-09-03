@@ -25,6 +25,9 @@ export const BUILTIN_COMPONENT_NAMES: ReadonlySet<string> = new Set([
 	'Light',
 	'Marker',
 	'Ground',
+	'GrassField',
+	'Water',
+	'Terrain',
 	'EditorScene',
 	'WorldProfile',
 	'Sprite',
@@ -106,6 +109,9 @@ export function getType(name: string): EntityType | undefined {
 /** Built-in registry types — not overwritable via Save as type. */
 export const BUILTIN_TYPE_NAMES: ReadonlySet<string> = new Set([
 	'GroundPlane',
+	'GrassField',
+	'WaterSurface',
+	'Terrain',
 	'Prop',
 	'SpriteProp',
 	'SpawnPoint',
@@ -205,7 +211,20 @@ registerComponent({
 	fields: {
 		kind: { t: 'string', default: 'ambient' },
 		intensity: { t: 'number', default: 1 },
-		color: { t: 'color', default: '#ffffff' }
+		color: { t: 'color', default: '#ffffff' },
+		// Shadow controls for `kind: 'directional'`. Defaults deliberately match
+		// three's own, so adding these changes no existing world's appearance.
+		//
+		// They exist because a large surface needs a shadow camera to match: three
+		// defaults the directional shadow to an ortho frustum of ±5 world units,
+		// so anything bigger (a 24-unit grass field, say) falls outside it and
+		// loses its shadows entirely.
+		shadowMapSize: { t: 'number', default: 1024 },
+		/** Half-extent of the shadow camera's ortho frustum, in world units. */
+		shadowCamSize: { t: 'number', default: 5 },
+		shadowBias: { t: 'number', default: 0 },
+		/** Offsets along the normal — the practical fix for acne on thin geometry. */
+		shadowNormalBias: { t: 'number', default: 0 }
 	}
 });
 
@@ -261,6 +280,109 @@ registerComponent({
 	fields: {
 		size: { t: 'number', default: 20 },
 		color: { t: 'color', default: '#80808080' }
+	}
+});
+
+/**
+ * Stylized grass field — instanced blades over a ground surface.
+ *
+ * Fourteen curated knobs, plus `params` as an escape hatch to the ~100 the
+ * shader actually exposes (see engine/render/grass/params.ts). Flat fields for
+ * everything worth an inspector row and an agent tool; the long tail rides in
+ * the json bag, the same shape Mesh3DAnimator.locomotion uses. Putting all 98
+ * here would make the inspector unusable and blow describe_component's 500-char
+ * budget.
+ *
+ * `model` is optional: with no GLB the field builds its own ground plane of
+ * `size` and scatters onto that, so a world can have grass with zero assets.
+ *
+ * All durable — this is authored geometry, not per-frame state. Animate wind
+ * with a formula (`"windStrength": "=0.1 + sin(t * 0.3) * 0.05"`) rather than a
+ * realtime field, which would put it on the wire every frame.
+ */
+registerComponent({
+	name: 'GrassField',
+	fields: {
+		model: { t: 'ref', of: { kind: 'asset' }, optional: true },
+		size: { t: 'number', default: 20 },
+		preset: { t: 'select', options: ['default', 'autumn', 'mars'], default: 'default' },
+		groundMesh: { t: 'string', default: 'grass-floor' },
+		density: { t: 'number', default: 120 },
+		maxCount: { t: 'number', default: 24000 },
+		bladeMinLength: { t: 'number', default: 0.15 },
+		bladeMaxLength: { t: 'number', default: 0.25 },
+		colorBottom: { t: 'color', default: '#4f7c13' },
+		colorTop: { t: 'color', default: '#79a01c' },
+		windStrength: { t: 'number', default: 0.1 },
+		windDirection: { t: 'number', default: 243 },
+		windSpeed: { t: 'number', default: 1.3 },
+		/** Freeze wind in edit mode. On by default — see GrassFieldView. */
+		stillInEdit: { t: 'boolean', default: true },
+		/** Full GrassParams overrides, applied last. */
+		params: { t: 'json', optional: true }
+	}
+});
+
+/**
+ * Cel-shaded water surface. See WaterSurfaceView / render/water/waterSurface.ts.
+ *
+ * SCOPED DOWN from upstream (waterFloor): the GPU wave simulation, sparkles,
+ * depth-intersection band, seabed and shadow-catcher are NOT ported — they either
+ * own their own clock or live in a module-level singleton, both of which fight
+ * this engine's entity model. Only the Voronoi surface material is here, and the
+ * ripple uniforms it reads stay at count 0 (nothing emits ripples yet).
+ *
+ * All durable. Flow is animated by the view in play mode (or `stillInEdit: false`);
+ * the surface itself is authored geometry, so a realtime field would flood the
+ * relay for no gain.
+ */
+registerComponent({
+	name: 'Water',
+	fields: {
+		size: { t: 'number', default: 40 },
+		/** Follow the camera in XZ so the surface reads as an endless ocean. */
+		infinite: { t: 'boolean', default: false },
+		/** Animate flow in edit mode too. On by default off — see WaterSurfaceView. */
+		stillInEdit: { t: 'boolean', default: true },
+		/** Full WaterParams overrides, applied last. */
+		params: { t: 'json', optional: true }
+	}
+});
+
+/**
+ * Displaced terrain — a seeded procedural heightmap driving a vertex-colored
+ * mesh and a matching trimesh collider. See TerrainView / render/terrain/terrain.ts.
+ *
+ * This is the height-variance the engine lacked: `Ground` is a flat plane, and
+ * "infinite water at sea level" is meaningless without hills. An agent composes
+ * hills with three numbers (seed, heightScale, noiseScale); the collider is
+ * derived from the mesh's own vertices so physics can never drift from visuals.
+ *
+ * All durable — the heightmap is deterministic from `seed`, not authored state.
+ */
+registerComponent({
+	name: 'Terrain',
+	fields: {
+		size: { t: 'number', default: 60 },
+		segments: { t: 'number', default: 128 },
+		heightScale: { t: 'number', default: 4 },
+		baseHeight: { t: 'number', default: 0 },
+		noiseScale: { t: 'number', default: 0.05 },
+		octaves: { t: 'number', default: 4 },
+		seed: { t: 'number', default: 1337 },
+		color: { t: 'color', default: '#5a7a3a' },
+		colorLow: { t: 'color', default: '#3f6a34' },
+		colorHigh: { t: 'color', default: '#8a9a54' },
+		colorRange: { t: 'number', default: 6 },
+		/**
+		 * Optional grass overlay scattered onto the terrain's own heightmap.
+		 * `enabled` gates it (default off); the rest map onto GrassParams curated
+		 * fields, with `params` as the escape hatch.
+		 */
+		grass: {
+			t: 'json',
+			optional: true
+		}
 	}
 });
 
@@ -390,6 +512,9 @@ registerComponent({
 });
 
 registerType({ name: 'GroundPlane', components: ['Transform', 'Ground'] });
+registerType({ name: 'GrassField', components: ['Transform', 'GrassField'] });
+registerType({ name: 'WaterSurface', components: ['Transform', 'Water'] });
+registerType({ name: 'Terrain', components: ['Transform', 'Terrain'] });
 registerType({ name: 'Prop', components: ['Transform', 'Render'] });
 registerType({ name: 'SpriteProp', components: ['Transform', 'Sprite'] });
 registerType({ name: 'SpawnPoint', components: ['Transform', 'Marker'] });

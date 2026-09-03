@@ -28,6 +28,7 @@ import type {
 	Entity,
 	FieldSchema
 } from '$lib/engine/ontology/schema';
+import { isGltfMesh } from '$lib/engine/render/meshRef';
 import { world } from '$lib/engine/runtime/world.svelte';
 import type { SceneStyle } from '$lib/scene/artStyles';
 
@@ -109,6 +110,23 @@ function page<T>(items: T[], input: Record<string, unknown>): { slice: T[]; offs
 	return { slice: items.slice(offset, offset + limit), offset };
 }
 
+/**
+ * Physics on a glTF entity defaults to `collider: 'box'`, which fits the mesh
+ * bounding box — wrong for anything an agent means by "solid" (a building, a
+ * ramp). Say so at the point of use: the default is legible in the tool result,
+ * but the shape it produces is not.
+ */
+function physicsColliderHint(entity: Entity, component: string): string {
+	if (component !== 'Physics') return '';
+	const mesh = entity.components.Render?.mesh;
+	if (typeof mesh !== 'string' || !isGltfMesh(mesh)) return '';
+	return (
+		' This entity has a glTF mesh, so the default collider "box" is only its bounding box.' +
+		' For solid scenery set collider="trimesh" and body="fixed"; use "hull" for a convex' +
+		' approximation or on a dynamic body.'
+	);
+}
+
 function describeFieldLine(name: string, schema: FieldSchema): string {
 	const bits: string[] = [schema.t];
 	if (schema.sync && schema.sync !== 'durable') bits.push(schema.sync);
@@ -186,7 +204,17 @@ const uiModule = () => import('$lib/ui/ui.svelte');
 const focusModule = () => import('$lib/scene/focusEntity');
 
 /** Post-processing groups on `SceneStyle`, each a bag of knobs behind `enabled`. */
-const EFFECT_GROUPS = ['fog', 'bloom', 'vignette', 'grain', 'outline', 'sketch'] as const;
+const EFFECT_GROUPS = [
+	'fog',
+	'bloom',
+	'vignette',
+	'grain',
+	'outline',
+	'sketch',
+	'kuwahara',
+	'ink',
+	'watercolor'
+] as const;
 const TONE_MAPPINGS = ['none', 'linear', 'reinhard', 'cineon', 'aces', 'agx', 'neutral'];
 
 function describeEffectGroup(group: Record<string, unknown>): string {
@@ -479,6 +507,86 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 		});
 	},
 
+	async search_sketchfab(input) {
+		const query = String(input.query ?? '').trim();
+		if (!query) return fail('query is required.');
+
+		const limit = Math.min(20, Math.max(1, Number(input.limit ?? 8) || 8));
+		let res: Response;
+		try {
+			res = await fetch(`/api/sketchfab?q=${encodeURIComponent(query)}&limit=${limit}`);
+		} catch (err) {
+			return fail(`Sketchfab search failed: ${(err as Error).message}`);
+		}
+
+		if (res.status === 404 || res.status === 503) {
+			return fail(
+				'Sketchfab tools need the local dev server and SKETCHFAB_API_KEY in .env. Use: pnpm import:sketchfab -- --search "…" --import-first'
+			);
+		}
+		if (!res.ok) {
+			const msg = await res.text().catch(() => res.statusText);
+			return fail(`Sketchfab search failed (${res.status}): ${msg}`);
+		}
+
+		const data = (await res.json()) as {
+			results: { uid: string; name: string; license: string; animated: boolean }[];
+		};
+		const rows = (data.results ?? []).map(
+			(r) => `${r.uid}  ${r.name}  license:${r.license}${r.animated ? '  animated' : ''}`
+		);
+		if (rows.length === 0) return `No downloadable Sketchfab models match "${query}".`;
+		return clamp(`${rows.length} Sketchfab hits:\n${rows.join('\n')}`, {
+			shown: rows.length,
+			total: rows.length
+		});
+	},
+
+	async import_sketchfab_model(input) {
+		const uid = String(input.uid ?? '').trim();
+		if (!uid) return fail('uid is required — run search_sketchfab first.');
+
+		const body: { uid: string; name?: string } = { uid };
+		if (typeof input.name === 'string' && input.name.trim()) body.name = input.name.trim();
+
+		let res: Response;
+		try {
+			res = await fetch('/api/sketchfab', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body)
+			});
+		} catch (err) {
+			return fail(`Sketchfab import failed: ${(err as Error).message}`);
+		}
+
+		if (res.status === 404 || res.status === 503) {
+			return fail(
+				'Sketchfab import needs the local dev server and SKETCHFAB_API_KEY in .env. Use: pnpm import:sketchfab -- --uid <UID>'
+			);
+		}
+		if (!res.ok) {
+			const msg = await res.text().catch(() => res.statusText);
+			return fail(`Sketchfab import failed (${res.status}): ${msg}`);
+		}
+
+		const data = (await res.json()) as {
+			url: string;
+			slug: string;
+			rigged: boolean;
+			license: string;
+			sizeMb: string;
+			modelName: string;
+		};
+
+		const spawn = data.rigged ? 'spawn_character' : 'spawn_prop';
+		return (
+			`Imported ${data.modelName} → ${data.url} (${data.sizeMb} MB, license: ${data.license}).` +
+			` ${data.rigged ? 'Rigged — use spawn_character.' : 'Static — use spawn_prop.'}` +
+			` Example: ${spawn} mesh=${data.url} position=[0,0,0]`
+		);
+	},
+
 	async list_records(input) {
 		const collection = String(input.collection ?? '');
 		if (!isCollection(collection)) {
@@ -652,7 +760,7 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 			);
 		}
 		const bag = world.getEntity(entity.id)?.components[component] ?? {};
-		return `${entity.id} now carries ${component}: ${nameList(Object.keys(bag), 10) || 'no fields'}.`;
+		return `${entity.id} now carries ${component}: ${nameList(Object.keys(bag), 10) || 'no fields'}.${physicsColliderHint(entity, component)}`;
 	},
 
 	async remove_entity_component(input) {
@@ -1057,7 +1165,10 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 			case 'vignette':
 			case 'grain':
 			case 'outline':
-			case 'sketch': {
+			case 'sketch':
+			case 'kuwahara':
+			case 'ink':
+			case 'watercolor': {
 				const group = scene.style[key] as Record<string, unknown>;
 				const applied = applyEffectKnobs(group, value, key);
 				if (isError(applied)) return applied;

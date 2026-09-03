@@ -174,9 +174,10 @@
 
 	.rail-logo-card {
 		flex: 0 0 auto;
-		width: 56px;
-		height: 48px;
-		padding: 10px;
+		width: 44px;
+		height: 44px;
+		padding: 9px;
+		border-radius: 50%;
 		box-sizing: border-box;
 		display: flex;
 		align-items: center;
@@ -339,6 +340,7 @@
 		padding: 0 var(--chrome-edge) var(--chrome-edge);
 		flex-direction: row;
 		align-items: center;
+		justify-content: center;
 		flex-wrap: wrap;
 	}
 
@@ -349,6 +351,7 @@
 
 	.app-shell.rail-position-bottom .app-left-panel {
 		left: 0;
+		padding-left: var(--chrome-edge);
 		max-height: calc(
 			100% - var(--chrome-top-outer) - var(--bottom-chrome-height, 0px) - var(--chrome-bottom-outer) -
 				var(--rail-height) - var(--chrome-edge) - var(--chrome-panel-bottom-slack)

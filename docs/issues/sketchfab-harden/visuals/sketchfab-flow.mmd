@@ -1,0 +1,14 @@
+flowchart LR
+  subgraph cli [CLI]
+    A[pnpm import:sketchfab] --> B[sketchfab.server.ts]
+  end
+  subgraph dev [Dev server]
+    C[WebMCP tools] --> D["GET/POST /api/sketchfab"]
+    D --> B
+    E[vite-dev.mjs loads .env] --> D
+  end
+  B --> F[Sketchfab API]
+  B --> G["static/models/*.glb"]
+  B --> H[".provenance.json"]
+  G --> I["/api/assets catalog"]
+  C --> J[spawn_prop / spawn_character]

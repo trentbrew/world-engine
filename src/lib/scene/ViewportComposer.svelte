@@ -1,6 +1,12 @@
 <script lang="ts">
   import { useTask, useThrelte } from '@threlte/core';
-  import { HalfFloatType, NoToneMapping, type Camera, type Mesh } from 'three';
+  import {
+    HalfFloatType,
+    NoToneMapping,
+    type Camera,
+    type Mesh,
+    type PerspectiveCamera,
+  } from 'three';
   import {
     BloomEffect,
     BlendFunction,
@@ -25,6 +31,9 @@
   import { OUTLINE_COMPOSER_TASK } from '$lib/scene/viewportRenderTasks';
   import { SKY_PRESETS } from '$lib/scene/skyPresets';
   import { SketchEffect } from '$lib/scene/effects/SketchEffect';
+  import { AnisotropicKuwaharaPass } from '$lib/scene/effects/AnisotropicKuwaharaPass';
+  import { InkOutlineEffect } from '$lib/scene/effects/InkOutlineEffect';
+  import { createWatercolorEffect } from '$lib/scene/effects/WatercolorEffect';
   import type { SceneStyle, ToneMappingId } from '$lib/scene/artStyles';
   import { camera as cameraStore } from '$lib/engine/render/camera.svelte';
   import { session } from '$lib/engine/net/session.svelte';
@@ -69,6 +78,18 @@
   let scenePasses: Pass[] = [];
   let toneMappingEffect: ToneMappingEffect | undefined;
   let toneMappingPass: EffectPass | undefined;
+  /**
+   * The Sobel ink outline, kept OUT of `scenePasses` on purpose.
+   *
+   * It reads the scene depth texture, which `postprocessing` attaches to the
+   * composer's initial input buffer — and every pass with `needsSwap` rotates
+   * that buffer. A few passes in, the attachment has been used as a render
+   * target and cleared, and the outline would read depth 1.0 everywhere and
+   * draw nothing. So it is inserted at index 1, directly after RenderPass, and
+   * `reorderOutputPasses()` never touches it.
+   */
+  let inkOutlineEffect: InkOutlineEffect | undefined;
+  let inkOutlinePass: EffectPass | undefined;
   let composerRendering = false;
 
   const selectionEnabled = $derived(
@@ -152,7 +173,23 @@
     composer.addPass(toneMappingPass);
   }
 
+  function disposeToneMappingPass() {
+    if (!toneMappingPass) return;
+    composer.removePass(toneMappingPass);
+    toneMappingPass.dispose();
+    toneMappingEffect?.dispose();
+    toneMappingPass = undefined;
+    toneMappingEffect = undefined;
+  }
+
   function syncToneMappingPass(style: SceneStyle) {
+    // Watercolor ends in an ACES curve and IS the scene's tone mapping. Running
+    // the composer's ToneMappingEffect after it tone-maps the frame twice and
+    // washes it out, so the watercolor pass owns the grade outright.
+    if (style.watercolor.enabled) {
+      disposeToneMappingPass();
+      return;
+    }
     ensureToneMappingPass();
     if (!toneMappingEffect) return;
     const mode = POSTPROCESSING_TONE_MODE[style.toneMapping];
@@ -168,6 +205,7 @@
       effect.mainCamera = cam;
     }
     for (const pass of scenePasses) pass.mainCamera = cam;
+    if (inkOutlinePass) inkOutlinePass.mainCamera = cam;
     if (toneMappingPass) toneMappingPass.mainCamera = cam;
   }
 
@@ -275,6 +313,9 @@
       vignette: v,
       grain: g,
       sketch: s,
+      kuwahara: k,
+      ink: i,
+      watercolor: w,
       toneMapping,
     } = style;
     return [
@@ -283,8 +324,56 @@
       v.enabled ? `v:${v.darkness}` : 'v0',
       g.enabled ? `g:${g.opacity}` : 'g0',
       s.enabled ? `s:${s.intensity}` : 's0',
+      k.enabled ? `k:${k.radius}:${k.alpha}` : 'k0',
+      i.enabled
+        ? `i:${i.strength}:${i.thickness}:${i.threshold}:${i.color}`
+        : 'i0',
+      w.enabled
+        ? `w:${w.mix}:${w.steps}:${w.saturation}:${w.paperStrength}`
+        : 'w0',
       `tm:${toneMapping}`,
     ].join('|');
+  }
+
+  function disposeInkOutlinePass() {
+    if (!inkOutlinePass) return;
+    composer.removePass(inkOutlinePass);
+    inkOutlinePass.dispose();
+    inkOutlineEffect?.dispose();
+    inkOutlinePass = undefined;
+    inkOutlineEffect = undefined;
+  }
+
+  /** Insert/update/remove the depth-reading ink pass at index 1 — see the
+   *  declaration above for why it cannot live in `scenePasses`. */
+  function syncInkOutlinePass(style: SceneStyle) {
+    if (!style.ink.enabled) {
+      disposeInkOutlinePass();
+      return;
+    }
+
+    const cam = camera.current as Camera;
+    if (!inkOutlineEffect) {
+      inkOutlineEffect = new InkOutlineEffect();
+      inkOutlinePass = new EffectPass(cam, inkOutlineEffect);
+      // Index 1: immediately after RenderPass, before anything that swaps.
+      composer.addPass(inkOutlinePass, 1);
+    }
+
+    inkOutlineEffect.setParams({
+      strength: style.ink.strength,
+      thickness: style.ink.thickness,
+      threshold: style.ink.threshold,
+      color: style.ink.color,
+    });
+    inkOutlineEffect.setTexel(
+      size.current.width,
+      size.current.height,
+      renderer.getPixelRatio(),
+    );
+    if ('isPerspectiveCamera' in cam && cam.isPerspectiveCamera) {
+      inkOutlineEffect.setCameraRange(cam as PerspectiveCamera);
+    }
   }
 
   function clearScenePasses() {
@@ -309,6 +398,19 @@
       });
       outline.selection.set(outlineRegistry.all());
       passes.push(new EffectPass(cam, outline));
+    }
+
+    // Paint before bloom: the Kuwahara is an edge-preserving smoothing filter,
+    // and bloom's bright fringes would otherwise be flattened back into the
+    // patches they were meant to sit on top of. Its own `Pass`, not an Effect —
+    // it is multi-stage (structure tensor → blur → paint) and sets needsSwap.
+    if (style.kuwahara.enabled) {
+      passes.push(
+        new AnisotropicKuwaharaPass({
+          radius: style.kuwahara.radius,
+          alpha: style.kuwahara.alpha,
+        }),
+      );
     }
 
     if (style.bloom.enabled) {
@@ -341,11 +443,25 @@
     }
     if (grade.length > 0) passes.push(new EffectPass(cam, ...grade));
 
+    // Last, and on its own: it ends in an ACES curve, so nothing may add light
+    // after it. syncToneMappingPass() drops the composer's tone mapping while
+    // this is on.
+    if (style.watercolor.enabled) {
+      const watercolor = createWatercolorEffect({
+        mix: style.watercolor.mix,
+        steps: style.watercolor.steps,
+        saturation: style.watercolor.saturation,
+        paperStrength: style.watercolor.paperStrength,
+      });
+      passes.push(new EffectPass(cam, watercolor));
+    }
+
     return passes;
   }
 
   function syncScenePasses(style: SceneStyle) {
     clearScenePasses();
+    syncInkOutlinePass(style);
     const next = buildScenePasses(style);
     for (const pass of next) composer.addPass(pass);
     scenePasses = next;
@@ -363,7 +479,10 @@
 
   function shouldUseComposer(): boolean {
     return (
-      selectionEnabled || managedPasses.length > 0 || scenePasses.length > 0
+      selectionEnabled ||
+      managedPasses.length > 0 ||
+      scenePasses.length > 0 ||
+      inkOutlinePass !== undefined
     );
   }
 
@@ -377,12 +496,23 @@
 
   $effect(() => {
     composer.setSize(size.current.width, size.current.height);
+    // The ink Sobel steps in real drawing-buffer pixels, so its texel has to
+    // track the resize or the line changes width with the viewport.
+    inkOutlineEffect?.setTexel(
+      size.current.width,
+      size.current.height,
+      renderer.getPixelRatio(),
+    );
     invalidate();
   });
 
   $effect(() => {
-    camera.current;
+    const cam = camera.current;
     updatePassCameras();
+    // Linearising depth is meaningless without the frustum that produced it.
+    if (cam && 'isPerspectiveCamera' in cam && cam.isPerspectiveCamera) {
+      inkOutlineEffect?.setCameraRange(cam as PerspectiveCamera);
+    }
     invalidate();
   });
 
@@ -400,13 +530,8 @@
       setComposerRendering(false);
       clearOutlinePasses();
       clearScenePasses();
-      if (toneMappingPass) {
-        composer.removePass(toneMappingPass);
-        toneMappingPass.dispose();
-        toneMappingEffect?.dispose();
-        toneMappingPass = undefined;
-        toneMappingEffect = undefined;
-      }
+      disposeInkOutlinePass();
+      disposeToneMappingPass();
       composer.removePass(renderPass);
       renderPass.dispose();
       composer.dispose();
@@ -452,7 +577,8 @@
         return;
       }
 
-      ensureToneMappingPass();
+      // syncToneMappingPass creates the pass when needed and drops it entirely
+      // while watercolor owns the grade — don't force it into existence first.
       syncToneMappingPass(style);
       reorderOutputPasses();
 

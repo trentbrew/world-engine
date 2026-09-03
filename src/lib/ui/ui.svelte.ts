@@ -22,6 +22,7 @@ import { score } from '$lib/engine/game/score.svelte';
 import { world } from '$lib/engine/runtime/world.svelte';
 import { warmAdjacentRoomAssets } from '$lib/engine/room/warmRoomAssets';
 import type { SkyPresetId } from '$lib/scene/skyPresets';
+import type { SkyMode as StylizedSkyMode } from '$lib/scene/sky/stylizedSkyPresets';
 import {
 	cancelPlacement,
 	clearPlacement,
@@ -75,6 +76,7 @@ export type WorldRoute =
 	| 'textures'
 	| 'audio'
 	| 'files'
+	| 'assets'
 	| 'collections'
 	| 'graph'
 	| 'controls'
@@ -97,7 +99,19 @@ export type SettingsTab = 'input' | 'camera' | 'shell';
 
 export type SkyConfig = {
 	enabled: boolean;
+	/**
+	 * Which sky implementation to render.
+	 *
+	 * 'physical'  — Threlte's <Sky>: Preetham atmospheric scattering. Daylight
+	 *               only; no moon, stars, clouds or aurora. Driven by `preset`.
+	 * 'stylized'  — a painted dome with all of those and no scattering. Driven
+	 *               by `stylizedMode`. See scene/sky/skyDome.ts.
+	 *
+	 * They are alternatives, not layers — only one renders.
+	 */
+	kind: 'physical' | 'stylized';
 	preset: SkyPresetId;
+	stylizedMode: StylizedSkyMode;
 	setEnvironment: boolean;
 };
 
@@ -164,7 +178,9 @@ export const DEFAULT_SCENE: SceneSettings = {
 	shadows: true,
 	sky: {
 		enabled: false,
+		kind: 'physical',
 		preset: 'afternoon',
+		stylizedMode: 'night',
 		setEnvironment: true
 	},
 	groundGrid: { ...DEFAULT_GROUND_GRID },
@@ -217,11 +233,11 @@ export type RailPosition = 'left' | 'bottom';
 const RAIL_POSITION_KEY = 'playlab:rail-position';
 
 function loadRailPosition(): RailPosition {
-	if (typeof localStorage === 'undefined') return 'left';
+	if (typeof localStorage === 'undefined') return 'bottom';
 	try {
-		return localStorage.getItem(RAIL_POSITION_KEY) === 'bottom' ? 'bottom' : 'left';
+		return localStorage.getItem(RAIL_POSITION_KEY) === 'left' ? 'left' : 'bottom';
 	} catch {
-		return 'left';
+		return 'bottom';
 	}
 }
 
@@ -266,6 +282,8 @@ class UIState {
 	railRoute = $state<RailRoute>('rooms');
 	/** World navigation rail — vertical left edge or horizontal bottom dock. */
 	railPosition = $state<RailPosition>(loadRailPosition());
+	/** Right inspection pane — hidden when the user clicks a void in the scene. */
+	inspectorOpen = $state(true);
 	/** Bump to request focus on the object search field (LeftPanel). */
 	objectSearchFocusRequest = $state(0);
 	/** Bump to focus Rooms → Objects catalog search (Add object). */
@@ -319,7 +337,7 @@ class UIState {
 		grid: true,
 		selectionOutline: true,
 		agentFocus: true,
-		statsHud: true,
+		statsHud: false,
 		playToolbar: false
 	});
 	scene = $state<SceneSettings>({
@@ -333,6 +351,8 @@ class UIState {
 	assetPickTarget = $state<AssetPickTarget | null>(null);
 	/** @deprecated Rail route is the section; use setRoute('models') etc. */
 	assetsSection = $state<AssetsSection>('shapes');
+	/** Active kind tab inside the merged `assets` route. */
+	assetsTab = $state<AssetKind>('models');
 	assetInspectorTab = $state<AssetInspectorTab>('animations');
 	previewContext = $state<PreviewContext | null>(null);
 	placementDraft = $state<PlacementDraft | null>(null);
@@ -609,6 +629,8 @@ class UIState {
 				this.modeMessage = 'Room editor';
 			} else if (route === 'objects') {
 				this.modeMessage = 'Object types';
+			} else if (route === 'assets') {
+				this.modeMessage = 'Assets';
 			} else if (isAssetRoute(route)) {
 				this.modeMessage =
 					route === 'models'
@@ -691,6 +713,8 @@ class UIState {
 			this.modeMessage = 'Room editor';
 		} else if (route === 'objects') {
 			this.modeMessage = 'Object types';
+		} else if (route === 'assets') {
+			this.modeMessage = 'Assets';
 		} else if (isAssetRoute(route)) {
 			this.modeMessage = route === 'models'
 				? 'Models'
@@ -842,8 +866,7 @@ class UIState {
 		return {
 			top: 0,
 			right: 0,
-			bottom:
-				VIEWPORT_FLOAT_INSET + this.viewportBottomChromeHeight + this.viewportRailBottomInset,
+			bottom: VIEWPORT_FLOAT_INSET + this.viewportBottomChromeHeight,
 			left: VIEWPORT_FLOAT_INSET
 		};
 	}
@@ -902,6 +925,10 @@ class UIState {
 	}
 
 	syncAssetsSectionFromRoute(route: AssetRoute) {
+		if (route === 'assets') {
+			this.assetsSection = 'models';
+			return;
+		}
 		this.assetsSection = route === 'models' ? 'models' : route;
 	}
 
@@ -911,14 +938,14 @@ class UIState {
 		const field = target.field;
 		const fromObjects = this.railRoute === 'objects' || 'typeName' in target;
 		if (field === 'mesh') {
-			this.setRoute('models');
-			this.assetsSection = 'models';
+			this.setRoute('assets');
+			this.assetsTab = 'models';
 		} else if (field === 'sfx' || field.startsWith('sfx')) {
-			this.setRoute('audio');
-			this.assetsSection = 'audio';
+			this.setRoute('assets');
+			this.assetsTab = 'audio';
 		} else if (fromObjects) {
-			this.setRoute('models');
-			this.assetsSection = 'models';
+			this.setRoute('assets');
+			this.assetsTab = 'models';
 		} else {
 			this.openAssetsSection('models');
 		}

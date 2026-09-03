@@ -106,6 +106,12 @@ export const discoveredGames: DiscoveredGame[] = [
 		"category": "demo"
 	},
 	{
+		"param": "meadow",
+		"title": "Meadow",
+		"description": "",
+		"dimensions": "3d"
+	},
+	{
 		"param": "orbit",
 		"title": "Orbit",
 		"description": "",
@@ -179,6 +185,12 @@ export const discoveredGames: DiscoveredGame[] = [
 		"description": "",
 		"dimensions": "2d",
 		"category": "demo"
+	},
+	{
+		"param": "terrain",
+		"title": "Terrain",
+		"description": "",
+		"dimensions": "3d"
 	},
 	{
 		"param": "tower",

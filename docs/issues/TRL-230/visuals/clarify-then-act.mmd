@@ -1,0 +1,12 @@
+stateDiagram-v2
+  [*] --> Ready
+  Ready --> Streaming: user message
+  Streaming --> AwaitingInput: ask_user tool call
+  Streaming --> Ready: final answer (no tools)
+  AwaitingInput --> Streaming: questionnaire submit
+  AwaitingInput --> Ready: stop / cancel
+  Streaming --> Streaming: read-only page tool
+  Streaming --> Streaming: write page tool (explicit params)
+  Streaming --> AwaitingInput: write error OR clarify nudge
+  Streaming --> Error: MAX_TOOL_ITERATIONS
+  Error --> Ready: user retry

@@ -402,6 +402,20 @@ test('component schema authoring is blocked on built-ins and works on authored',
 	expect(builtin).toContain('built into the engine');
 });
 
+test('search_sketchfab returns actionable error when API unavailable', async ({ page }) => {
+	await page.route('**/api/sketchfab**', (route) =>
+		route.fulfill({
+			status: 503,
+			contentType: 'text/plain',
+			body: 'Sketchfab import is dev-only. Run locally with SKETCHFAB_API_KEY in .env.'
+		})
+	);
+
+	const out = await call(page, 'search_sketchfab', { query: 'tree' });
+	expect(out).toContain('Error:');
+	expect(out.toLowerCase()).toMatch(/sketchfab|dev server|sketchfab_api_key/);
+});
+
 test('collections hold records the agent can create and delete', async ({ page }) => {
 	const name = `Item${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 

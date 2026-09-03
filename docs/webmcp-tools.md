@@ -4,13 +4,13 @@ Companion to [`docs/webmcp.md`](./webmcp.md) (the API reference). The manifest
 itself lives in `src/lib/engine/agent/webmcp/manifest.ts`; this file records why it
 looks the way it does. Verify budgets with `pnpm webmcp:budget`.
 
-## The surface: 46 tools
+## The surface: 48 tools
 
 Full edit-mode parity. Every action a human can take in the editor has exactly
 one tool, so an agent never has to guess at a hidden `op` vocabulary to reach
 part of the surface.
 
-### Read (13)
+### Read (14)
 
 | Tool | Engine target |
 |---|---|
@@ -26,9 +26,10 @@ part of the surface.
 | `list_components` | `registry.listComponents()` |
 | `describe_component` | `registry.getComponent()` |
 | `list_assets` | `catalog.fetchAssets()` + `shapes.SHAPE_CATALOG` |
+| `search_sketchfab` | `GET /api/sketchfab` (dev + API key) |
 | `list_records` | `world.recordsFor()` |
 
-### Spawn and remove (5)
+### Spawn and remove (6)
 
 | Tool | Engine target |
 |---|---|
@@ -37,6 +38,7 @@ part of the surface.
 | `spawn_from_type` | `world.spawnFromType()` |
 | `duplicate_entity` | `world.copySelection()` + `pasteClipboard()` |
 | `remove_entity` | `world.deleteSelection()` |
+| `import_sketchfab_model` | `POST /api/sketchfab` (dev + API key) |
 
 ### Entity authoring (6)
 
@@ -293,6 +295,19 @@ Wire into an MCP client:
 Implementation: `src/lib/engine/agent/headlessRoom.ts` (room join),
 `src/lib/engine/agent/mcpServer.ts` (stdio), handlers in
 `src/lib/engine/agent/webmcp/handlers.ts`.
+
+## Clarify-then-act
+
+Imperative tools (`spawn_prop`, `set_entity_field`, …) should not be called with
+guessed parameters. The **WebMCP Chrome extension** agent uses builtin `ask_user`
+and **QuestionnaireDock** to confirm ambiguous writes before calling page tools.
+Read-only tools (`readOnlyHint`) act immediately.
+
+Policy and Playlab spawn example:
+[webmcp extension Help — clarify-then-act](https://github.com/turtle-tech/webmcp/blob/main/docs/help/clarify-then-act.md)
+(local path: `~/TURTLE/Projects/Extensions/WEBMCP/webmcp/docs/help/clarify-then-act.md`).
+
+Design artifact: [`docs/artifacts/webmcp_clarify_then_act_design.md`](./artifacts/webmcp_clarify_then_act_design.md).
 
 ## Open questions
 

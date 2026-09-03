@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebMCP — Clarify-Then-Act (TRL-228 design mock)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #0f62fe;
+      --surface: #0f0f10;
+      --surface-raised: #17171a;
+      --surface-overlay: #1e1e22;
+      --text: #ececef;
+      --text-muted: #8b8b96;
+      --border: #2a2a32;
+      --border-focus: #6b6b78;
+      --success: #3dd68c;
+      --warning: #f5a524;
+      --agent-purple: #a56eff;
+      --thinking-muted: #6b6b78;
+      --questionnaire-accent: #0f62fe;
+      --rounded-sm: 6px;
+      --rounded-md: 10px;
+      --rounded-lg: 14px;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 12px;
+      --spacing-lg: 16px;
+      --spacing-dock-gap: 12px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .thinking { animation: none; opacity: 0.7; }
+      .questionnaire { transition: none; }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Geist, system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      background: #080809;
+      min-height: 100dvh;
+      padding: 24px;
+    }
+
+    .page-header {
+      max-width: 420px;
+      margin: 0 auto 16px;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .page-header p {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: "Geist Mono", monospace;
+    }
+
+    .state-tabs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .state-tabs button {
+      font-family: inherit;
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-raised);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .state-tabs button.active {
+      border-color: var(--questionnaire-accent);
+      color: var(--text);
+      background: color-mix(in srgb, var(--questionnaire-accent) 12%, var(--surface-raised));
+    }
+
+    /* Extension panel chrome */
+    .panel {
+      width: 400px;
+      max-width: 100%;
+      margin: 0 auto;
+      height: 640px;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-lg);
+      overflow: hidden;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.45);
+    }
+
+    .panel-nav {
+      display: flex;
+      gap: 4px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-raised);
+      font-size: 11px;
+    }
+
+    .panel-nav span {
+      padding: 4px 10px;
+      border-radius: var(--rounded-sm);
+      color: var(--text-muted);
+    }
+
+    .panel-nav span.active {
+      background: var(--surface-overlay);
+      color: var(--text);
+    }
+
+    .tab-badge {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .transcript {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .msg-user {
+      align-self: flex-end;
+      max-width: 85%;
+      padding: 8px 12px;
+      background: var(--surface-overlay);
+      border-radius: var(--rounded-md);
+      font-size: 13px;
+    }
+
+    .msg-assistant {
+      align-self: flex-start;
+      max-width: 92%;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .thinking {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--thinking-muted);
+      padding: 4px 0;
+    }
+
+    .thinking svg { opacity: 0.6; }
+
+    .tool-call {
+      font-family: "Geist Mono", monospace;
+      font-size: 10px;
+      padding: 6px 8px;
+      background: color-mix(in srgb, var(--success) 8%, var(--surface-overlay));
+      border: 1px solid color-mix(in srgb, var(--success) 25%, var(--border));
+      border-radius: var(--rounded-sm);
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .tool-call strong { color: var(--success); font-weight: 500; }
+
+    .dock-region {
+      flex-shrink: 0;
+      padding: 0 12px 8px;
+    }
+
+    .questionnaire {
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-md);
+      background: var(--surface-raised);
+      padding: 14px;
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+
+    .questionnaire[data-design-note="primary-focus"] {
+      outline: 2px solid color-mix(in srgb, var(--questionnaire-accent) 40%, transparent);
+      outline-offset: 2px;
+    }
+
+    .q-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .q-progress {
+      font-family: "Geist Mono", monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .q-tool-badge {
+      font-family: "Geist Mono", monospace;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: var(--rounded-sm);
+      background: color-mix(in srgb, var(--agent-purple) 15%, transparent);
+      color: var(--agent-purple);
+      border: 1px solid color-mix(in srgb, var(--agent-purple) 30%, transparent);
+    }
+
+    .q-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .q-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .q-choices {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .q-choice {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-sm);
+      background: var(--surface);
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text);
+      width: 100%;
+    }
+
+    .q-choice:hover { border-color: var(--border-focus); }
+
+    .q-choice.selected {
+      border-color: var(--questionnaire-accent);
+      background: color-mix(in srgb, var(--questionnaire-accent) 8%, var(--surface));
+    }
+
+    .q-shortcut {
+      font-family: "Geist Mono", monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      min-width: 16px;
+    }
+
+    .q-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 14px;
+      gap: 8px;
+    }
+
+    .q-actions-end { display: flex; gap: 8px; margin-left: auto; }
+
+    .btn {
+      font-family: inherit;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: var(--rounded-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-overlay);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .composer {
+      flex-shrink: 0;
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-raised);
+    }
+
+    .composer.disabled { opacity: 0.55; pointer-events: none; }
+
+    .composer-status {
+      font-size: 10px;
+      color: var(--warning);
+      font-family: "Geist Mono", monospace;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .composer-box {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--rounded-md);
+      background: var(--surface);
+    }
+
+    .composer-box textarea {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      resize: none;
+      min-height: 20px;
+    }
+
+    .composer-box textarea::placeholder { color: var(--text-muted); }
+
+    .legend {
+      max-width: 420px;
+      margin: 20px auto 0;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .legend code {
+      font-family: "Geist Mono", monospace;
+      font-size: 10px;
+      background: var(--surface-raised);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <h1>WebMCP Extension — Clarify-Then-Act</h1>
+    <p>TRL-228 design mock · Playlab spawn_prop via ask_user</p>
+  </header>
+
+  <nav class="state-tabs" aria-label="Mock states">
+    <button type="button" class="active" data-state="awaiting">awaiting-input (dock)</button>
+    <button type="button" data-state="streaming">streaming (thinking)</button>
+    <button type="button" data-state="done">post-submit → spawn_prop</button>
+  </nav>
+
+  <div class="panel" role="application" aria-label="WebMCP side panel mock">
+    <nav class="panel-nav">
+      <span>Home</span>
+      <span class="active">Chat</span>
+      <span>MCP <span class="tab-badge" title="12 tools"></span></span>
+      <span>Traces</span>
+    </nav>
+
+    <div class="transcript">
+      <div class="msg-user">Add a red box near the center of the scene</div>
+
+      <div class="msg-assistant">
+        <div class="thinking state-streaming" data-design-note="collapsed-during-questionnaire">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
+          Thought for 2s (collapsed)
+        </div>
+        <div class="tool-call state-done hidden">
+          <strong>spawn_prop</strong> mesh=primitive:box position=[0,1,0] color=#ff0000
+        </div>
+        <div class="tool-call state-streaming hidden">
+          <strong>list_assets</strong> kind=models limit=6
+        </div>
+      </div>
+    </div>
+
+    <div class="dock-region state-awaiting">
+      <article
+        class="questionnaire"
+        data-design-note="primary-focus"
+        aria-label="Structured questionnaire"
+        aria-live="polite"
+      >
+        <header class="q-header">
+          <span class="q-progress">Step 1 of 2</span>
+          <span class="q-tool-badge">before spawn_prop</span>
+        </header>
+        <h3 class="q-title">Which shape?</h3>
+        <p class="q-desc">Inferred “box” from your message — confirm or pick another.</p>
+        <div class="q-choices">
+          <button type="button" class="q-choice selected">
+            <span class="q-shortcut">A</span>
+            <span><strong>Box</strong> — primitive:box</span>
+          </button>
+          <button type="button" class="q-choice">
+            <span class="q-shortcut">B</span>
+            <span><strong>Sphere</strong> — primitive:sphere</span>
+          </button>
+          <button type="button" class="q-choice">
+            <span class="q-shortcut">C</span>
+            <span><strong>Capsule</strong> — primitive:capsule</span>
+          </button>
+        </div>
+        <footer class="q-actions">
+          <button type="button" class="btn">Skip</button>
+          <div class="q-actions-end">
+            <button type="button" class="btn btn-primary">Next</button>
+          </div>
+        </footer>
+      </article>
+    </div>
+
+    <div class="composer state-awaiting disabled">
+      <p class="composer-status">Waiting for your answers…</p>
+      <div class="composer-box">
+        <textarea rows="1" placeholder="Message…" disabled></textarea>
+        <button type="button" class="btn btn-primary" disabled aria-label="Send">↑</button>
+      </div>
+    </div>
+
+    <div class="composer state-streaming state-done hidden">
+      <div class="composer-box">
+        <textarea rows="1" placeholder="Message…"></textarea>
+        <button type="button" class="btn btn-primary" aria-label="Send">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="legend">
+    <strong>Design notes:</strong>
+    Questionnaire lives in <code>QuestionnaireDock</code> (not inline prose).
+    Composer disabled while <code>awaiting-input</code>.
+    Agent calls <code>ask_user</code> before <code>spawn_prop</code> when mesh/position ambiguous.
+    Toggle tabs above to compare states.
+  </p>
+
+  <script>
+    const tabs = document.querySelectorAll('.state-tabs button');
+    const show = (state) => {
+      document.querySelectorAll('[class*="state-"]').forEach((el) => {
+        const classes = [...el.classList];
+        const states = classes.filter((c) => c.startsWith('state-') && c !== 'state-tabs');
+        const match = states.some((s) => s === `state-${state}`);
+        if (states.length) el.classList.toggle('hidden', !match);
+      });
+      document.querySelector('.composer.state-awaiting')?.classList.toggle('disabled', state === 'awaiting');
+      tabs.forEach((t) => t.classList.toggle('active', t.dataset.state === state));
+    };
+    tabs.forEach((btn) => btn.addEventListener('click', () => show(btn.dataset.state)));
+  </script>
+</body>
+</html>

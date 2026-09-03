@@ -35,13 +35,13 @@
 	 * Shell chrome (rail / doc-bar / side panels / bottom) shares one mid-tone
 	 * so light + dark modes stay balanced; center wells stay slightly lighter.
 	 */
-	--chrome-fill: 60%;
+	--chrome-fill: 92%;
 	--chrome-fill-underlay-delta: 18%;
 	--chrome-fill-rail: var(--chrome-fill);
 	--chrome-fill-doc-bar: var(--chrome-fill);
 	--chrome-fill-panel: var(--chrome-fill);
 	--chrome-fill-bottom: var(--chrome-fill);
-	--chrome-fill-main: 30%;
+	--chrome-fill-main: 84%;
 	--chrome-top-outer: calc(var(--chrome-edge) + var(--doc-bar-chrome-height) + var(--chrome-float-gap));
 	--stage-inset: var(--spacing-sm);
 	--tool-pill-height: 44px;
@@ -72,9 +72,9 @@
 	--scrollbar-thumb-hover: color-mix(in srgb, var(--muted-foreground) 38%, transparent);
 	--surface-glass-panel: color-mix(in srgb, var(--card) 80%, transparent);
 	/** Legacy chrome bar fill — prefer --chrome-fill + chrome-opacity-* */
-	--surface-glass-chrome: color-mix(in srgb, var(--card) var(--chrome-fill), transparent);
+	--surface-glass-chrome: color-mix(in srgb, var(--background) var(--chrome-fill), transparent);
 	/** Floating viewport pills (play toolbar, mode tabs, editing badge) */
-	--chrome-pill-bg: color-mix(in srgb, var(--card) 90%, transparent);
+	--chrome-pill-bg: color-mix(in srgb, var(--background) 94%, transparent);
 
 	--field-row-height: 28px;
 	--field-label-col: 88px;
@@ -303,11 +303,11 @@ body {
 	z-index: -2;
 	border-radius: inherit;
 	pointer-events: none;
-	background: color-mix(in srgb, var(--card) 68%, transparent);
+	background: color-mix(in srgb, var(--background) 88%, transparent);
 }
 
 .chrome-float-card.glass-panel-shell::before {
-	background: color-mix(in srgb, var(--card) 84%, transparent);
+	background: color-mix(in srgb, var(--background) 92%, transparent);
 	border: 1px solid color-mix(in srgb, var(--border) 42%, transparent);
 	box-shadow:
 		0 12px 40px rgb(0 0 0 / 0.24),
@@ -336,7 +336,7 @@ body {
 .chrome-opacity-doc-bar.glass-panel-shell::before,
 .chrome-opacity-panel.glass-panel-shell::before,
 .chrome-opacity-bottom.glass-panel-shell::before {
-	background: color-mix(in srgb, var(--card) var(--chrome-fill), transparent);
+	background: color-mix(in srgb, var(--background) var(--chrome-fill), transparent);
 }
 
 .chrome-opacity-rail.chrome-float-card::after,
@@ -344,16 +344,16 @@ body {
 .chrome-opacity-panel.chrome-float-card::after,
 .chrome-opacity-bottom.chrome-float-card::after {
 	background: color-mix(in srgb,
-			var(--card) calc(var(--chrome-fill) - var(--chrome-fill-underlay-delta)),
+			var(--background) calc(var(--chrome-fill) - var(--chrome-fill-underlay-delta)),
 			transparent);
 }
 
 .chrome-opacity-main.glass-panel-shell::before {
-	background: color-mix(in srgb, var(--card) var(--chrome-fill-main), transparent);
+	background: color-mix(in srgb, var(--background) var(--chrome-fill-main), transparent);
 }
 
 .chrome-opacity-main.chrome-float-card::after {
-	background: color-mix(in srgb, var(--card) calc(var(--chrome-fill-main) - 10%), transparent);
+	background: color-mix(in srgb, var(--background) calc(var(--chrome-fill-main) - 10%), transparent);
 }
 
 /* Center-route wells — fill the main inset box from WorldShell */

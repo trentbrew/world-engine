@@ -1,6 +1,10 @@
 import type { SkyPresetId } from '$lib/scene/skyPresets';
 import { SKY_PRESETS } from '$lib/scene/skyPresets';
 import {
+	SKY_PRESETS as STYLIZED_SKY_PRESETS,
+	type SkyMode as StylizedSkyMode
+} from '$lib/scene/sky/stylizedSkyPresets';
+import {
 	ART_STYLE_LABELS,
 	type ArtStyleId,
 	type MaterialMode,
@@ -53,7 +57,7 @@ export function defaultSceneDocument(gameTitle?: string): SceneDocument {
 			grid: true,
 			selectionOutline: true,
 			agentFocus: true,
-			statsHud: true,
+			statsHud: false,
 			playToolbar: false
 		},
 		playCameraDefault: 'follow'
@@ -82,7 +86,11 @@ export function parseSceneDocument(raw: unknown, gameTitle?: string): SceneDocum
 			shadows: typeof scene.shadows === 'boolean' ? scene.shadows : base.scene.shadows,
 			sky: {
 				enabled: typeof sky.enabled === 'boolean' ? sky.enabled : base.scene.sky.enabled,
+				kind: sky.kind === 'stylized' ? 'stylized' : base.scene.sky.kind,
 				preset: isSkyPresetId(sky.preset) ? sky.preset : base.scene.sky.preset,
+				stylizedMode: isStylizedSkyMode(sky.stylizedMode)
+					? sky.stylizedMode
+					: base.scene.sky.stylizedMode,
 				setEnvironment:
 					typeof sky.setEnvironment === 'boolean'
 						? sky.setEnvironment
@@ -172,6 +180,10 @@ function isSkyPresetId(value: unknown): value is SkyPresetId {
 	return typeof value === 'string' && value in SKY_PRESETS;
 }
 
+function isStylizedSkyMode(value: unknown): value is StylizedSkyMode {
+	return typeof value === 'string' && value in STYLIZED_SKY_PRESETS;
+}
+
 const TONE_MAPPING_IDS: ToneMappingId[] = [
 	'none',
 	'linear',
@@ -237,6 +249,25 @@ function parseSceneStyle(raw: unknown, base: SceneStyle): SceneStyle {
 		sketch: {
 			enabled: bool(s.sketch?.enabled, base.sketch.enabled),
 			intensity: num(s.sketch?.intensity, base.sketch.intensity)
+		},
+		kuwahara: {
+			enabled: bool(s.kuwahara?.enabled, base.kuwahara.enabled),
+			radius: num(s.kuwahara?.radius, base.kuwahara.radius),
+			alpha: num(s.kuwahara?.alpha, base.kuwahara.alpha)
+		},
+		ink: {
+			enabled: bool(s.ink?.enabled, base.ink.enabled),
+			strength: num(s.ink?.strength, base.ink.strength),
+			thickness: num(s.ink?.thickness, base.ink.thickness),
+			threshold: num(s.ink?.threshold, base.ink.threshold),
+			color: str(s.ink?.color, base.ink.color)
+		},
+		watercolor: {
+			enabled: bool(s.watercolor?.enabled, base.watercolor.enabled),
+			mix: num(s.watercolor?.mix, base.watercolor.mix),
+			steps: num(s.watercolor?.steps, base.watercolor.steps),
+			saturation: num(s.watercolor?.saturation, base.watercolor.saturation),
+			paperStrength: num(s.watercolor?.paperStrength, base.watercolor.paperStrength)
 		}
 	};
 }

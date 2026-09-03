@@ -153,7 +153,7 @@ const getScene: ToolManifestEntry = {
 	name: 'get_scene',
 	title: 'Get scene settings',
 	description:
-		'Return the scene’s presentation and post-processing settings: display name, background, shadows, grid, sky preset, art style, tone mapping, exposure, and the fog, bloom, vignette, grain, outline and sketch effect groups with all their knobs. Change any of them with set_scene_setting.',
+		'Return the scene’s presentation and post-processing settings: display name, background, shadows, grid, sky preset, art style, tone mapping, exposure, and the fog, bloom, vignette, grain, outline, sketch, kuwahara, ink and watercolor effect groups with all their knobs. Change any of them with set_scene_setting.',
 	inputSchema: { type: 'object', properties: {} },
 	annotations: READ_TRUSTED,
 	target: 'ui.scene'
@@ -250,6 +250,40 @@ const listAssets: ToolManifestEntry = {
 	},
 	annotations: READ,
 	target: 'assets/catalog.fetchAssets() + assets/shapes.SHAPE_CATALOG'
+};
+
+const searchSketchfab: ToolManifestEntry = {
+	name: 'search_sketchfab',
+	title: 'Search Sketchfab',
+	description:
+		'Search Sketchfab for downloadable 3D models (dev server + SKETCHFAB_API_KEY required). Returns uid, name, and license for each hit. Use import_sketchfab_model with a uid, then list_assets to confirm the file landed before spawn_prop or spawn_character.',
+	inputSchema: {
+		type: 'object',
+		properties: {
+			query: { type: 'string', description: 'Search text, e.g. "low poly tree".' },
+			limit: { type: 'number', description: 'Max results (1–20). Defaults to 8.' }
+		},
+		required: ['query']
+	},
+	annotations: READ,
+	target: 'GET /api/sketchfab?q=… (dev only)'
+};
+
+const importSketchfabModel: ToolManifestEntry = {
+	name: 'import_sketchfab_model',
+	title: 'Import Sketchfab model',
+	description:
+		'Download a Sketchfab model by uid into static/models/ as a GLB (dev server + SKETCHFAB_API_KEY). Rigged models land in models/characters/. Returns the mesh url for spawn_prop or spawn_character. Call search_sketchfab first to pick a licensed uid.',
+	inputSchema: {
+		type: 'object',
+		properties: {
+			uid: { type: 'string', description: 'Sketchfab model uid from search_sketchfab.' },
+			name: { type: 'string', description: 'Optional filename slug override.' }
+		},
+		required: ['uid']
+	},
+	annotations: WRITE,
+	target: 'POST /api/sketchfab { uid } (dev only)'
 };
 
 const listRecords: ToolManifestEntry = {
@@ -794,7 +828,7 @@ const setSceneSetting: ToolManifestEntry = {
 	name: 'set_scene_setting',
 	title: 'Set scene setting',
 	description:
-		'Change one of the scene’s presentation or post-processing settings — this is how the world’s mood is authored. Scalars: name, background (hex), shadows, grid, sky (noon, afternoon, sunset, night, off), artStyle (realistic, toon, ink, clay, noir), toneMapping, exposure. Effect groups: fog, bloom, vignette, grain, outline, sketch — pass true/false to toggle, or an object of knobs such as {"enabled":true,"color":"#2a1a4a","far":90}. Read current values with get_scene.',
+		'Change one of the scene’s presentation or post-processing settings — this is how the world’s mood is authored. Scalars: name, background (hex), shadows, grid, sky (noon, afternoon, sunset, night, off), artStyle (realistic, toon, ink, clay, noir, painterly), toneMapping, exposure. Effect groups: fog, bloom, vignette, grain, outline, sketch, kuwahara, ink, watercolor — pass true/false to toggle, or an object of knobs such as {"enabled":true,"far":90}. Read current values with get_scene.',
 	inputSchema: {
 		type: 'object',
 		properties: {
@@ -814,7 +848,10 @@ const setSceneSetting: ToolManifestEntry = {
 					'vignette',
 					'grain',
 					'outline',
-					'sketch'
+					'sketch',
+					'kuwahara',
+					'ink',
+					'watercolor'
 				],
 				description: 'Which setting to change.'
 			},
@@ -928,6 +965,8 @@ export const WEBMCP_TOOLS: ToolManifestEntry[] = [
 	listComponents,
 	describeComponent,
 	listAssets,
+	searchSketchfab,
+	importSketchfabModel,
 	listRecords,
 	getEntityJson,
 	// write: spawn

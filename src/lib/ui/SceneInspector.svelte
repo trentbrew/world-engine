@@ -1,6 +1,11 @@
 <script lang="ts">
   import * as Accordion from '$lib/components/ui/accordion/index.js';
   import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
+  import { STYLIZED_SKY_MODES } from '$lib/scene/sky/skyDome';
+  import {
+    SKY_PRESETS as STYLIZED_SKY_PRESETS,
+    type SkyMode as StylizedSkyMode,
+  } from '$lib/scene/sky/stylizedSkyPresets';
   import {
     camera,
     DEFAULT_CONTROL_PREFS,
@@ -28,6 +33,11 @@
   import { ui, DEFAULT_GRID, DEFAULT_GROUND_GRID } from '$lib/ui/ui.svelte';
 
   const skyPresetOptions = skySelectOptions;
+
+  const stylizedSkyOptions = STYLIZED_SKY_MODES.map((id) => ({
+    value: id,
+    label: STYLIZED_SKY_PRESETS[id].label,
+  }));
 
   const skyPickerValue = $derived(
     skySelectValue(ui.scene.sky.enabled, ui.scene.sky.preset),
@@ -84,14 +94,39 @@
         />
         {#if ui.scene.sky.enabled}
           <InspectorField
-            id="scene-sky-env"
-            label="environment"
+            id="scene-sky-kind"
+            label="sky type"
             kind="select"
-            value={boolToNoneOn(ui.scene.sky.setEnvironment)}
-            options={[...NONE_ON_OPTIONS]}
+            value={ui.scene.sky.kind}
+            options={[
+              { value: 'physical', label: 'Physical' },
+              { value: 'stylized', label: 'Stylized' },
+            ]}
             onChange={(value) =>
-              (ui.scene.sky.setEnvironment = noneOnToBool(value))}
+              (ui.scene.sky.kind =
+                value === 'stylized' ? 'stylized' : 'physical')}
           />
+          {#if ui.scene.sky.kind === 'stylized'}
+            <InspectorField
+              id="scene-sky-stylized-mode"
+              label="mode"
+              kind="select"
+              value={ui.scene.sky.stylizedMode}
+              options={stylizedSkyOptions}
+              onChange={(value) =>
+                (ui.scene.sky.stylizedMode = value as StylizedSkyMode)}
+            />
+          {:else}
+            <InspectorField
+              id="scene-sky-env"
+              label="environment"
+              kind="select"
+              value={boolToNoneOn(ui.scene.sky.setEnvironment)}
+              options={[...NONE_ON_OPTIONS]}
+              onChange={(value) =>
+                (ui.scene.sky.setEnvironment = noneOnToBool(value))}
+            />
+          {/if}
         {/if}
         <InspectorField
           id="scene-shadows"

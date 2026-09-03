@@ -1,6 +1,6 @@
 ---
 created: 2026-08-02
-updated: 2026-08-02
+updated: 2026-09-02
 title: Architecture Decision Records — world-engine
 description: Decisions for the world-engine (museum-oss) — data-first multiplayer engine.
 status: draft
@@ -13,6 +13,7 @@ one decision per ADR. Follows the `trellis-node/docs/adr` convention.
 | ADR | Title | Decision |
 | --- | --- | --- |
 | [0001](./0001-embedded-authoring-copilot.md) | Embedded authoring copilot | Copilot returns `DurablePatch[]`; client applies via the existing live-apply + undo + persist loop; shared tool library behind both `/api/copilot/*` routes and the world-author MCP server (**proposed**) |
+| [0002](./0002-asset-storage-registry.md) | Asset storage — registry + relay | `trellis-blob:<sha256>` stays the only ref in world docs; GitHub registry maps hash → URL (metadata in git, bytes in Releases); relay is ingest + cache; sync resolver chain local → registry → relay (**proposed**) |
 
 ## Relationship to this repo's other docs
 

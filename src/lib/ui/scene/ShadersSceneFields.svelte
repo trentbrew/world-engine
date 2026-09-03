@@ -15,7 +15,8 @@
 		'toon',
 		'ink',
 		'clay',
-		'noir'
+		'noir',
+		'painterly'
 	];
 
 	const materialOptions = [
@@ -258,6 +259,150 @@
 		defaultValue={styleDefaults.sketch.intensity}
 		value={ui.scene.style.sketch.intensity}
 		onChange={(value) => editStyle(() => (ui.scene.style.sketch.intensity = Number(value)))}
+	/>
+{/if}
+
+<p class="group-label">Paint (Kuwahara)</p>
+<InspectorField
+	id="style-kuwahara"
+	label="paint"
+	kind="select"
+	value={boolToNoneOn(ui.scene.style.kuwahara.enabled)}
+	options={[...NONE_ON_OPTIONS]}
+	onChange={(value) => editStyle(() => (ui.scene.style.kuwahara.enabled = noneOnToBool(value)))}
+/>
+{#if ui.scene.style.kuwahara.enabled}
+	<InspectorField
+		id="style-kuwahara-radius"
+		label="brush size"
+		kind="slider"
+		min={1}
+		max={8}
+		step={1}
+		defaultValue={styleDefaults.kuwahara.radius}
+		value={ui.scene.style.kuwahara.radius}
+		onChange={(value) => editStyle(() => (ui.scene.style.kuwahara.radius = Number(value)))}
+	/>
+	<InspectorField
+		id="style-kuwahara-alpha"
+		label="stroke stretch"
+		kind="slider"
+		min={0.5}
+		max={8}
+		step={0.5}
+		defaultValue={styleDefaults.kuwahara.alpha}
+		value={ui.scene.style.kuwahara.alpha}
+		onChange={(value) => editStyle(() => (ui.scene.style.kuwahara.alpha = Number(value)))}
+	/>
+{/if}
+
+<p class="group-label">Ink lines</p>
+<InspectorField
+	id="style-ink"
+	label="ink"
+	kind="select"
+	value={boolToNoneOn(ui.scene.style.ink.enabled)}
+	options={[...NONE_ON_OPTIONS]}
+	onChange={(value) => editStyle(() => (ui.scene.style.ink.enabled = noneOnToBool(value)))}
+/>
+{#if ui.scene.style.ink.enabled}
+	<InspectorField
+		id="style-ink-strength"
+		label="amount"
+		kind="slider"
+		min={0}
+		max={1}
+		step={0.01}
+		defaultValue={styleDefaults.ink.strength}
+		value={ui.scene.style.ink.strength}
+		onChange={(value) => editStyle(() => (ui.scene.style.ink.strength = Number(value)))}
+	/>
+	<InspectorField
+		id="style-ink-thickness"
+		label="thickness"
+		kind="slider"
+		min={0.5}
+		max={6}
+		step={0.1}
+		defaultValue={styleDefaults.ink.thickness}
+		value={ui.scene.style.ink.thickness}
+		onChange={(value) => editStyle(() => (ui.scene.style.ink.thickness = Number(value)))}
+	/>
+	<InspectorField
+		id="style-ink-threshold"
+		label="threshold"
+		kind="slider"
+		min={0}
+		max={2}
+		step={0.005}
+		defaultValue={styleDefaults.ink.threshold}
+		value={ui.scene.style.ink.threshold}
+		onChange={(value) => editStyle(() => (ui.scene.style.ink.threshold = Number(value)))}
+	/>
+	<InspectorField
+		id="style-ink-color"
+		label="color"
+		kind="color"
+		value={ui.scene.style.ink.color}
+		onChange={(value) => editStyle(() => (ui.scene.style.ink.color = String(value)))}
+	/>
+{/if}
+
+<p class="group-label">Watercolor</p>
+<InspectorField
+	id="style-watercolor"
+	label="watercolor"
+	kind="select"
+	value={boolToNoneOn(ui.scene.style.watercolor.enabled)}
+	options={[...NONE_ON_OPTIONS]}
+	onChange={(value) => editStyle(() => (ui.scene.style.watercolor.enabled = noneOnToBool(value)))}
+/>
+{#if ui.scene.style.watercolor.enabled}
+	<p class="custom-hint">Owns tone mapping while on</p>
+	<InspectorField
+		id="style-watercolor-mix"
+		label="amount"
+		kind="slider"
+		min={0}
+		max={1}
+		step={0.05}
+		defaultValue={styleDefaults.watercolor.mix}
+		value={ui.scene.style.watercolor.mix}
+		onChange={(value) => editStyle(() => (ui.scene.style.watercolor.mix = Number(value)))}
+	/>
+	<InspectorField
+		id="style-watercolor-steps"
+		label="value steps"
+		kind="slider"
+		min={2}
+		max={32}
+		step={1}
+		defaultValue={styleDefaults.watercolor.steps}
+		value={ui.scene.style.watercolor.steps}
+		onChange={(value) => editStyle(() => (ui.scene.style.watercolor.steps = Number(value)))}
+	/>
+	<InspectorField
+		id="style-watercolor-saturation"
+		label="saturation"
+		kind="slider"
+		min={0}
+		max={3}
+		step={0.05}
+		defaultValue={styleDefaults.watercolor.saturation}
+		value={ui.scene.style.watercolor.saturation}
+		onChange={(value) => editStyle(() => (ui.scene.style.watercolor.saturation = Number(value)))}
+	/>
+	<InspectorField
+		id="style-watercolor-paper"
+		label="paper"
+		kind="slider"
+		min={0}
+		max={1}
+		step={0.05}
+		defaultValue={styleDefaults.watercolor.paperStrength}
+		value={ui.scene.style.watercolor.paperStrength}
+		onChange={(value) =>
+			editStyle(() => (ui.scene.style.watercolor.paperStrength = Number(value)))}
 	/>
 {/if}
 

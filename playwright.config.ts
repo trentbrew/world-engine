@@ -38,7 +38,7 @@ export default defineConfig({
 	projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 	webServer: useWebServer
 		? {
-				command: `pnpm exec vite dev --port ${port}`,
+				command: `node scripts/vite-dev.mjs --port ${port}`,
 				url: baseURL,
 				reuseExistingServer: !isCI,
 				timeout: 120_000

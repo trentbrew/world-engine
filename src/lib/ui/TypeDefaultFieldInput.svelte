@@ -67,13 +67,10 @@
 				{ value: 'directional', label: 'directional' }
 			];
 		}
-		if (component === 'Physics' && field === 'body') {
-			return ['fixed', 'dynamic', 'kinematic'].map((v) => ({ value: v, label: v }));
-		}
-		if (component === 'Physics' && field === 'collider') {
-			return ['box', 'ball', 'capsule', 'hull', 'trimesh'].map((v) => ({ value: v, label: v }));
-		}
-		return [];
+		// Schema-declared enums (Physics.body / Physics.collider, and anything added
+		// later) render from `options` so the dropdown and the agent-facing
+		// describe_component output cannot drift apart.
+		return schema?.options?.map((v) => ({ value: v, label: v })) ?? [];
 	}
 
 	const vecAxes = ['x', 'y', 'z'] as const;

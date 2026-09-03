@@ -67,7 +67,18 @@
 					"position": [
 						0,
 						0,
-						0
+						3
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						2.2,
+						1,
+						2.2
 					]
 				}
 			}
@@ -133,26 +144,34 @@
 			}
 		},
 		{
-			"@id": "entity:grove/first",
+			"@id": "entity:prop/sketchfab-building-copy",
 			"@type": "Thing",
-			"conformsTo": "Grove",
 			"components": {
 				"Transform": {
-					"position": {
-						"x": -4,
-						"y": 0.6,
-						"z": 3
-					},
+					"position": [
+						5,
+						0,
+						8
+					],
 					"scale": [
-						1.2,
-						1.6,
-						1.2
+						1.25,
+						1.25,
+						1.25
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
 					]
 				},
 				"Render": {
-					"color": "#6fae74"
+					"mesh": "/models/demo-building.glb",
+					"color": "#d4d4d4",
+					"anchor": "bottom"
 				}
-			}
+			},
+			"conformsTo": "Prop"
 		}
 	]
 }

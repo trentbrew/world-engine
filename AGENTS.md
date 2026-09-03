@@ -23,6 +23,11 @@ pnpm dev                      # default world (static/games/parkour.jsonld)
 
 pnpm dev:relay                # Trellis realtime relay on :8231 (cross-client)
 # open ?net=relay on two browsers (same ?room= / ?game=)
+
+pnpm import:sketchfab -- --search "low poly tree" --import-first
+# SKETCHFAB_API_KEY in root .env (see .env.example). pnpm dev / just run load
+# .env via scripts/vite-dev.mjs so /api/sketchfab and WebMCP import tools work.
+# Demo script: docs/demo/sketchfab-acquisition.md
 ```
 
 URL params: `?game=<name>` (which world), `?room=<id>` (which multiplayer room;
@@ -173,7 +178,7 @@ A world is a JSON-LD document with an `@graph` array. Three kinds of node:
 | `Marker`    | `kind` `"spawn"`                                                                                          | spawn-point gizmo; players spawn near these                                                                                                              |
 | `Ground`    | `size` `20`, `color` `"#0e0e12"`                                                                          | ground plane + grid                                                                                                                                      |
 | `Gravity`   | `g` `9.8`, `vy` `0`, `rest` `0.5`                                                                         | falls to `rest` height (a behavior)                                                                                                                      |
-| `Physics`   | `body` `dynamic`, `collider` `box`, `mass` `1`, `restitution` `0.2`, `friction` `0.8`, `gravityScale` `1` | Rapier rigid body in play mode (see `@threlte/rapier`)                                                                                                   |
+| `Physics`   | `body` `dynamic`\|`fixed`\|`kinematic`, `collider` `box`\|`ball`\|`capsule`\|`hull`\|`trimesh`, `mass` `1`, `restitution` `0.2`, `friction` `0.8`, `gravityScale` `1` | Rapier rigid body in play mode (see `@threlte/rapier`). **On a glTF mesh use `hull` or `trimesh`** — those derive the collider from the real geometry. `box`/`ball` fit the mesh's bounding box, which is right for crates and wrong for anything you walk into or through. Solid scenery (a building, a ramp) = `collider` `trimesh` + `body` `fixed`; `trimesh` is hollow so it is rejected on dynamic bodies and silently falls back to `hull`. |
 | `Player`    | `speed` `4`, `color`                                                                                      | WASD-controlled avatar, one per client                                                                                                                   |
 
 Built-in **types**: `GroundPlane`, `Prop`, `SpawnPoint`, `AmbientLight`,

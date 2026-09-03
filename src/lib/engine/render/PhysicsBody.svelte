@@ -104,18 +104,36 @@
 		return [0, -(halfHeight + radius), 0];
 	});
 
-	// Mesh-accurate colliders: hull/trimesh derive geometry from the loaded glTF.
-	// Primitives keep the analytic collider above (a hull of a box is just a box).
-	const wantsMeshCollider = $derived(
-		(colliderPref === 'hull' || colliderPref === 'trimesh') && isGltfMesh(render.mesh)
+	/**
+	 * Mesh-accurate colliders: on a glTF, every shape derives its geometry from the
+	 * loaded scene via AutoColliders. `box` / `ball` used to fall through to the
+	 * analytic path, which sizes shapes from the *unit primitive* — so an imported
+	 * building got a 1m cube regardless of its real extents. Primitives keep the
+	 * analytic collider (a hull of a box is just a box), and skinned entities keep
+	 * the capsule fitted by `playerCapsuleFit`.
+	 */
+	const meshColliderShape = $derived.by(
+		(): 'cuboid' | 'ball' | 'convexHull' | 'trimesh' | null => {
+			if (!isGltfMesh(render.mesh) || hasSkinnedMesh) return null;
+			switch (colliderPref) {
+				// Trimesh colliders are hollow (no volume) → invalid on dynamic bodies;
+				// convex hull is the safe choice there.
+				case 'trimesh':
+					return (physics.body ?? 'dynamic') !== 'dynamic' ? 'trimesh' : 'convexHull';
+				case 'hull':
+					return 'convexHull';
+				case 'box':
+					return 'cuboid';
+				case 'ball':
+					return 'ball';
+				// capsule stays analytic — fitted from the mesh AABB by capsuleFit.
+				default:
+					return null;
+			}
+		}
 	);
-	// Trimesh colliders are hollow (no volume) → invalid on dynamic bodies; convex
-	// hull is the safe choice there. Trimesh is only kept for fixed/kinematic bodies.
-	const autoShape = $derived<'convexHull' | 'trimesh'>(
-		colliderPref === 'trimesh' && (physics.body ?? 'dynamic') !== 'dynamic'
-			? 'trimesh'
-			: 'convexHull'
-	);
+	const wantsMeshCollider = $derived(meshColliderShape !== null);
+	const autoShape = $derived(meshColliderShape ?? 'convexHull');
 	const colliderOffset = $derived<[number, number, number]>(
 		wantsMeshCollider ? [0, 0, 0] : primitiveAnchorOffset(primitiveKind, anchor)
 	);

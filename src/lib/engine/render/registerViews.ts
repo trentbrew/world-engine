@@ -5,6 +5,9 @@
  */
 import { registerView } from '$lib/engine/ontology/registry';
 import GaussianSplatView from './views/GaussianSplatView.svelte';
+import GrassFieldView from './views/GrassFieldView.svelte';
+import WaterSurfaceView from './views/WaterSurfaceView.svelte';
+import TerrainView from './views/TerrainView.svelte';
 import GroundView from './views/GroundView.svelte';
 import LightView from './views/LightView.svelte';
 import MarkerView from './views/MarkerView.svelte';
@@ -17,5 +20,8 @@ registerView('GaussianSplat', GaussianSplatView);
 registerView('SkinnedMesh', SkinnedMeshView);
 registerView('Sprite', SpriteView);
 registerView('Ground', GroundView);
+registerView('GrassField', GrassFieldView);
+registerView('Water', WaterSurfaceView);
+registerView('Terrain', TerrainView);
 registerView('Marker', MarkerView);
 registerView('Light', LightView);

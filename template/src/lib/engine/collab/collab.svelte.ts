@@ -10,6 +10,35 @@ function roomAliasKey(roomId: string): string {
 	return `collab:room-alias:${roomId}`;
 }
 
+const DEFAULT_NAME_ADJECTIVES = [
+	'Brave',
+	'Clever',
+	'Curious',
+	'Sunny',
+	'Swift',
+	'Mellow',
+	'Cosmic',
+	'Nimble'
+] as const;
+
+const DEFAULT_NAME_NOUNS = [
+	'Explorer',
+	'Voyager',
+	'Comet',
+	'Fox',
+	'Otter',
+	'Falcon',
+	'Rover',
+	'Seeker'
+] as const;
+
+/** A friendly random default name for a player who hasn't chosen one yet. */
+function defaultUsername(): string {
+	const adj = DEFAULT_NAME_ADJECTIVES[Math.floor(Math.random() * DEFAULT_NAME_ADJECTIVES.length)];
+	const noun = DEFAULT_NAME_NOUNS[Math.floor(Math.random() * DEFAULT_NAME_NOUNS.length)];
+	return `${adj} ${noun}`;
+}
+
 class CollabState {
 	username = $state('');
 	roomId = $state('');
@@ -25,6 +54,10 @@ class CollabState {
 			const storedColor = localStorage.getItem(AVATAR_COLOR_KEY);
 			if (storedColor && (PEER_COLORS as readonly string[]).includes(storedColor)) {
 				this.avatarColor = storedColor;
+			}
+			if (!this.username) {
+				this.username = defaultUsername();
+				localStorage.setItem(USERNAME_KEY, this.username);
 			}
 		}
 	}
@@ -88,9 +121,9 @@ class CollabState {
 	}
 
 	maybeOpenUsernamePrompt() {
-		if (typeof window === 'undefined') return;
-		if (localStorage.getItem(PROMPTED_KEY)) return;
-		this.usernamePromptOpen = true;
+		// Flagged off: new players are given a default name instead of a first-run
+		// prompt. Re-enable the first-run dialog by restoring the previous body.
+		return;
 	}
 
 	dismissUsernamePrompt(skipped: boolean, username?: string) {

@@ -4,7 +4,13 @@ import { ui } from '$lib/ui/ui.svelte';
 
 const STORAGE_KEY = 'engine:play-viewport-prefs';
 
-export type PlayViewportToggleId = 'colliders' | 'wireframe' | 'shadows' | 'statsHud' | 'jankHud';
+export type PlayViewportToggleId =
+	| 'colliders'
+	| 'wireframe'
+	| 'shadows'
+	| 'cameraHud'
+	| 'statsHud'
+	| 'jankHud';
 
 export type PlayViewportItem = {
 	id: PlayViewportToggleId;
@@ -17,13 +23,15 @@ export const PLAY_VIEWPORT_ITEMS: PlayViewportItem[] = [
 	{ id: 'colliders', label: 'Colliders', hint: 'Rapier physics shapes', shortcut: '1' },
 	{ id: 'wireframe', label: 'Wireframe', hint: 'Mesh triangles', shortcut: '2' },
 	{ id: 'shadows', label: 'Shadows', hint: 'Realtime shadow maps', shortcut: '3' },
-	{ id: 'statsHud', label: 'Developer HUD', hint: 'Top-left stats accordion', shortcut: '4' },
-	{ id: 'jankHud', label: 'Move jank', hint: 'Top-left jank accordion', shortcut: '5' }
+	{ id: 'cameraHud', label: 'Camera controls', hint: 'Follow preset + tuning panel', shortcut: '' },
+	{ id: 'statsHud', label: 'Developer HUD', hint: 'Stats accordion in play bar', shortcut: '4' },
+	{ id: 'jankHud', label: 'Move jank', hint: 'Jank accordion in play bar', shortcut: '5' }
 ];
 
 type StoredPrefs = {
 	showColliders?: boolean;
 	wireframe?: boolean;
+	cameraHud?: boolean;
 	jankHud?: boolean;
 };
 
@@ -44,9 +52,14 @@ function loadStored(): StoredPrefs {
 	}
 }
 
-function persist(showColliders: boolean, wireframe: boolean, jankHud: boolean): void {
+function persist(
+	showColliders: boolean,
+	wireframe: boolean,
+	cameraHud: boolean,
+	jankHud: boolean
+): void {
 	if (typeof localStorage === 'undefined') return;
-	const prefs: StoredPrefs = { showColliders, wireframe, jankHud };
+	const prefs: StoredPrefs = { showColliders, wireframe, cameraHud, jankHud };
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
 }
 
@@ -57,8 +70,8 @@ class ViewportDebugState {
 		typeof stored.showColliders === 'boolean' ? stored.showColliders : initialShowColliders()
 	);
 	wireframe = $state(typeof stored.wireframe === 'boolean' ? stored.wireframe : false);
-	/** Movement smoothness overlay — default on in play so jank is visible while tuning. */
-	jankHud = $state(typeof stored.jankHud === 'boolean' ? stored.jankHud : true);
+	cameraHud = $state(typeof stored.cameraHud === 'boolean' ? stored.cameraHud : false);
+	jankHud = $state(typeof stored.jankHud === 'boolean' ? stored.jankHud : false);
 	/** Selected row in the pause overlay (controller + keyboard nav). */
 	menuIndex = $state(0);
 
@@ -70,6 +83,8 @@ class ViewportDebugState {
 				return this.wireframe;
 			case 'shadows':
 				return ui.scene.shadows;
+			case 'cameraHud':
+				return this.cameraHud;
 			case 'statsHud':
 				return ui.chrome.statsHud;
 			case 'jankHud':
@@ -87,6 +102,9 @@ class ViewportDebugState {
 				break;
 			case 'shadows':
 				ui.scene.shadows = value;
+				break;
+			case 'cameraHud':
+				this.cameraHud = value;
 				break;
 			case 'statsHud':
 				ui.chrome.statsHud = value;
@@ -110,7 +128,7 @@ class ViewportDebugState {
 	}
 
 	save(): void {
-		persist(this.showColliders, this.wireframe, this.jankHud);
+		persist(this.showColliders, this.wireframe, this.cameraHud, this.jankHud);
 	}
 
 	clampMenuIndex(): void {

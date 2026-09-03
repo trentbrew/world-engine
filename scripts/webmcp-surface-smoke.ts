@@ -73,6 +73,11 @@ await step('get_player', {}, (o) => o.startsWith('id:') || o.includes('No local 
 await step('list_assets', { search: 'box' }, (o) => o.includes('primitive:box'));
 await step('list_assets', { kind: 'shapes' }, (o) => o.includes('primitive:capsule'));
 
+const sketchfabUnavailable = (out: string) =>
+	out.startsWith('Error:') && /sketchfab|SKETCHFAB|dev server|import:sketchfab/i.test(out);
+await step('search_sketchfab', { query: 'tree' }, sketchfabUnavailable);
+await step('import_sketchfab_model', { uid: 'deadbeef' }, sketchfabUnavailable);
+
 // ---- spawn + entity edits --------------------------------------------------
 
 const placed = await step('spawn_prop', {

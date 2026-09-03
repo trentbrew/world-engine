@@ -231,9 +231,10 @@
 
 	.rail-item-card {
 		flex: 0 0 auto;
-		width: 56px;
-		height: 48px;
+		width: 44px;
+		height: 44px;
 		padding: 0;
+		border-radius: 50%;
 		box-sizing: border-box;
 		display: flex;
 		align-items: center;
@@ -277,14 +278,14 @@
 
 	.rail-item-card.active,
 	.rail-item-card[aria-current='true'] {
-		color: var(--foreground);
+		color: #000;
 	}
 
 	:global(.rail-item-card.active.chrome-opacity-rail.glass-panel-shell::before),
 	:global(.rail-item-card[aria-current='true'].chrome-opacity-rail.glass-panel-shell::before) {
-		border-color: #fff;
-		border-width: 1px;
-		border-style: solid;
+		background: #fff;
+		border-color: transparent;
+		border: none;
 	}
 
 	.rail-item-card:focus-visible {

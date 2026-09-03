@@ -21,7 +21,7 @@ vite port=vite_port trellis_port=trellis_port:
     set -euo pipefail
     cd "{{justfile_directory()}}"
     export TRELLIS_DB_URL="http://localhost:{{trellis_port}}"
-    pnpm exec vite dev --port {{port}}
+    pnpm dev --port {{port}}
 
 # Trellis realtime relay — cross-client MP via ?net=relay
 relay port=relay_port:
@@ -104,7 +104,7 @@ run vite_port=vite_port trellis_port=trellis_port relay_port=relay_port:
     if port_open {{vite_port}}; then
         echo "[just] vite already on :{{vite_port}} — reusing"
     else
-        pnpm exec vite dev --port {{vite_port}} 2>&1 | prefix vite &
+        pnpm dev --port {{vite_port}} 2>&1 | prefix vite &
         PIDS+=($!)
     fi
 

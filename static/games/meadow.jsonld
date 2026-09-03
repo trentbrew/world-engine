@@ -1,0 +1,224 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "entity:scene/settings",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"EditorScene": {
+					"document": {
+						"v": 1,
+						"scene": {
+							"displayName": "Meadow",
+							"sky": {
+								"enabled": true,
+								"kind": "stylized",
+								"stylizedMode": "sunset"
+							}
+						}
+					}
+				},
+				"Render": {
+					"visible": false
+				},
+				"Transform": {
+					"position": [
+						0,
+						-40,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.01,
+						0.01,
+						0.01
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.55
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1.1,
+					"color": "#fff2d0",
+					"shadowMapSize": 2048,
+					"shadowCamSize": 20,
+					"shadowNormalBias": 0.02
+				},
+				"Transform": {
+					"position": [
+						6,
+						9,
+						4
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:grass/meadow",
+			"@type": "Thing",
+			"conformsTo": "GrassField",
+			"components": {
+				"GrassField": {
+					"size": 24,
+					"preset": "default",
+					"density": 120,
+					"maxCount": 24000,
+					"windStrength": 0.12,
+					"windDirection": 243
+				},
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:grass/autumn-patch",
+			"@type": "Thing",
+			"conformsTo": "GrassField",
+			"components": {
+				"GrassField": {
+					"size": 8,
+					"preset": "autumn",
+					"density": 160,
+					"maxCount": 12000,
+					"windStrength": 0.16
+				},
+				"Transform": {
+					"position": [
+						1,
+						0.01,
+						-20
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:water/pond",
+			"@type": "Thing",
+			"conformsTo": "WaterSurface",
+			"components": {
+				"Water": {
+					"size": 18,
+					"params": {
+						"scale": 0.35,
+						"cellSpeed": 0.8,
+						"noiseScale": 1.1,
+						"deepColor": "#1f6fa8",
+						"midColor": "#5ec6ee"
+					}
+				},
+				"Transform": {
+					"position": [
+						-6,
+						0.06,
+						6
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/gate",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Marker": {
+					"kind": "spawn"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0,
+						8
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		}
+	]
+}

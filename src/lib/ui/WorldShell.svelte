@@ -69,6 +69,7 @@
 	import AssetInspectorPanel from '$lib/ui/AssetInspectorPanel.svelte';
 	import ModelsCatalogPanel from '$lib/ui/ModelsCatalogPanel.svelte';
 	import KindCatalogPanel from '$lib/ui/KindCatalogPanel.svelte';
+	import AssetsCatalogPanel from '$lib/ui/AssetsCatalogPanel.svelte';
 	import { isAssetRoute } from '$lib/ui/assetRoutes';
 	import ShellRouteStub from '$lib/ui/ShellRouteStub.svelte';
 	import LoadingOverlay from '$lib/ui/LoadingOverlay.svelte';
@@ -307,6 +308,11 @@
 			ui.railRoute === 'graph' ||
 			isAssetRoute(ui.railRoute)
 	);
+
+	/** Select an entity to re-open the right inspection pane after a void click. */
+	$effect(() => {
+		if (world.selection) ui.inspectorOpen = true;
+	});
 </script>
 
 <svelte:window onkeydowncapture={handleShellKeydownCapture} onkeydown={onKeydown} />
@@ -314,7 +320,7 @@
 <a class="skip-link" href="#entity-list">Skip to entity list</a>
 
 <AppShell
-	rightPanelVisible={showInspectorPanel}
+	rightPanelVisible={showInspectorPanel && ui.inspectorOpen}
 >
 	{#snippet docBar()}
 		<DocBar />
@@ -327,6 +333,8 @@
 			<ObjectClipLibrary />
 		{:else if ui.railRoute === 'objects'}
 			<ObjectsResourcePanel />
+		{:else if ui.railRoute === 'assets'}
+			<AssetsCatalogPanel />
 		{:else if ui.railRoute === 'models'}
 			<ModelsCatalogPanel />
 		{:else if ui.railRoute === 'textures'}

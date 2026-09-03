@@ -13,6 +13,7 @@
   import SelectionFootprints from '$lib/scene/SelectionFootprints.svelte';
   import PlacementGhost from '$lib/scene/PlacementGhost.svelte';
   import { SKY_PRESETS } from '$lib/scene/skyPresets';
+  import StylizedSkyDome from '$lib/scene/StylizedSkyDome.svelte';
   import { TONE_MAPPING } from '$lib/scene/toneMapping';
   import type CameraControlsImpl from 'camera-controls';
   import type { IntersectionEvent } from '@threlte/extras';
@@ -805,15 +806,21 @@
 {/if}
 
 {#if ui.scene.sky.enabled && !worldProfile.is2d}
-  <Sky
-    setEnvironment={ui.scene.sky.setEnvironment}
-    azimuth={skyProps.azimuth}
-    elevation={skyProps.elevation}
-    mieCoefficient={skyProps.mieCoefficient}
-    mieDirectionalG={skyProps.mieDirectionalG}
-    rayleigh={skyProps.rayleigh}
-    turbidity={skyProps.turbidity}
-  />
+  {#if ui.scene.sky.kind === 'stylized'}
+    <!-- Painted dome: moon, stars, clouds, aurora. No scattering, so it does
+         not drive the environment map the way <Sky> can. -->
+    <StylizedSkyDome mode={ui.scene.sky.stylizedMode} />
+  {:else}
+    <Sky
+      setEnvironment={ui.scene.sky.setEnvironment}
+      azimuth={skyProps.azimuth}
+      elevation={skyProps.elevation}
+      mieCoefficient={skyProps.mieCoefficient}
+      mieDirectionalG={skyProps.mieDirectionalG}
+      rayleigh={skyProps.rayleigh}
+      turbidity={skyProps.turbidity}
+    />
+  {/if}
 {/if}
 
 <T.PerspectiveCamera

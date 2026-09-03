@@ -1,0 +1,10 @@
+flowchart LR
+  subgraph TerrainView
+    A[createTerrain params] --> B[displaced PlaneGeometry mesh]
+    B --> C[AutoColliders trimesh]
+    B --> D{grass.enabled?}
+  end
+  D -- no --> E[terrain only]
+  D -- yes --> F[scatterBlades / scatterFlowers on same mesh]
+  F --> G[InstancedMesh blades follow heightmap Y]
+  G --> B

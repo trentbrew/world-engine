@@ -1,0 +1,110 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": { "@type": "@id" },
+		"components": { "@type": "@json" }
+	},
+	"@graph": [
+		{
+			"@id": "entity:scene/settings",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"EditorScene": {
+					"document": {
+						"v": 1,
+						"scene": {
+							"displayName": "Terrain",
+							"sky": { "enabled": true, "kind": "stylized", "stylizedMode": "day" }
+						}
+					}
+				},
+				"Render": { "visible": false },
+				"Transform": { "position": [0, -40, 0], "rotation": [0, 0, 0, 1], "scale": [0.01, 0.01, 0.01] }
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": { "Light": { "intensity": 0.5, "color": "#cfe8ff" } }
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1.15,
+					"color": "#fff2d0",
+					"shadowMapSize": 2048,
+					"shadowCamSize": 34,
+					"shadowNormalBias": 0.02
+				},
+				"Transform": { "position": [14, 16, 10], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
+			}
+		},
+		{
+			"@id": "entity:terrain/valley",
+			"@type": "Thing",
+			"conformsTo": "Terrain",
+			"components": {
+				"Terrain": {
+					"size": 60,
+					"segments": 128,
+					"heightScale": 5,
+					"baseHeight": -0.6,
+					"noiseScale": 0.045,
+					"octaves": 4,
+					"seed": 4242,
+					"colorLow": "#33553a",
+					"colorHigh": "#8a9a54",
+					"grass": {
+						"enabled": true,
+						"density": 160,
+						"maxCount": 30000,
+						"bladeMinLength": 0.12,
+						"bladeMaxLength": 0.32,
+						"windStrength": 0.12,
+						"windDirection": 243
+					}
+				},
+				"Transform": { "position": [0, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
+			}
+		},
+		{
+			"@id": "entity:water/sea",
+			"@type": "Thing",
+			"conformsTo": "WaterSurface",
+			"components": {
+				"Water": {
+					"size": 60,
+					"params": {
+						"scale": 0.5,
+						"cellSpeed": 0.9,
+						"noiseScale": 1.0,
+						"deepColor": "#1f6fa8",
+						"midColor": "#5ec6ee",
+						"opacity": 0.85,
+						"deepOpacity": 0.4
+					}
+				},
+				"Transform": { "position": [0, -1.1, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
+			}
+		},
+		{
+			"@id": "entity:spawn/ridge",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": { "Transform": { "position": [0, 5.6, -8], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] } }
+		},
+		{
+			"@id": "entity:player/avatar",
+			"@type": "Thing",
+			"conformsTo": "Player",
+			"components": {
+				"Transform": { "position": [0, 5.8, -8], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
+			}
+		}
+	]
+}

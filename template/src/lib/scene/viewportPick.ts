@@ -2,6 +2,7 @@
 
 import { world } from '$lib/engine/runtime/world.svelte';
 import { viewportFocus } from '$lib/scene/focusEntity';
+import { ui } from '$lib/ui/ui.svelte';
 
 const DRAG_THRESHOLD_PX = 4;
 
@@ -41,6 +42,7 @@ function commitPending() {
 	viewportFocus.cancel();
 	world.select(null);
 	world.setHover(null);
+	ui.inspectorOpen = false;
 }
 
 function onPointerMove(event: PointerEvent) {

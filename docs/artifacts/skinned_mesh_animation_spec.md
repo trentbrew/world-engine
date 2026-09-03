@@ -367,6 +367,9 @@ ships a **Blender-free** Sketchfab leg:
 # Search downloadable models (requires SKETCHFAB_API_KEY in root .env)
 pnpm import:sketchfab -- --search "low poly character" --limit 8
 
+# Search and import the first hit in one command
+pnpm import:sketchfab -- --search "low poly character" --import-first
+
 # Import by UID → static/models/ or static/models/characters/ (rigged auto-route)
 pnpm import:sketchfab -- --uid <UID> [--name my-slug]
 ```

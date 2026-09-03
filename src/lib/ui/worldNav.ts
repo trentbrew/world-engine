@@ -5,6 +5,7 @@ import BoxIcon from '@lucide/svelte/icons/box';
 import ImageIcon from '@lucide/svelte/icons/image';
 import MusicIcon from '@lucide/svelte/icons/music';
 import FileIcon from '@lucide/svelte/icons/file';
+import FolderOpenIcon from '@lucide/svelte/icons/folder-open';
 import DatabaseIcon from '@lucide/svelte/icons/database';
 import WorkflowIcon from '@lucide/svelte/icons/workflow';
 import Gamepad2Icon from '@lucide/svelte/icons/gamepad-2';
@@ -22,6 +23,7 @@ export type WorldNavItem = {
 };
 
 export const WORLD_ROUTES: WorldNavItem[] = [
+	{ id: 'assets', label: 'Assets', Icon: FolderOpenIcon },
 	{ id: 'graph', label: 'Graph', Icon: WorkflowIcon },
 	{ id: 'models', label: 'Models', Icon: BoxIcon },
 	{ id: 'textures', label: 'Textures', Icon: ImageIcon },
@@ -33,8 +35,24 @@ export const WORLD_ROUTES: WorldNavItem[] = [
 	{ id: 'rooms', label: 'Rooms', Icon: LayoutGridIcon }
 ];
 
+/**
+ * Dock shows only these world routes. The rest remain valid navigation targets
+ * (asset pick, workbench) but aren't surfaced in the rail.
+ */
+export const RAIL_VISIBLE_ROUTES: ReadonlySet<WorldRoute> = new Set([
+	'assets',
+	'objects',
+	'collections',
+	'rooms'
+]);
+
 /** Default rail order — Config is pinned separately at the end of the rail. */
-export const DEFAULT_RAIL_ORDER: WorldRoute[] = WORLD_ROUTES.map((item) => item.id);
+export const DEFAULT_RAIL_ORDER: WorldRoute[] = [
+	'assets',
+	'objects',
+	'collections',
+	'rooms'
+];
 
 const WORLD_ROUTE_IDS = new Set<string>(DEFAULT_RAIL_ORDER);
 
@@ -59,6 +77,7 @@ export function normalizeRailOrder(raw: unknown): WorldRoute[] {
 export function orderedWorldRoutes(order: readonly WorldRoute[]): WorldNavItem[] {
 	const byId = new Map(WORLD_ROUTES.map((item) => [item.id, item]));
 	return normalizeRailOrder(order)
+		.filter((id) => RAIL_VISIBLE_ROUTES.has(id))
 		.map((id) => byId.get(id))
 		.filter((item): item is WorldNavItem => item != null);
 }
@@ -86,6 +105,7 @@ const ROUTE_LABELS: Record<WorldRoute, string> = {
 	textures: 'Textures',
 	audio: 'Audio',
 	files: 'Files',
+	assets: 'Assets',
 	objects: 'Objects',
 	collections: 'Collections',
 	controls: 'Controls',

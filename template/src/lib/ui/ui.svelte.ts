@@ -74,6 +74,7 @@ export type WorldRoute =
 	| 'textures'
 	| 'audio'
 	| 'files'
+	| 'assets'
 	| 'collections'
 	| 'graph'
 	| 'controls'
@@ -214,11 +215,11 @@ export type RailPosition = 'left' | 'bottom';
 const RAIL_POSITION_KEY = 'playlab:rail-position';
 
 function loadRailPosition(): RailPosition {
-	if (typeof localStorage === 'undefined') return 'left';
+	if (typeof localStorage === 'undefined') return 'bottom';
 	try {
-		return localStorage.getItem(RAIL_POSITION_KEY) === 'bottom' ? 'bottom' : 'left';
+		return localStorage.getItem(RAIL_POSITION_KEY) === 'left' ? 'left' : 'bottom';
 	} catch {
-		return 'left';
+		return 'bottom';
 	}
 }
 
@@ -263,6 +264,8 @@ class UIState {
 	railRoute = $state<RailRoute>('rooms');
 	/** World navigation rail — vertical left edge or horizontal bottom dock. */
 	railPosition = $state<RailPosition>(loadRailPosition());
+	/** Right inspection pane — hidden when the user clicks a void in the scene. */
+	inspectorOpen = $state(true);
 	/** Bump to request focus on the object search field (LeftPanel). */
 	objectSearchFocusRequest = $state(0);
 	/** Bump to focus Rooms → Objects catalog search (Add object). */
@@ -329,6 +332,8 @@ class UIState {
 	assetPickTarget = $state<AssetPickTarget | null>(null);
 	/** @deprecated Rail route is the section; use setRoute('models') etc. */
 	assetsSection = $state<AssetsSection>('shapes');
+	/** Active kind tab inside the merged `assets` route. */
+	assetsTab = $state<AssetKind>('models');
 	assetInspectorTab = $state<AssetInspectorTab>('animations');
 	previewContext = $state<PreviewContext | null>(null);
 	placementDraft = $state<PlacementDraft | null>(null);
@@ -597,6 +602,8 @@ class UIState {
 				this.modeMessage = 'Room editor';
 			} else if (route === 'objects') {
 				this.modeMessage = 'Object types';
+			} else if (route === 'assets') {
+				this.modeMessage = 'Assets';
 			} else if (isAssetRoute(route)) {
 				this.modeMessage =
 					route === 'models'
@@ -679,6 +686,8 @@ class UIState {
 			this.modeMessage = 'Room editor';
 		} else if (route === 'objects') {
 			this.modeMessage = 'Object types';
+		} else if (route === 'assets') {
+			this.modeMessage = 'Assets';
 		} else if (isAssetRoute(route)) {
 			this.modeMessage = route === 'models'
 				? 'Models'
@@ -830,8 +839,7 @@ class UIState {
 		return {
 			top: 0,
 			right: 0,
-			bottom:
-				VIEWPORT_FLOAT_INSET + this.viewportBottomChromeHeight + this.viewportRailBottomInset,
+			bottom: VIEWPORT_FLOAT_INSET + this.viewportBottomChromeHeight,
 			left: VIEWPORT_FLOAT_INSET
 		};
 	}
@@ -890,6 +898,10 @@ class UIState {
 	}
 
 	syncAssetsSectionFromRoute(route: AssetRoute) {
+		if (route === 'assets') {
+			this.assetsSection = 'models';
+			return;
+		}
 		this.assetsSection = route === 'models' ? 'models' : route;
 	}
 
@@ -899,14 +911,14 @@ class UIState {
 		const field = target.field;
 		const fromObjects = this.railRoute === 'objects' || 'typeName' in target;
 		if (field === 'mesh') {
-			this.setRoute('models');
-			this.assetsSection = 'models';
+			this.setRoute('assets');
+			this.assetsTab = 'models';
 		} else if (field === 'sfx' || field.startsWith('sfx')) {
-			this.setRoute('audio');
-			this.assetsSection = 'audio';
+			this.setRoute('assets');
+			this.assetsTab = 'audio';
 		} else if (fromObjects) {
-			this.setRoute('models');
-			this.assetsSection = 'models';
+			this.setRoute('assets');
+			this.assetsTab = 'models';
 		} else {
 			this.openAssetsSection('models');
 		}

@@ -156,7 +156,7 @@ function resetPlayRuntimeSystems() {
 	);
 }
 
-const PICKABLE_COMPONENTS = ['Render', 'Sprite', 'Ground', 'Marker'];
+const PICKABLE_COMPONENTS = ['Render', 'Sprite', 'Ground', 'GrassField', 'Water', 'Terrain', 'Marker'];
 
 function transformSnapshotForField(
 	field: string,
@@ -447,15 +447,8 @@ class WorldRuntime {
 		};
 
 		this.spawn(entity);
-		this.#runtimeNet?.onSpawn?.(entity);
 		this.select(id);
-
-		const snapshot = captureEntitySnapshot(entity);
-		editHistory.recordMutation(
-			[{ kind: 'despawnEntity', entityId: id }],
-			[{ kind: 'spawnEntity', entity: snapshot }],
-			{ label: 'spawn prop', selection: id }
-		);
+		this.#durableSpawn(entity, 'spawn prop');
 		return entity;
 	}
 
@@ -495,15 +488,8 @@ class WorldRuntime {
 		};
 
 		this.spawn(entity);
-		this.#runtimeNet?.onSpawn?.(entity);
 		this.select(id);
-
-		const snapshot = captureEntitySnapshot(entity);
-		editHistory.recordMutation(
-			[{ kind: 'despawnEntity', entityId: id }],
-			[{ kind: 'spawnEntity', entity: snapshot }],
-			{ label: 'spawn character', selection: id }
-		);
+		this.#durableSpawn(entity, 'spawn character');
 		return entity;
 	}
 
@@ -646,16 +632,33 @@ class WorldRuntime {
 		const entity = this.getEntity(id);
 		if (!entity) return false;
 
-		const snapshot = captureEntitySnapshot(entity);
-		if (this.#runtimeNet?.onDespawn) this.#runtimeNet.onDespawn(id);
-		else this.despawn(id);
+		// Match-scoped spawns stay on the owner-scoped runtime path; authored
+		// entities delete durably so peers, the store, and the world file agree.
+		if (this.#runtimeSpawnIds.has(id)) {
+			const snapshot = captureEntitySnapshot(entity);
+			if (this.#runtimeNet?.onDespawn) this.#runtimeNet.onDespawn(id);
+			else this.despawn(id);
+
+			if (editHistory.shouldRecord()) {
+				editHistory.recordMutation(
+					[{ kind: 'spawnEntity', entity: snapshot }],
+					[{ kind: 'despawnEntity', entityId: id }],
+					{ label: 'delete', selection: id }
+				);
+			}
+			return true;
+		}
+
+		const undoPatch = buildSetEntityPatch(entity, { full: true });
+		const forwardPatch: DurableRemoveEntityPatch = { kind: 'removeEntity', entityId: id };
+
+		this.despawn(id);
+		this.#broadcastDurablePatch(forwardPatch);
+		this.#persistToStore(forwardPatch);
+		if (shouldAuthorToWorldFile()) queueWorldFilePatch(forwardPatch);
 
 		if (editHistory.shouldRecord()) {
-			editHistory.recordMutation(
-				[{ kind: 'spawnEntity', entity: snapshot }],
-				[{ kind: 'despawnEntity', entityId: id }],
-				{ label: 'delete', selection: id }
-			);
+			editHistory.recordMutation([undoPatch], [forwardPatch], { label: 'delete', selection: id });
 		}
 		return true;
 	}
@@ -678,6 +681,9 @@ class WorldRuntime {
 		} else {
 			this.#broadcastDurablePatch(durable);
 			this.#persistToStore(durable);
+			// Undo/redo of a spawn or delete must reach the world file too,
+			// otherwise the undone entity returns on the next reload.
+			if (shouldAuthorToWorldFile()) queueWorldFilePatch(durable);
 		}
 	}
 
@@ -823,6 +829,24 @@ class WorldRuntime {
 		if (shouldAuthorToWorldFile()) {
 			queueWorldFilePatch({ entityId: entity.id, component, field, value });
 		}
+	}
+
+	/**
+	 * Editor / agent spawn: replicate + persist the new entity as a durable
+	 * `setEntity`. Runtime `onSpawn` is deliberately NOT used here — that path is
+	 * owner-scoped, so the entity would be despawned on every peer when its author
+	 * disconnects (`session.#forget`) and would never reach the world file.
+	 * Gameplay spawns keep the runtime path via `spawnRuntime`.
+	 */
+	#durableSpawn(entity: Entity, label: string) {
+		const forwardPatch = buildSetEntityPatch(entity, { full: true });
+		this.#broadcastDurablePatch(forwardPatch);
+		this.#persistToStore(forwardPatch);
+		if (shouldAuthorToWorldFile()) queueWorldFilePatch(forwardPatch);
+
+		// Durable undo/redo: setEntity (re)creates, removeEntity deletes.
+		const undoPatch: DurableRemoveEntityPatch = { kind: 'removeEntity', entityId: entity.id };
+		editHistory.recordMutation([undoPatch], [forwardPatch], { label, selection: entity.id });
 	}
 
 	#broadcastDurablePatch(patch: DurablePatch) {
@@ -1348,16 +1372,9 @@ class WorldRuntime {
 		};
 
 		this.spawn(entity);
-		this.#runtimeNet?.onSpawn?.(entity);
 		bootstrapFormulas();
 		this.select(id);
-
-		const snapshot = captureEntitySnapshot(entity);
-		editHistory.recordMutation(
-			[{ kind: 'despawnEntity', entityId: id }],
-			[{ kind: 'spawnEntity', entity: snapshot }],
-			{ label: 'spawn entity', selection: id }
-		);
+		this.#durableSpawn(entity, 'spawn entity');
 		return entity;
 	}
 
