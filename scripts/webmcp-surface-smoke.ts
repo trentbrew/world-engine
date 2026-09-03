@@ -67,6 +67,10 @@ await step('describe_type', { type: 'Prop' }, 'Prop');
 await step('get_scene', {}, headlessOk);
 // Reads scene style through `ui`, so it degrades to the headless message here.
 await step('get_current_world', {}, headlessOk);
+await step('list_render_params', { component: 'GrassField', group: 'Flowers' }, (o) =>
+	o.includes('flSize')
+);
+await step('list_render_params', { component: 'Nope' }, isError);
 // No session in a headless smoke, so "no local player yet" is the correct answer.
 await step('get_player', {}, (o) => o.startsWith('id:') || o.includes('No local player'));
 
@@ -115,6 +119,16 @@ await step('set_entity_json', {
 await step('save_entity_as_type', { entityId: dupId, name: 'SmokeOrb' }, 'Saved');
 await step('spawn_from_type', { type: 'SmokeOrb', position: [7, 1, 0] }, 'Spawned');
 await step('spawn_from_type', { type: 'NoSuchType' }, isError);
+
+// Render params live inside a `json` bag, so exercise the read-merge-write on a
+// real Water surface rather than trusting the descriptor table alone.
+const sea = await step('spawn_from_type', { type: 'WaterSurface', position: [0, -1, 0] }, 'Spawned');
+const seaId = sea.match(/Spawned (\S+?) at/)?.[1] ?? '';
+if (!seaId) failures.push('could not read the spawned WaterSurface id back out');
+await step('set_render_param', { entityId: seaId, param: 'rippleDecay', value: 2.25 }, (o) =>
+	o.includes('rippleDecay = 2.250')
+);
+await step('set_render_param', { entityId: seaId, param: 'nopeNotAParam', value: 1 }, isError);
 
 // spawn_character needs a rigged GLB; assert it either places one or explains
 // itself, never that it throws.

@@ -412,6 +412,48 @@ const removeEntity: ToolManifestEntry = {
 	target: 'world.deleteSelection()'
 };
 
+const listRenderParams: ToolManifestEntry = {
+	name: 'list_render_params',
+	title: 'List render params',
+	description:
+		'List the tunable look-and-feel parameters of grass, water, or terrain — the knobs hidden inside those components’ `params` bag, which describe_component can only show as an opaque "json" field. Returns each parameter’s name, type, default, and allowed range. Filter with group (e.g. "Flowers", "Wind", "Ripples") or a search term, since grass alone has 98. Set one with set_render_param.',
+	inputSchema: {
+		type: 'object',
+		properties: {
+			component: {
+				type: 'string',
+				enum: ['GrassField', 'Water', 'Terrain'],
+				description: 'Which component’s parameters to list.'
+			},
+			group: { type: 'string', description: 'Only this group, e.g. "Flowers".' },
+			search: { type: 'string', description: 'Only parameters whose name or label matches.' },
+			limit: { type: 'number', description: 'Max rows (default 25).' },
+			offset: { type: 'number', description: 'Row to start from, for paging.' }
+		},
+		required: ['component']
+	},
+	annotations: READ_TRUSTED,
+	target: 'renderParams.RENDER_PARAM_TARGETS'
+};
+
+const setRenderParam: ToolManifestEntry = {
+	name: 'set_render_param',
+	title: 'Set render param',
+	description:
+		'Change one grass, water, or terrain look-and-feel parameter on an entity — for example flower size, wind strength, or water ripple decay. Give the bare parameter name from list_render_params; the correct nested location is resolved for you and every other parameter is left untouched, unlike set_entity_field on the whole `params` object. The value is range-checked and the change is saved and replicated.',
+	inputSchema: {
+		type: 'object',
+		properties: {
+			entityId: ENTITY_ID,
+			param: { type: 'string', description: 'Parameter name, e.g. "flSize", from list_render_params.' },
+			value: { description: 'New value. Number, boolean, or hex colour, per the parameter.' }
+		},
+		required: ['entityId', 'param', 'value']
+	},
+	annotations: WRITE,
+	target: 'world.setField(entityId, component, bagField, mergedBag)'
+};
+
 // ---- write: entity ---------------------------------------------------------
 
 const setEntityField: ToolManifestEntry = {
@@ -975,6 +1017,7 @@ export const WEBMCP_TOOLS: ToolManifestEntry[] = [
 	describeType,
 	listComponents,
 	describeComponent,
+	listRenderParams,
 	listAssets,
 	searchSketchfab,
 	importSketchfabModel,
@@ -988,6 +1031,7 @@ export const WEBMCP_TOOLS: ToolManifestEntry[] = [
 	removeEntity,
 	// write: entity
 	setEntityField,
+	setRenderParam,
 	addEntityComponent,
 	removeEntityComponent,
 	setEntityJson,

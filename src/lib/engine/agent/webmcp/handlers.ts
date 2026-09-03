@@ -29,6 +29,14 @@ import type {
 	FieldSchema
 } from '$lib/engine/ontology/schema';
 import { isGltfMesh } from '$lib/engine/render/meshRef';
+import {
+	findRenderParams,
+	readAtPath,
+	RENDER_PARAM_COMPONENTS,
+	RENDER_PARAM_TARGETS,
+	setAtPath,
+	validateRenderParam
+} from '$lib/engine/agent/webmcp/renderParams';
 import { world } from '$lib/engine/runtime/world.svelte';
 import type { SceneStyle } from '$lib/scene/artStyles';
 
@@ -542,6 +550,46 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 		return clamp(`${name} (${editable})\n${doc}fields:\n${fields.join('\n')}`);
 	},
 
+	async list_render_params(input) {
+		const name = String(input.component ?? '');
+		const target = RENDER_PARAM_TARGETS[name];
+		if (!target) {
+			return fail(`No render params for "${name}". Try: ${RENDER_PARAM_COMPONENTS.join(', ')}.`);
+		}
+
+		const group = typeof input.group === 'string' ? input.group.toLowerCase() : null;
+		const search = typeof input.search === 'string' ? input.search.toLowerCase() : null;
+		let params = target.params;
+		if (group) params = params.filter((p) => p.group?.toLowerCase() === group);
+		if (search) {
+			params = params.filter(
+				(p) =>
+					p.key.toLowerCase().includes(search) || (p.label ?? '').toLowerCase().includes(search)
+			);
+		}
+		if (params.length === 0) {
+			const groups = [...new Set(target.params.map((p) => p.group).filter(Boolean))];
+			return fail(`No ${name} params matched. Groups: ${nameList(groups as string[], 16)}`);
+		}
+
+		const { slice, offset } = page(params, { ...input, limit: input.limit ?? 25 });
+		const rows = slice.map((p) => {
+			const bits: string[] = [p.type];
+			if (p.min !== undefined || p.max !== undefined) bits.push(`${p.min ?? '−∞'}..${p.max ?? '∞'}`);
+			bits.push(`default ${formatValue(p.default)}`);
+			if (p.group) bits.push(`[${p.group}]`);
+			// Worth surfacing: these respawn instance geometry rather than moving a
+			// uniform, so an agent sweeping them is doing real work per step.
+			if (p.rebuilds) bits.push('rebuilds');
+			return `  ${p.key}: ${bits.join(', ')}`;
+		});
+		const head = group || search ? `${params.length} matching` : `${params.length}`;
+		return clamp(`${name} — ${target.summary}\n${head} params (set with set_render_param):\n${rows.join('\n')}`, {
+			shown: offset + slice.length,
+			total: params.length
+		});
+	},
+
 	async list_assets(input) {
 		const kind = (typeof input.kind === 'string' ? input.kind : 'models') as AssetKind | 'shapes';
 		const search = typeof input.search === 'string' ? input.search.toLowerCase() : null;
@@ -818,6 +866,51 @@ export const WEBMCP_HANDLERS: Record<string, ToolExecute> = {
 	},
 
 	// ---- write: entity -----------------------------------------------------
+
+	async set_render_param(input) {
+		const entity = requireEntity(String(input.entityId ?? ''));
+		if (isError(entity)) return entity;
+		const param = String(input.param ?? '');
+
+		const carried = Object.keys(entity.components);
+		const matches = findRenderParams(param, carried);
+		if (matches.length === 0) {
+			const available = carried.filter((c) => RENDER_PARAM_COMPONENTS.includes(c));
+			if (available.length === 0) {
+				return fail(
+					`${entity.id} has no tunable render component. It carries: ${nameList(carried)}`
+				);
+			}
+			const keys = available.flatMap((c) => RENDER_PARAM_TARGETS[c]!.params.map((p) => p.key));
+			return fail(`No param "${param}" on ${entity.id}. Closest: ${suggestList(param, keys, 8)}`);
+		}
+		if (matches.length > 1) {
+			const owners = matches.map((m) => m.component).join(', ');
+			return fail(`"${param}" is ambiguous on ${entity.id} — it exists on ${owners}.`);
+		}
+
+		const { component, descriptor } = matches[0]!;
+		const checked = validateRenderParam(descriptor, input.value);
+		if (!checked.ok) return fail(checked.error);
+
+		// The bag is one `json` field, so this is a read-merge-write: writing the
+		// field directly would drop every other param the world had set.
+		const [bagField, ...rest] = descriptor.path;
+		const current = entity.components[component]?.[bagField];
+		const base =
+			current && typeof current === 'object' && !Array.isArray(current)
+				? (current as Record<string, unknown>)
+				: {};
+		const merged = setAtPath(base, rest, checked.value);
+
+		world.setField(entity.id, component, bagField, merged);
+		const stored = readAtPath(
+			(world.getEntity(entity.id)?.components[component]?.[bagField] ?? {}) as Record<string, unknown>,
+			rest
+		);
+		const note = descriptor.rebuilds ? ' Respawns instance geometry.' : '';
+		return `${entity.id}.${component}.${descriptor.path.join('.')} = ${formatValue(stored)}.${note}`;
+	},
 
 	async set_entity_field(input) {
 		const entity = requireEntity(String(input.entityId ?? ''));
