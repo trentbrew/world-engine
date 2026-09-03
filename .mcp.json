@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "world-engine": {
+      "command": "node",
+      "args": ["scripts/mcp-agent-room.mjs"],
+      "env": {
+        "AGENT_GAME": "terrain",
+        "AGENT_ROOM": "terrain",
+        "AGENT_RELAY_URL": "ws://localhost:8231/rt",
+        "AGENT_NAME": "Claude"
+      }
+    }
+  }
+}
