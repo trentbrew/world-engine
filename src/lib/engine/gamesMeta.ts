@@ -12,7 +12,7 @@ export type GameOverride = {
 };
 
 /** Loaded when `?game=` is missing — see `ensureGameInUrl` / `resolveGame`. */
-export const DEFAULT_GAME_PARAM = 'parkour';
+export const DEFAULT_GAME_PARAM = 'terrain';
 
 /** Scratch world at `/world.jsonld` — pick via `?game=sandbox`. */
 export const SANDBOX_GAME = {
@@ -27,6 +27,7 @@ export const SANDBOX_GAME = {
  * after these; SceneSelector still splits `category: 'demo'` into Demos.
  */
 export const GAME_ORDER: string[] = [
+	'terrain',
 	'parkour',
 	'craftpunk/commons',
 	'powder/slope',
