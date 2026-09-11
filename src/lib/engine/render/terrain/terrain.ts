@@ -104,6 +104,33 @@ export type TerrainParams = {
 	colorHigh: string;
 	/** Vertical range over which colorLow→colorHigh ramps (world units). */
 	colorRange: number;
+	/**
+	 * Sink the rim toward `seabedY` so the plane reads as an island in an open
+	 * ocean rather than a square slab. Off by default — a terrain with no water
+	 * around it wants its full extent.
+	 */
+	island: boolean;
+	/** Radius (fraction of half-size) inside which the heightmap is untouched. */
+	islandInner: number;
+	/** Radius (fraction of half-size) by which the surface has reached `seabedY`. */
+	islandOuter: number;
+	/** Terrain-local Y the rim falls away to. Put it under the water plane. */
+	seabedY: number;
+	/**
+	 * Tint vertices below `waterY` toward `underwaterColor`, so a rim that sinks
+	 * under the water plane reads as submerged rather than as a bright green
+	 * shelf seen through blue.
+	 *
+	 * NOTE: this was previously spelled `infinite`, which also translated the
+	 * mesh to the camera every frame. That never worked — see the comment on
+	 * `createTerrain` — so the name now describes the half that does. Legacy
+	 * `infinite: true` is still accepted as an alias below.
+	 */
+	underwaterTint: boolean;
+	/** World Y of the water surface. */
+	waterY: number;
+	/** Tint applied to terrain vertices below waterY. */
+	underwaterColor: string;
 };
 
 export const TERRAIN_DEFAULTS: TerrainParams = {
@@ -117,7 +144,14 @@ export const TERRAIN_DEFAULTS: TerrainParams = {
 	color: '#5a7a3a',
 	colorLow: '#3f6a34',
 	colorHigh: '#8a9a54',
-	colorRange: 6
+	colorRange: 6,
+	island: false,
+	islandInner: 0.55,
+	islandOuter: 0.92,
+	seabedY: -4,
+	underwaterTint: false,
+	waterY: 0,
+	underwaterColor: '#1a5276'
 };
 
 export type TerrainOptions = {
@@ -131,6 +165,32 @@ export type TerrainHandle = {
 };
 
 /**
+ * Radial island falloff, as a 0..1 multiplier on height above the seabed.
+ *
+ * `d` is the distance from the terrain's center normalised by its half-size, so
+ * the midpoint of each side sits at 1.0 and the corners reach ~1.41. Corners
+ * therefore sink first, which is what rounds a square plane into an island.
+ *
+ * Past `islandOuter` the result is flat seabed, so the mesh's own square edge is
+ * always submerged and hidden under the water surface — the alternative is a
+ * visible geometric cliff at the world boundary.
+ */
+function islandMask(
+	nx: number,
+	nz: number,
+	half: number,
+	inner: number,
+	outer: number
+): number {
+	if (half <= 0 || outer <= inner) return 1;
+	const d = Math.hypot(nx, nz) / half;
+	if (d <= inner) return 1;
+	if (d >= outer) return 0;
+	const t = (d - inner) / (outer - inner);
+	return 1 - t * t * (3 - 2 * t); // smoothstep, so the shoreline has no crease
+}
+
+/**
  * Build a displaced terrain mesh from a seeded heightmap, and the identical
  * triangles for the physics collider.
  *
@@ -139,7 +199,21 @@ export type TerrainHandle = {
  * per-vertex color ramping across `colorLow→colorHigh`.
  */
 export function createTerrain(opts: TerrainOptions = {}): TerrainHandle {
-	const p: TerrainParams = { ...TERRAIN_DEFAULTS, ...(opts.params ?? {}) };
+	const authored = opts.params ?? {};
+	const p: TerrainParams = { ...TERRAIN_DEFAULTS, ...authored };
+
+	// Legacy alias. `infinite` used to mean "follow the camera in XZ AND tint
+	// below the waterline". The follow half was never sound: heights are baked
+	// in LOCAL space (see the sampling loop below), so translating the mesh
+	// drags the whole landscape along with the viewer — hills slide underfoot,
+	// world-fixed grass detaches from the ground it was scattered on, and the
+	// trimesh collider (snapshotted at build time by AutoColliders) stays
+	// behind, so play mode walks on terrain that is no longer where it looks.
+	// Genuine endless terrain needs cell-snapped chunks re-sampled at a world
+	// offset, not one sliding plane. Until that exists, only the tint survives.
+	if (authored.underwaterTint === undefined && (authored as { infinite?: boolean }).infinite) {
+		p.underwaterTint = true;
+	}
 
 	const vertices = p.segments + 1;
 	const total = vertices * vertices;
@@ -168,7 +242,11 @@ export function createTerrain(opts: TerrainOptions = {}): TerrainHandle {
 			const normalized = totalAmp > 0 ? amp / totalAmp : 0;
 			// Center the noise around 0.5 so the surface straddles baseHeight.
 			const centered = normalized - 0.5;
-			heights[iy * vertices + ix] = p.baseHeight + centered * 2 * p.heightScale * maxAmp;
+			const h = p.baseHeight + centered * 2 * p.heightScale * maxAmp;
+			// The falloff multiplies height ABOVE the seabed, so the hills keep their
+			// shape near the middle and only the rim is pulled under.
+			const mask = p.island ? islandMask(nx, nz, half, p.islandInner, p.islandOuter) : 1;
+			heights[iy * vertices + ix] = p.island ? p.seabedY + (h - p.seabedY) * mask : h;
 		}
 	}
 
@@ -216,6 +294,40 @@ export function createTerrain(opts: TerrainOptions = {}): TerrainHandle {
 	object3D.name = 'Terrain';
 	object3D.receiveShadow = true;
 	object3D.castShadow = true;
+
+	// Underwater tinting: vertices below waterY are tinted underwaterColor.
+	// Gated by uUnderwater so untinted terrain is unaffected.
+	const underwaterUniforms = p.underwaterTint ? {
+		uWaterY: { value: p.waterY },
+		uUnderwaterColor: { value: new Color(p.underwaterColor) },
+		uUnderwater: { value: 1 }
+	} : null;
+
+	if (p.underwaterTint) {
+		material.onBeforeCompile = (shader) => {
+			if (underwaterUniforms) {
+				Object.assign(shader.uniforms, underwaterUniforms);
+			}
+			shader.vertexShader =
+				'varying vec3 vWorldPos;\n' + shader.vertexShader;
+			shader.vertexShader = shader.vertexShader.replace(
+				'#include <begin_vertex>',
+				`#include <begin_vertex>
+				vWorldPos = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;`
+			);
+
+			shader.fragmentShader =
+				'varying vec3 vWorldPos;\nuniform float uWaterY;\nuniform vec3 uUnderwaterColor;\nuniform int uUnderwater;\n' + shader.fragmentShader;
+			shader.fragmentShader = shader.fragmentShader.replace(
+				'#include <color_fragment>',
+				`#include <color_fragment>
+				if ( uUnderwater > 0 && vWorldPos.y < uWaterY ) {
+					diffuseColor.rgb = mix( diffuseColor.rgb, uUnderwaterColor, 0.7 );
+				}`
+			);
+		};
+		material.needsUpdate = true;
+	}
 
 	// The collider is derived from this mesh's geometry by the view's
 	// AutoColliders@{shape:'trimesh'}, so it uses these exact displaced vertices

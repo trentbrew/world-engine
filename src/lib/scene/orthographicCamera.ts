@@ -42,6 +42,8 @@ export function syncOrthographicFrustum(
 	camera.right = halfW;
 	camera.top = halfH;
 	camera.bottom = -halfH * BOTTOM_PADDING;
+	camera.near = -1000;
+	camera.far = Math.max(camera.far, 1000);
 	camera.updateProjectionMatrix();
 }
 

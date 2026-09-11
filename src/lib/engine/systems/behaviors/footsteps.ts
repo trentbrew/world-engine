@@ -94,7 +94,7 @@ export function footstepsSystem(ctx: TickContext): void {
 
 		sfxRef = kindToRef[kind] ?? '/audio/switch/News.wav';
 
-		const vol = Math.min(1, Math.max(0, 0.8));
+		const vol = Math.min(1, Math.max(0, 0));
 		playSfx(sfxRef, vol);
 	}
 }

@@ -2,7 +2,7 @@
 	import { untrack } from 'svelte';
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import { AutoColliders, RigidBody } from '@threlte/rapier';
-	import type { DirectionalLight, Group, Mesh, MeshStandardMaterial } from 'three';
+	import type { Camera, DirectionalLight, Group, Mesh, MeshStandardMaterial } from 'three';
 	import type { Entity } from '$lib/engine/ontology/schema';
 	import { comp, position, rotationQuat, scaleVec } from '$lib/engine/render/access';
 	import { pickHandlers } from '$lib/engine/render/pointerPick';
@@ -52,6 +52,11 @@
 		 * Off by default; `params.flEnabled` etc. still apply when on.
 		 */
 		flowers?: boolean;
+		/**
+		 * Skip blades below this terrain-local Y. Set it at (or just above) the
+		 * water line on an island so the submerged rim stays bare seabed.
+		 */
+		minY?: number;
 		params?: Record<string, unknown>;
 	};
 
@@ -169,7 +174,12 @@
 		// (idempotent; keep the same uniform object alongside the blades).
 		enableGroundDirt = applyTerrainGroundDirt(terrainMesh.material as MeshStandardMaterial, grassU.surface, 1).setEnabled;
 		const flowers = grassFlowers;
-		const built = createTerrainGrass(terrainMesh, { params: grassParams, uniforms: grassU, flowers });
+		const built = createTerrainGrass(terrainMesh, {
+			params: grassParams,
+			uniforms: grassU,
+			flowers,
+			minY: grassCfg?.minY
+		});
 		grassHandle = built;
 		return () => {
 			built.dispose();
@@ -199,6 +209,7 @@
 		},
 		{ running: () => grassWind && grassHandle !== undefined }
 	);
+
 </script>
 
 <T.Group bind:ref={transformRoot} {...pick}>

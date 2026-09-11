@@ -40,6 +40,7 @@ export type SceneDocument = {
 	grid: GridConfig;
 	chrome: ChromeToggles;
 	playCameraDefault: 'follow' | 'orbit';
+	cameraProjectionDefault?: 'perspective' | 'orthographic';
 };
 
 export function defaultSceneDocument(gameTitle?: string): SceneDocument {
@@ -156,7 +157,11 @@ export function parseSceneDocument(raw: unknown, gameTitle?: string): SceneDocum
 		playCameraDefault:
 			doc.playCameraDefault === 'orbit' || doc.playCameraDefault === 'follow'
 				? doc.playCameraDefault
-				: base.playCameraDefault
+				: base.playCameraDefault,
+		cameraProjectionDefault:
+			doc.cameraProjectionDefault === 'orthographic' || doc.cameraProjectionDefault === 'perspective'
+				? doc.cameraProjectionDefault
+				: undefined
 	};
 }
 

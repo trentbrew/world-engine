@@ -10,6 +10,7 @@
   import EntityOpsPanel from '$lib/ui/EntityOpsPanel.svelte';
   import EntityJsonPanel from '$lib/ui/EntityJsonPanel.svelte';
   import InspectorEmptyState from '$lib/ui/InspectorEmptyState.svelte';
+  import TransformToolbar from '$lib/ui/TransformToolbar.svelte';
 
   interface Props {
     /**
@@ -97,6 +98,8 @@
       <span class="header-muted">No selection</span>
     {/if}
   </div>
+
+  <TransformToolbar variant="panel" />
 
   {#if selected}
     {#if inspectorTabsVisible}

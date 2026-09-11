@@ -114,7 +114,7 @@
 </script>
 
 <T.Group bind:ref={transformRoot} {...pick}>
-	{#if playing}
+	{#if playing && !infinite}
 		<RigidBody type="fixed">
 			<Collider
 				shape="cuboid"

@@ -61,3 +61,4 @@ vite.config.ts.timestamp-*
 
 # Local realtime-relay blob store (content-addressed uploads; regenerable)
 .trellis-relay/
+.env*

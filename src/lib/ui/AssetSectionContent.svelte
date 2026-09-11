@@ -39,15 +39,13 @@
 	const items = $derived(section === 'shapes' ? [] : assetLibrary.grouped(section));
 	const uploading = $derived(section !== 'shapes' && assetLibrary.uploadingKind === section);
 	const hasSearch = $derived(assetLibrary.searchQuery.trim().length > 0);
+	/** The catalog is also hosted by the floating dock palette, off the assets route. */
+	const inAssetContext = $derived(isAssetRoute(ui.railRoute) || ui.dockPopover === 'assets');
 	const selectedAssetUrl = $derived(
-		isAssetRoute(ui.railRoute) && ui.previewContext?.kind === 'asset'
-			? ui.previewContext.asset.url
-			: null
+		inAssetContext && ui.previewContext?.kind === 'asset' ? ui.previewContext.asset.url : null
 	);
 	const selectedShapeId = $derived(
-		isAssetRoute(ui.railRoute) && ui.previewContext?.kind === 'shape'
-			? ui.previewContext.shape.id
-			: null
+		inAssetContext && ui.previewContext?.kind === 'shape' ? ui.previewContext.shape.id : null
 	);
 
 	const recentShapes = $derived.by(() => {

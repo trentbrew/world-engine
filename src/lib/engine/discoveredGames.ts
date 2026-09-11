@@ -41,6 +41,13 @@ export const discoveredGames: DiscoveredGame[] = [
 		"createdAt": 1784499097000
 	},
 	{
+		"param": "ascent",
+		"title": "Ascent",
+		"description": "",
+		"dimensions": "3d",
+		"createdAt": 1788462287174
+	},
+	{
 		"param": "blank",
 		"title": "Blank",
 		"description": "",
@@ -99,6 +106,27 @@ export const discoveredGames: DiscoveredGame[] = [
 		"createdAt": 1784499097000
 	},
 	{
+		"param": "default-challenge",
+		"title": "Default Challenge",
+		"description": "",
+		"dimensions": "3d",
+		"createdAt": 1788464472026
+	},
+	{
+		"param": "difficult-challenge",
+		"title": "Difficult Challenge",
+		"description": "",
+		"dimensions": "3d",
+		"createdAt": 1788464546350
+	},
+	{
+		"param": "difficult-challenge-2",
+		"title": "Difficult Challenge 2",
+		"description": "",
+		"dimensions": "3d",
+		"createdAt": 1788465388665
+	},
+	{
 		"param": "events-demo",
 		"title": "Events Demo",
 		"description": "",
@@ -120,6 +148,13 @@ export const discoveredGames: DiscoveredGame[] = [
 		"dimensions": "3d",
 		"category": "demo",
 		"createdAt": 1784499097000
+	},
+	{
+		"param": "lido",
+		"title": "Lido",
+		"description": "",
+		"dimensions": "3d",
+		"createdAt": 1788963331292
 	},
 	{
 		"param": "meadow",
@@ -220,7 +255,7 @@ export const discoveredGames: DiscoveredGame[] = [
 		"title": "Terrain",
 		"description": "",
 		"dimensions": "3d",
-		"createdAt": 1788423125158
+		"createdAt": 1788924865572
 	},
 	{
 		"param": "tower",

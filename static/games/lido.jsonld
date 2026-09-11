@@ -1,0 +1,7645 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "entity:scene/settings",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"EditorScene": {
+					"document": {
+						"v": 1,
+						"scene": {
+							"displayName": "Lido",
+							"background": "#d6ebf8",
+							"shadows": true,
+							"sky": {
+								"enabled": false,
+								"kind": "physical",
+								"preset": "day",
+								"stylizedMode": "day",
+								"setEnvironment": false
+							},
+							"groundGrid": {
+								"enabled": false,
+								"cellSize": 1,
+								"sectionSize": 5,
+								"cellColor": "#2e2e3a",
+								"sectionColor": "#45455a"
+							},
+							"style": {
+								"artStyle": "custom",
+								"materialMode": "standard",
+								"toneMapping": "aces",
+								"exposure": 1.15,
+								"fog": {
+									"enabled": false
+								}
+							}
+						},
+						"grid": {
+							"cellSize": 1,
+							"sectionSize": 5,
+							"fadeDistance": 100,
+							"infinite": false,
+							"cellColor": "#2e2e3a",
+							"sectionColor": "#45455a"
+						},
+						"chrome": {
+							"grid": false,
+							"selectionOutline": true,
+							"agentFocus": false,
+							"statsHud": false,
+							"playToolbar": true
+						},
+						"playCameraDefault": "orbit",
+						"cameraProjectionDefault": "orthographic"
+					}
+				},
+				"Render": {
+					"visible": false
+				},
+				"Transform": {
+					"position": [
+						0,
+						-50,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.01,
+						0.01,
+						0.01
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"kind": "ambient",
+					"intensity": 0.65
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"kind": "directional",
+					"intensity": 1.25
+				},
+				"Transform": {
+					"position": [
+						18,
+						28,
+						14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/deck",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Marker": {
+					"kind": "spawn"
+				},
+				"Transform": {
+					"position": [
+						0,
+						2.585117791400863,
+						21.5
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						0
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:water/lap",
+			"@type": "Thing",
+			"conformsTo": "WaterSurface",
+			"components": {
+				"Water": {
+					"size": 1,
+					"infinite": false,
+					"stillInEdit": false,
+					"ripples": true,
+					"params": {
+						"scale": 0.32,
+						"cellSmoothness": 0.45,
+						"edgeThreshold": 0.08,
+						"edgeSoftness": 0.05,
+						"flowX": 0.04,
+						"flowZ": -0.07,
+						"cellSpeed": 0.45,
+						"noiseScale": 1.1,
+						"noiseFlowSpeed": 0.12,
+						"distortAmount": 0.22,
+						"deepColor": "#0284c7",
+						"midColor": "#38bdf8",
+						"midPos": 0.3,
+						"highlightColor": "#ffffff",
+						"opacity": 0.88,
+						"deepOpacity": 0.42,
+						"rippleSpeed": 1.8,
+						"rippleWidth": 0.1,
+						"rippleStrength": 6,
+						"rippleDecay": 1.8
+					}
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.2,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8.1,
+						1,
+						36.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:water/cross",
+			"@type": "Thing",
+			"conformsTo": "WaterSurface",
+			"components": {
+				"Water": {
+					"size": 1,
+					"infinite": false,
+					"stillInEdit": false,
+					"ripples": true,
+					"params": {
+						"scale": 0.32,
+						"cellSmoothness": 0.45,
+						"edgeThreshold": 0.08,
+						"edgeSoftness": 0.05,
+						"flowX": 0.04,
+						"flowZ": -0.07,
+						"cellSpeed": 0.45,
+						"noiseScale": 1.1,
+						"noiseFlowSpeed": 0.12,
+						"distortAmount": 0.22,
+						"deepColor": "#0284c7",
+						"midColor": "#38bdf8",
+						"midPos": 0.3,
+						"highlightColor": "#ffffff",
+						"opacity": 0.88,
+						"deepOpacity": 0.42,
+						"rippleSpeed": 1.8,
+						"rippleWidth": 0.1,
+						"rippleStrength": 6,
+						"rippleDecay": 1.8
+					}
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.2,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						32.1,
+						1,
+						10.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/deck-north-end-1",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#fdfdfd",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.5,
+						-22
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						0.6,
+						8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-deck-north-end-2",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.08,
+						-22
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						0.24,
+						8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/deck-south-end-3",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#fdfdfd",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.5,
+						22
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						0.6,
+						8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-deck-south-end-4",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.08,
+						22
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						0.24,
+						8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/deck-west-end-5",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#fdfdfd",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-20,
+						0.5,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						0.6,
+						10
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-deck-west-end-6",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-20,
+						0.08,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						0.24,
+						10
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/deck-east-end-7",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#fdfdfd",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						20,
+						0.5,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						0.6,
+						10
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-deck-east-end-8",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						20,
+						0.08,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						0.24,
+						10
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/deck-nw-terrace-9",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#fdfdfd",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-14,
+						0.5,
+						-15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						20,
+						0.6,
+						21
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-deck-nw-terrace-10",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-14,
+						0.08,
+						-15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						20,
+						0.24,
+						21
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/deck-ne-terrace-11",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#fdfdfd",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						14,
+						0.5,
+						-15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						20,
+						0.6,
+						21
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-deck-ne-terrace-12",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						14,
+						0.08,
+						-15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						20,
+						0.24,
+						21
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/deck-sw-terrace-13",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#fdfdfd",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-14,
+						0.5,
+						15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						20,
+						0.6,
+						21
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-deck-sw-terrace-14",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-14,
+						0.08,
+						15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						20,
+						0.24,
+						21
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/deck-se-terrace-15",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#fdfdfd",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						14,
+						0.5,
+						15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						20,
+						0.6,
+						21
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-deck-se-terrace-16",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						14,
+						0.08,
+						15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						20,
+						0.24,
+						21
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-rim-north-17",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.08,
+						-26.04
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						48.1,
+						0.24,
+						0.08
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-rim-south-18",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.08,
+						26.04
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						48.1,
+						0.24,
+						0.08
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-rim-west-19",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-24.04,
+						0.08,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						0.24,
+						52.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/plinth-rim-east-20",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2dd4bf",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						24.04,
+						0.08,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						0.24,
+						52.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/floor-lap-21",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#bae6fd",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						-0.6,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						0.2,
+						36
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/floor-cross-22",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#bae6fd",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						-0.6,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						32,
+						0.2,
+						10
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-lap-west-south-23",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-3.95,
+						0.1,
+						11.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.1,
+						1.4,
+						13
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-lap-east-south-24",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						3.95,
+						0.1,
+						11.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.1,
+						1.4,
+						13
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-lap-west-north-25",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-3.95,
+						0.1,
+						-11.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.1,
+						1.4,
+						13
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-lap-east-north-26",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						3.95,
+						0.1,
+						-11.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.1,
+						1.4,
+						13
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-lap-south-end-27",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.1,
+						17.95
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						1.4,
+						0.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-lap-north-end-28",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.1,
+						-17.95
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						8,
+						1.4,
+						0.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-cross-west-end-29",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-15.95,
+						0.1,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.1,
+						1.4,
+						10
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-cross-west-north-30",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-10,
+						0.1,
+						-4.95
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						12,
+						1.4,
+						0.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-cross-west-south-31",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-10,
+						0.1,
+						4.95
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						12,
+						1.4,
+						0.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-cross-east-end-32",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						15.95,
+						0.1,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.1,
+						1.4,
+						10
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-cross-east-north-33",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						10,
+						0.1,
+						-4.95
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						12,
+						1.4,
+						0.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/wall-cross-east-south-34",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						10,
+						0.1,
+						4.95
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						12,
+						1.4,
+						0.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-stripe-1-35",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.7,
+						-0.48,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.14,
+						0.04,
+						33
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-t-south-1-36",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.7,
+						-0.48,
+						15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.04,
+						0.14
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-t-north-1-37",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.7,
+						-0.48,
+						-15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.04,
+						0.14
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/starting-block-1-38",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1e40af",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.7,
+						0.95,
+						18.35
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.65,
+						0.3,
+						0.65
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/starting-block-top-1-39",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.7,
+						1.11,
+						18.35
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.55,
+						0.02,
+						0.55
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-stripe-2-40",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.9,
+						-0.48,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.14,
+						0.04,
+						33
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-t-south-2-41",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.9,
+						-0.48,
+						15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.04,
+						0.14
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-t-north-2-42",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.9,
+						-0.48,
+						-15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.04,
+						0.14
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/starting-block-2-43",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1e40af",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.9,
+						0.95,
+						18.35
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.65,
+						0.3,
+						0.65
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/starting-block-top-2-44",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.9,
+						1.11,
+						18.35
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.55,
+						0.02,
+						0.55
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-stripe-3-45",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0.9,
+						-0.48,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.14,
+						0.04,
+						33
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-t-south-3-46",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0.9,
+						-0.48,
+						15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.04,
+						0.14
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-t-north-3-47",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0.9,
+						-0.48,
+						-15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.04,
+						0.14
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/starting-block-3-48",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1e40af",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0.9,
+						0.95,
+						18.35
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.65,
+						0.3,
+						0.65
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/starting-block-top-3-49",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0.9,
+						1.11,
+						18.35
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.55,
+						0.02,
+						0.55
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-stripe-4-50",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2.7,
+						-0.48,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.14,
+						0.04,
+						33
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-t-south-4-51",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2.7,
+						-0.48,
+						15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.04,
+						0.14
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lane-t-north-4-52",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2.7,
+						-0.48,
+						-15.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.04,
+						0.14
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/starting-block-4-53",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1e40af",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2.7,
+						0.95,
+						18.35
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.65,
+						0.3,
+						0.65
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/starting-block-top-4-54",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2.7,
+						1.11,
+						18.35
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.55,
+						0.02,
+						0.55
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/submerged-step-1-55",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#e0f2fe",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						12.2,
+						0.05,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.25,
+						8.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/submerged-step-2-56",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#e0f2fe",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						13.2,
+						-0.12,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.25,
+						8.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/submerged-step-3-57",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#e0f2fe",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						14.2,
+						-0.28,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.25,
+						8.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/submerged-step-4-58",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#e0f2fe",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						15.2,
+						-0.44,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.9,
+						0.25,
+						8.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-lap-nw-rail-l-59",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-4.12,
+						0.9,
+						-14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.05,
+						1.2,
+						0.05
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-lap-nw-rail-r-60",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-3.6799999999999997,
+						0.9,
+						-14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.05,
+						1.2,
+						0.05
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-lap-nw-rung-0-61",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-3.9,
+						0.55,
+						-14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.44,
+						0.04,
+						0.04
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-lap-nw-rung-1-62",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-3.9,
+						0.8300000000000001,
+						-14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.44,
+						0.04,
+						0.04
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-lap-nw-rung-2-63",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-3.9,
+						1.11,
+						-14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.44,
+						0.04,
+						0.04
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-lap-se-rail-l-64",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						3.6799999999999997,
+						0.9,
+						14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.05,
+						1.2,
+						0.05
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-lap-se-rail-r-65",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						4.12,
+						0.9,
+						14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.05,
+						1.2,
+						0.05
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-lap-se-rung-0-66",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						3.9,
+						0.55,
+						14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.44,
+						0.04,
+						0.04
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-lap-se-rung-1-67",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						3.9,
+						0.8300000000000001,
+						14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.44,
+						0.04,
+						0.04
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-lap-se-rung-2-68",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						3.9,
+						1.11,
+						14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.44,
+						0.04,
+						0.04
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-rec-w-rail-l-69",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.12,
+						0.9,
+						3
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.05,
+						1.2,
+						0.05
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-rec-w-rail-r-70",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-15.68,
+						0.9,
+						3
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.05,
+						1.2,
+						0.05
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-rec-w-rung-0-71",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-15.9,
+						0.55,
+						3
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.44,
+						0.04,
+						0.04
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-rec-w-rung-1-72",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-15.9,
+						0.8300000000000001,
+						3
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.44,
+						0.04,
+						0.04
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/ladder-rec-w-rung-2-73",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-15.9,
+						1.11,
+						3
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.44,
+						0.04,
+						0.04
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/umbrella-pole-74",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.5,
+						2,
+						-12.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						2.4,
+						0.08
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/umbrella-canopy-1-75",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.5,
+						3.2,
+						-12.5
+					],
+					"rotation": [
+						0,
+						0.38268,
+						0,
+						0.92388
+					],
+					"scale": [
+						3,
+						0.15,
+						3
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/umbrella-canopy-2-76",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.5,
+						3.2,
+						-12.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						3,
+						0.15,
+						3
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/umbrella-top-77",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.5,
+						3.4,
+						-12.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.4,
+						0.25,
+						0.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lifeguard-seat-78",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.5,
+						1.4,
+						-12.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.7,
+						0.1,
+						0.7
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/bench-1-79",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-6.2,
+						0.92,
+						9
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.6,
+						0.25,
+						2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/bench-2-80",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-6.2,
+						0.92,
+						14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.6,
+						0.25,
+						2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/bench-3-81",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						6.2,
+						0.92,
+						9
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.6,
+						0.25,
+						2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/bench-4-82",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						6.2,
+						0.92,
+						14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.6,
+						0.25,
+						2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/bench-5-83",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-6.2,
+						0.92,
+						-9
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.6,
+						0.25,
+						2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/bench-6-84",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-6.2,
+						0.92,
+						-14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.6,
+						0.25,
+						2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/bench-7-85",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						6.2,
+						0.92,
+						-9
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.6,
+						0.25,
+						2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/bench-8-86",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						6.2,
+						0.92,
+						-14
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.6,
+						0.25,
+						2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-1-frame-87",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						-6.5
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-1-cushion-88",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						-6.65
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-1-head-89",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						-5.85
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-2-frame-90",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						-5.2
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-2-cushion-91",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						-5.3500000000000005
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-2-head-92",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						-4.55
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-3-frame-93",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						-3.9
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-3-cushion-94",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						-4.05
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-3-head-95",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						-3.25
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-4-frame-96",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						-2.6
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-4-cushion-97",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						-2.75
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-4-head-98",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						-1.9500000000000002
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-5-frame-99",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						-1.3
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-5-cushion-100",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						-1.45
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-5-head-101",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						-0.65
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-6-frame-102",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						0
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-6-cushion-103",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						-0.15
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-6-head-104",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						0.65
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-7-frame-105",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						1.3
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-7-cushion-106",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						1.1500000000000001
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-7-head-107",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						1.9500000000000002
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-8-frame-108",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						2.6
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-8-cushion-109",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						2.45
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-8-head-110",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						3.25
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-9-frame-111",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						3.9
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-9-cushion-112",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						3.75
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-9-head-113",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						4.55
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-10-frame-114",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						5.2
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-10-cushion-115",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						5.05
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-10-head-116",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						5.8500000000000005
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-11-frame-117",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						6.5
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-11-cushion-118",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.98,
+						6.35
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-se-11-head-119",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.08,
+						7.15
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-1-frame-120",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						0.88,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-1-cushion-121",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						0.98,
+						-10.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-1-head-122",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						1.08,
+						-9.85
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-2-frame-123",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						0.88,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-2-cushion-124",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						0.98,
+						-10.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-2-head-125",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						1.08,
+						-9.85
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-3-frame-126",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						0.88,
+						-14.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-3-cushion-127",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						0.98,
+						-14.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-3-head-128",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						1.08,
+						-13.85
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-4-frame-129",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						0.88,
+						-14.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-4-cushion-130",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						0.98,
+						-14.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-nw-4-head-131",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						1.08,
+						-13.85
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-1-frame-132",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						11.5,
+						0.88,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-1-cushion-133",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						11.5,
+						0.98,
+						-10.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-1-head-134",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						11.5,
+						1.08,
+						-9.85
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-2-frame-135",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						13.5,
+						0.88,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-2-cushion-136",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						13.5,
+						0.98,
+						-10.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-2-head-137",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						13.5,
+						1.08,
+						-9.85
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-3-frame-138",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						11.5,
+						0.88,
+						-14.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-3-cushion-139",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						11.5,
+						0.98,
+						-14.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-3-head-140",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						11.5,
+						1.08,
+						-13.85
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-4-frame-141",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						13.5,
+						0.88,
+						-14.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-4-cushion-142",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						13.5,
+						0.98,
+						-14.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-ne-4-head-143",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						13.5,
+						1.08,
+						-13.85
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-1-frame-144",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						0.88,
+						10.5
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-1-cushion-145",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						0.98,
+						10.35
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-1-head-146",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						1.08,
+						11.15
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-2-frame-147",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						0.88,
+						10.5
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-2-cushion-148",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						0.98,
+						10.35
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-2-head-149",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						1.08,
+						11.15
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-3-frame-150",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						0.88,
+						14.5
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-3-cushion-151",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						0.98,
+						14.35
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-3-head-152",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						1.08,
+						15.15
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-4-frame-153",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#f1f5f9",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						0.88,
+						14.5
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.72,
+						0.16,
+						1.8
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-4-cushion-154",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#2563eb",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						0.98,
+						14.35
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.68,
+						0.08,
+						1.4
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lounger-sw-4-head-155",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#1d4ed8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						1.08,
+						15.15
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.68,
+						0.18,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/table-nw-1-top-156",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-12.5,
+						0.95,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.45,
+						0.05,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/table-nw-1-leg-157",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-12.5,
+						0.88,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						0.16,
+						0.08
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/table-ne-1-top-158",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						12.5,
+						0.95,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.45,
+						0.05,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/table-ne-1-leg-159",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						12.5,
+						0.88,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						0.16,
+						0.08
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/table-sw-1-top-160",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-12.5,
+						0.95,
+						10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.45,
+						0.05,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/table-sw-1-leg-161",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-12.5,
+						0.88,
+						10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						0.16,
+						0.08
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/table-se-1-top-162",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.95,
+						-4.55
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.45,
+						0.05,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/table-se-1-leg-163",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						-4.55
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						0.16,
+						0.08
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/table-se-2-top-164",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#ffffff",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.95,
+						0.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.45,
+						0.05,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/table-se-2-leg-165",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#cbd5e1",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						0.88,
+						0.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						0.16,
+						0.08
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-se-2-body-166",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.02,
+						-5.2
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.38,
+						0.12,
+						1.15
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-se-2-head-167",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.15,
+						-4.65
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-se-4-body-168",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.02,
+						-2.6
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.38,
+						0.12,
+						1.15
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-se-4-head-169",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.15,
+						-2.05
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-se-7-body-170",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.02,
+						1.3
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.38,
+						0.12,
+						1.15
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-se-7-head-171",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.15,
+						1.85
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-se-9-body-172",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.02,
+						3.9
+					],
+					"rotation": [
+						0,
+						0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.38,
+						0.12,
+						1.15
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-se-9-head-173",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						19.2,
+						1.15,
+						4.45
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-nw-1-body-174",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						1.02,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.38,
+						0.12,
+						1.15
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-nw-1-head-175",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						1.15,
+						-9.95
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-nw-3-body-176",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						1.02,
+						-14.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.38,
+						0.12,
+						1.15
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-nw-3-head-177",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-11.5,
+						1.15,
+						-13.95
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-ne-2-body-178",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						11.5,
+						1.02,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.38,
+						0.12,
+						1.15
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-ne-2-head-179",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						11.5,
+						1.15,
+						-9.95
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-sw-1-body-180",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						1.02,
+						10.5
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.38,
+						0.12,
+						1.15
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/sunbather-sw-1-head-181",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13.5,
+						1.15,
+						11.05
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-1-body-182",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.7,
+						0.25,
+						6
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.34,
+						0.1,
+						1.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-1-head-183",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.7,
+						0.32,
+						6.58
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.2,
+						0.2,
+						0.2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-1-arm-184",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.46,
+						0.34,
+						6.1
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						0.08,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-2-body-185",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.9,
+						0.25,
+						-4.5
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.34,
+						0.1,
+						1.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-2-head-186",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.9,
+						0.32,
+						-3.92
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.2,
+						0.2,
+						0.2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-2-arm-187",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.66,
+						0.34,
+						-4.4
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.08,
+						0.08,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-3-body-188",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0.9,
+						0.25,
+						2
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.34,
+						0.1,
+						1.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-3-head-189",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0.9,
+						0.32,
+						2.58
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.2,
+						0.2,
+						0.2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-3-arm-190",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						1.1400000000000001,
+						0.34,
+						2.1
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						0.08,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-4-body-191",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2.7,
+						0.25,
+						-10
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.34,
+						0.1,
+						1.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-4-head-192",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2.7,
+						0.32,
+						-9.42
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.2,
+						0.2,
+						0.2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-4-arm-193",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2.9400000000000004,
+						0.34,
+						-9.9
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.08,
+						0.08,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-5-body-194",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.7,
+						0.25,
+						-12
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.34,
+						0.1,
+						1.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-5-head-195",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.7,
+						0.32,
+						-11.42
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.2,
+						0.2,
+						0.2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/lap-swimmer-5-arm-196",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-2.46,
+						0.34,
+						-11.9
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.08,
+						0.08,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/rec-swimmer-1-body-197",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13,
+						0.25,
+						-1.8
+					],
+					"rotation": [
+						0,
+						0.5646424733950354,
+						0,
+						0.8253356149096783
+					],
+					"scale": [
+						0.34,
+						0.1,
+						1.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/rec-swimmer-1-head-198",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-13,
+						0.32,
+						-1.2200000000000002
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.2,
+						0.2,
+						0.2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/rec-swimmer-1-arm-199",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-12.76,
+						0.34,
+						-1.7
+					],
+					"rotation": [
+						0,
+						0.5646424733950354,
+						0,
+						0.8253356149096783
+					],
+					"scale": [
+						0.08,
+						0.08,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/rec-swimmer-2-body-200",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-7.5,
+						0.25,
+						-3
+					],
+					"rotation": [
+						0,
+						-0.3894183423086505,
+						0,
+						0.9210609940028851
+					],
+					"scale": [
+						0.34,
+						0.1,
+						1.1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/rec-swimmer-2-head-201",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-7.5,
+						0.32,
+						-2.42
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.2,
+						0.2,
+						0.2
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/rec-swimmer-2-arm-202",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-7.26,
+						0.34,
+						-2.9
+					],
+					"rotation": [
+						0,
+						-0.3894183423086505,
+						0,
+						0.9210609940028851
+					],
+					"scale": [
+						0.08,
+						0.08,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/tuber-1-body-203",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-9.5,
+						0.27,
+						-1.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.85,
+						0.12,
+						0.85
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/tuber-1-hole-204",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#0284c7",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-9.5,
+						0.28,
+						-1.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.45,
+						0.14,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/tuber-2-body-205",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-12,
+						0.27,
+						2.2
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.85,
+						0.12,
+						0.85
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/tuber-2-hole-206",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#0284c7",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-12,
+						0.28,
+						2.2
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.45,
+						0.14,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/tuber-3-body-207",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-7,
+						0.27,
+						1.8
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.85,
+						0.12,
+						0.85
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/tuber-3-hole-208",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#0284c7",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-7,
+						0.28,
+						1.8
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.45,
+						0.14,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/tuber-4-body-209",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#38bdf8",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.27,
+						5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.85,
+						0.12,
+						0.85
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/tuber-4-hole-210",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#0284c7",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						0,
+						0.28,
+						5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.45,
+						0.14,
+						0.45
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/edge-sitter-rec-torso-211",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-10.5,
+						1.22,
+						-4.8
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.26,
+						0.46,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/edge-sitter-rec-legs-212",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-10.5,
+						0.8500000000000001,
+						-4.62
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.22,
+						0.44,
+						0.16
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/edge-sitter-rec-head-213",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-10.5,
+						1.52,
+						-4.8
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/edge-sitter-lap-torso-214",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						3.8,
+						1.22,
+						7.5
+					],
+					"rotation": [
+						0,
+						-0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.26,
+						0.46,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/edge-sitter-lap-legs-215",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						3.8,
+						0.8500000000000001,
+						7.68
+					],
+					"rotation": [
+						0,
+						-0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.22,
+						0.44,
+						0.16
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/edge-sitter-lap-head-216",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						3.8,
+						1.52,
+						7.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/edge-sitter-step-torso-217",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						13,
+						1.22,
+						-4.8
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.26,
+						0.46,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/edge-sitter-step-legs-218",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						13,
+						0.8500000000000001,
+						-4.62
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.22,
+						0.44,
+						0.16
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/edge-sitter-step-head-219",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						13,
+						1.52,
+						-4.8
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-se-1-legs-220",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						17.5,
+						1.22,
+						6.2
+					],
+					"rotation": [
+						0,
+						-0.24740395925452294,
+						0,
+						0.9689124217106447
+					],
+					"scale": [
+						0.18,
+						0.72,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-se-1-torso-221",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						17.5,
+						1.75,
+						6.2
+					],
+					"rotation": [
+						0,
+						-0.24740395925452294,
+						0,
+						0.9689124217106447
+					],
+					"scale": [
+						0.24,
+						0.55,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-se-1-head-222",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						17.5,
+						2.1799999999999997,
+						6.2
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-se-2-legs-223",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						17.2,
+						1.22,
+						5.5
+					],
+					"rotation": [
+						0,
+						0.963558185417193,
+						0,
+						0.26749882862458735
+					],
+					"scale": [
+						0.18,
+						0.72,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-se-2-torso-224",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						17.2,
+						1.75,
+						5.5
+					],
+					"rotation": [
+						0,
+						0.963558185417193,
+						0,
+						0.26749882862458735
+					],
+					"scale": [
+						0.24,
+						0.55,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-se-2-head-225",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						17.2,
+						2.1799999999999997,
+						5.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-sw-1-legs-226",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-8,
+						1.22,
+						16.5
+					],
+					"rotation": [
+						0,
+						0.04997916927067833,
+						0,
+						0.9987502603949663
+					],
+					"scale": [
+						0.18,
+						0.72,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-sw-1-torso-227",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-8,
+						1.75,
+						16.5
+					],
+					"rotation": [
+						0,
+						0.04997916927067833,
+						0,
+						0.9987502603949663
+					],
+					"scale": [
+						0.24,
+						0.55,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-sw-1-head-228",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-8,
+						2.1799999999999997,
+						16.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-sw-2-legs-229",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.8,
+						1.22,
+						8.5
+					],
+					"rotation": [
+						0,
+						-0.5646424733950354,
+						0,
+						0.8253356149096783
+					],
+					"scale": [
+						0.18,
+						0.72,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-sw-2-torso-230",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.8,
+						1.75,
+						8.5
+					],
+					"rotation": [
+						0,
+						-0.5646424733950354,
+						0,
+						0.8253356149096783
+					],
+					"scale": [
+						0.24,
+						0.55,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-sw-2-head-231",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.8,
+						2.1799999999999997,
+						8.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-nw-1-legs-232",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.5,
+						1.22,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0.3894183423086505,
+						0,
+						0.9210609940028851
+					],
+					"scale": [
+						0.18,
+						0.72,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-nw-1-torso-233",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.5,
+						1.75,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0.3894183423086505,
+						0,
+						0.9210609940028851
+					],
+					"scale": [
+						0.24,
+						0.55,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-nw-1-head-234",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-16.5,
+						2.1799999999999997,
+						-10.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-ne-1-legs-235",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						8,
+						1.22,
+						-14.5
+					],
+					"rotation": [
+						0,
+						-0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.18,
+						0.72,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-ne-1-torso-236",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						8,
+						1.75,
+						-14.5
+					],
+					"rotation": [
+						0,
+						-0.7071067811865475,
+						0,
+						0.7071067811865476
+					],
+					"scale": [
+						0.24,
+						0.55,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-ne-1-head-237",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						8,
+						2.1799999999999997,
+						-14.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-ne-2-legs-238",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						16.8,
+						1.22,
+						-8.5
+					],
+					"rotation": [
+						0,
+						0.644217687237691,
+						0,
+						0.7648421872844885
+					],
+					"scale": [
+						0.18,
+						0.72,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-ne-2-torso-239",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						16.8,
+						1.75,
+						-8.5
+					],
+					"rotation": [
+						0,
+						0.644217687237691,
+						0,
+						0.7648421872844885
+					],
+					"scale": [
+						0.24,
+						0.55,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-ne-2-head-240",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						16.8,
+						2.1799999999999997,
+						-8.5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-south-deck-legs-241",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2,
+						1.22,
+						22
+					],
+					"rotation": [
+						0,
+						-0.8414709848078965,
+						0,
+						0.5403023058681398
+					],
+					"scale": [
+						0.18,
+						0.72,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-south-deck-torso-242",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2,
+						1.75,
+						22
+					],
+					"rotation": [
+						0,
+						-0.8414709848078965,
+						0,
+						0.5403023058681398
+					],
+					"scale": [
+						0.24,
+						0.55,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/walker-south-deck-head-243",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						2,
+						2.1799999999999997,
+						22
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/diver-prep-legs-244",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.9,
+						1.67,
+						18.35
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.18,
+						0.72,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/diver-prep-torso-245",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:capsule",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.9,
+						2.2,
+						18.35
+					],
+					"rotation": [
+						0,
+						1,
+						0,
+						6.123233995736766e-17
+					],
+					"scale": [
+						0.24,
+						0.55,
+						0.18
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/diver-prep-head-246",
+			"@type": "Thing",
+			"conformsTo": "Prop",
+			"components": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#18181b",
+					"anchor": "center"
+				},
+				"Transform": {
+					"position": [
+						-0.9,
+						2.63,
+						18.35
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.22,
+						0.22,
+						0.22
+					]
+				}
+			}
+		}
+	]
+}

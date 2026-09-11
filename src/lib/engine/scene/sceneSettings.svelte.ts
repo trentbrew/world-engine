@@ -14,6 +14,7 @@ import {
 	storageKeyForWorld,
 	type SceneDocument
 } from '$lib/engine/scene/sceneDocument';
+import { camera } from '$lib/engine/render/camera.svelte';
 import { world } from '$lib/engine/runtime/world.svelte';
 import { ui } from '$lib/ui/ui.svelte';
 
@@ -67,7 +68,8 @@ class SceneSettingsStore {
 			scene: $state.snapshot(ui.scene),
 			grid: $state.snapshot(ui.grid),
 			chrome: $state.snapshot(ui.chrome),
-			playCameraDefault: ui.playCameraDefault
+			playCameraDefault: ui.playCameraDefault,
+			cameraProjectionDefault: camera.projection
 		};
 	}
 
@@ -147,6 +149,9 @@ class SceneSettingsStore {
 		ui.grid = { ...doc.grid };
 		ui.chrome = { ...doc.chrome };
 		ui.playCameraDefault = doc.playCameraDefault;
+		if (doc.cameraProjectionDefault) {
+			camera.projection = doc.cameraProjectionDefault;
+		}
 	}
 }
 

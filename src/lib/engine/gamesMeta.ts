@@ -31,6 +31,7 @@ export const GAME_ORDER: string[] = [
 	'parkour',
 	'craftpunk/commons',
 	'powder/slope',
+	'lido',
 	'orbit',
 	'playground',
 	'collect',
@@ -65,6 +66,10 @@ export const GAME_OVERRIDES: Record<string, GameOverride> = {
 	'powder/slope': {
 		title: 'POWDER — Slope',
 		description: 'Smoke world for the snowboarding port — a drop-in run with kickers. Second consumer.'
+	},
+	lido: {
+		title: 'Lido',
+		description: 'Cross-shaped modernist outdoor pool complex with ocean water plane in orthographic view.'
 	},
 	orbit: {
 		title: 'Orbit',

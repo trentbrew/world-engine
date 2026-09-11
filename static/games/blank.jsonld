@@ -83,20 +83,27 @@
 			}
 		},
 		{
-			"@id": "entity:character/new",
+			"@id": "entity:prop/box-copy",
 			"@type": "Thing",
-			"conformsTo": "Character",
 			"components": {
 				"Transform": {
 					"position": [
-						1,
 						0,
-						1
+						1,
+						0
+					],
+					"scale": [
+						2,
+						0.5,
+						2
 					]
 				},
-				"SkinnedMesh": {},
-				"Mesh3DAnimator": {}
-			}
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
 		}
 	]
 }

@@ -94,12 +94,6 @@
     >
       {#if showRail}
         <aside class="app-rail">
-          <!-- <div
-						class="chrome-float-card glass-panel-shell chrome-opacity-rail rail-logo-card"
-						aria-hidden="true"
-					>
-						<img class="rail-logo-img" src="/logo.png" alt="" width="28" height="28" />
-					</div> -->
           <Rail />
         </aside>
       {/if}

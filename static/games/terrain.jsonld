@@ -1,8 +1,12 @@
 {
 	"@context": {
 		"@vocab": "https://game.example/vocab/",
-		"conformsTo": { "@type": "@id" },
-		"components": { "@type": "@json" }
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		}
 	},
 	"@graph": [
 		{
@@ -15,19 +19,47 @@
 						"v": 1,
 						"scene": {
 							"displayName": "Terrain",
-							"sky": { "enabled": true, "kind": "stylized", "stylizedMode": "day" }
+							"sky": {
+								"enabled": true,
+								"kind": "stylized",
+								"stylizedMode": "day"
+							}
 						}
 					}
 				},
-				"Render": { "visible": false },
-				"Transform": { "position": [0, -40, 0], "rotation": [0, 0, 0, 1], "scale": [0.01, 0.01, 0.01] }
+				"Render": {
+					"visible": false
+				},
+				"Transform": {
+					"position": [
+						0,
+						-40,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						0.01,
+						0.01,
+						0.01
+					]
+				}
 			}
 		},
 		{
 			"@id": "entity:light/ambient",
 			"@type": "Thing",
 			"conformsTo": "AmbientLight",
-			"components": { "Light": { "intensity": 2.0, "color": "#f5e7c3" } }
+			"components": {
+				"Light": {
+					"intensity": 2,
+					"color": "#f5e7c3"
+				}
+			}
 		},
 		{
 			"@id": "entity:light/sun",
@@ -35,13 +67,30 @@
 			"conformsTo": "DirectionalLight",
 			"components": {
 				"Light": {
-					"intensity": 3.0,
+					"intensity": 3,
 					"color": "#ffffff",
 					"shadowMapSize": 4096,
 					"shadowCamSize": 34,
 					"shadowNormalBias": 0.22
 				},
-				"Transform": { "position": [-37, 14, -8], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
+				"Transform": {
+					"position": [
+						-37,
+						14,
+						-8
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
 			}
 		},
 		{
@@ -52,26 +101,54 @@
 				"Terrain": {
 					"size": 60,
 					"segments": 128,
-					"heightScale": 5,
-					"baseHeight": -0.6,
+					"heightScale": 9,
+					"baseHeight": 1.2,
 					"noiseScale": 0.045,
 					"octaves": 4,
 					"seed": 4242,
+					"island": true,
+					"islandInner": 0.55,
+					"islandOuter": 0.92,
+					"seabedY": -4,
+					"underwaterTint": true,
+					"waterY": 0,
+					"underwaterColor": "#1a5276",
 					"colorLow": "#33553a",
 					"colorHigh": "#8a9a54",
 					"grass": {
 						"enabled": true,
-						"density": 160,
-						"maxCount": 30000,
+						"density": 420,
+						"maxCount": 90000,
 						"bladeMinLength": 0.12,
-						"bladeMaxLength": 0.32,
+						"bladeMaxLength": 0.42,
 						"windStrength": 0.12,
 						"windDirection": 243,
 						"flowers": true,
-						"params": { "flMaxCount": 1200, "flSize": 0.4 }
+						"minY": -0.05,
+						"params": {
+							"flMaxCount": 2600,
+							"flSize": 0.42
+						}
 					}
 				},
-				"Transform": { "position": [0, 0, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
+				"Transform": {
+					"position": [
+						3,
+						0,
+						-5
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
 			}
 		},
 		{
@@ -80,25 +157,91 @@
 			"conformsTo": "WaterSurface",
 			"components": {
 				"Water": {
-					"size": 60,
+					"size": 400,
+					"infinite": true,
 					"params": {
 						"scale": 0.5,
 						"cellSpeed": 0.9,
-						"noiseScale": 1.0,
+						"noiseScale": 1,
 						"deepColor": "#1f6fa8",
 						"midColor": "#5ec6ee",
 						"opacity": 0.85,
 						"deepOpacity": 0.4
 					}
 				},
-				"Transform": { "position": [0, -1.1, 0], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] }
+				"Transform": {
+					"position": [
+						0,
+						0,
+						0
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
 			}
 		},
 		{
 			"@id": "entity:spawn/ridge",
 			"@type": "Thing",
 			"conformsTo": "SpawnPoint",
-			"components": { "Transform": { "position": [0, 5.6, -8], "rotation": [0, 0, 0, 1], "scale": [1, 1, 1] } }
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						1,
+						-8
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:prop/box-copy",
+			"@type": "Thing",
+			"components": {
+				"Transform": {
+					"position": [
+						1.8,
+						0,
+						-8
+					],
+					"rotation": [
+						0,
+						0,
+						0,
+						1
+					],
+					"scale": [
+						1,
+						1,
+						1
+					]
+				},
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#d4d4d4"
+				}
+			},
+			"conformsTo": "Prop"
 		}
 	]
 }

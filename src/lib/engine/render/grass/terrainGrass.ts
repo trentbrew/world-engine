@@ -47,6 +47,13 @@ export type TerrainGrassOptions = {
 	 * a different transform than the surface (cross-entity scatter).
 	 */
 	mountMatrix?: Matrix4;
+	/**
+	 * Drop instances scattered below this SURFACE-LOCAL Y. Set it to the water
+	 * line so an island's submerged rim comes up bare instead of growing a lawn
+	 * across the seabed. Applied before `mountMatrix`, while the baked matrices
+	 * are still in the surface's own frame.
+	 */
+	minY?: number;
 	onWarn?: (message: string) => void;
 };
 
@@ -64,6 +71,28 @@ export type TerrainGrassHandle = {
 
 const sunPos = new Vector3();
 const sunTarget = new Vector3();
+
+/**
+ * Compact an instanced mesh in place, keeping only instances at or above `minY`.
+ *
+ * Survivors are moved to the front of the buffer and `count` is lowered, rather
+ * than the usual trick of scaling rejects to zero: a degenerate instance still
+ * costs a vertex shader invocation, and an island's rim can be a large fraction
+ * of the field.
+ */
+function cullBelow(mesh: InstancedMesh, minY: number): void {
+	const m = new Matrix4();
+	let kept = 0;
+	for (let i = 0; i < mesh.count; i++) {
+		mesh.getMatrixAt(i, m);
+		// Column-major: elements[13] is the translation's Y.
+		if (m.elements[13]! < minY) continue;
+		if (kept !== i) mesh.setMatrixAt(kept, m);
+		kept++;
+	}
+	mesh.count = kept;
+	mesh.instanceMatrix.needsUpdate = true;
+}
 
 export function createTerrainGrass(
 	surface: Mesh,
@@ -90,6 +119,7 @@ export function createTerrainGrass(
 		segments: opts.params.grSegments
 	});
 	blades.name = 'TerrainGrass';
+	if (opts.minY !== undefined) cullBelow(blades, opts.minY);
 	// Cross-entity mount: rebase surface-local instances into the mount's local
 	// space (build-time only; the common same-transform case passes identity).
 	if (opts.mountMatrix) {
@@ -129,6 +159,7 @@ export function createTerrainGrass(
 			size: opts.params.flSize,
 			mixA: opts.params.flMixA
 		})) {
+			if (opts.minY !== undefined) cullBelow(im, opts.minY);
 			if (opts.mountMatrix) {
 				const m = new Matrix4();
 				for (let i = 0; i < im.count; i++) {

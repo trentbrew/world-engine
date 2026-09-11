@@ -132,11 +132,22 @@
 		dragCancelled = false;
 	}
 
+	/**
+	 * Dock routes that open as a floating palette rather than taking over the
+	 * shell — the ones that feed the viewport, where the scene must stay visible.
+	 */
+	const POPOVER_ROUTES: ReadonlySet<WorldRoute> = new Set(['assets']);
+
 	function onItemClick(id: WorldRoute) {
 		if (suppressClick) {
 			suppressClick = false;
 			return;
 		}
+		if (POPOVER_ROUTES.has(id)) {
+			ui.toggleDockPopover(id);
+			return;
+		}
+		ui.closeDockPopover();
 		ui.setRoute(id);
 	}
 </script>
@@ -145,7 +156,12 @@
 	item: WorldNavItem | { id: 'config'; label: string; Icon: typeof SettingsIcon },
 	opts: { draggable: boolean } = { draggable: false }
 )}
-	{@const isActive = item.id === 'config' ? configActive : active === item.id}
+	{@const isActive =
+		item.id === 'config'
+			? configActive
+			: POPOVER_ROUTES.has(item.id as WorldRoute)
+				? ui.dockPopover === item.id
+				: active === item.id}
 	{@const isDragging = draggingId === item.id}
 	<Tooltip.Root>
 		<Tooltip.Trigger>

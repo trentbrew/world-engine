@@ -31,6 +31,7 @@
 	import { collab } from '$lib/engine/collab/collab.svelte';
 	import { world } from '$lib/engine/runtime/world.svelte';
 	import { worldProfile } from '$lib/engine/world/worldProfile.svelte';
+	import { camera } from '$lib/engine/render/camera.svelte';
 	import { sceneSettings } from '$lib/engine/scene/sceneSettings.svelte';
 	import { startSystems, stopSystems } from '$lib/engine/systems';
 	import AppShell from '$lib/ui/AppShell.svelte';
@@ -71,6 +72,7 @@
 	import ModelsCatalogPanel from '$lib/ui/ModelsCatalogPanel.svelte';
 	import KindCatalogPanel from '$lib/ui/KindCatalogPanel.svelte';
 	import AssetsCatalogPanel from '$lib/ui/AssetsCatalogPanel.svelte';
+	import AssetsDockPopover from '$lib/ui/AssetsDockPopover.svelte';
 	import { isAssetRoute } from '$lib/ui/assetRoutes';
 	import ShellRouteStub from '$lib/ui/ShellRouteStub.svelte';
 	import LoadingOverlay from '$lib/ui/LoadingOverlay.svelte';
@@ -221,6 +223,12 @@
 			});
 			sceneLoading.setPhase('Building scene');
 			sceneSettings.init(worldId, gameTitle);
+			const projParam = params.get('projection');
+			if (projParam === 'orthographic' || projParam === 'ortho' || params.has('ortho')) {
+				camera.projection = 'orthographic';
+			} else if (projParam === 'perspective') {
+				camera.projection = 'perspective';
+			}
 			const room = resolveRoomId(params);
 			collab.initRoom(room, gameTitle);
 			sceneLoading.setPhase('Connecting to room', room);
@@ -288,6 +296,14 @@
 	function onKeydown(event: KeyboardEvent) {
 		if (handlePlayKeydown(event)) return;
 
+		// Escape stack: a floating palette is the innermost layer, so it consumes
+		// Escape before the play/publish mode exits below.
+		if (event.key === 'Escape' && ui.dockPopover) {
+			ui.closeDockPopover();
+			event.preventDefault();
+			return;
+		}
+
 		if (event.key === 'Escape' && ui.shellMode === 'play') {
 			ui.exitToEdit();
 			event.preventDefault();
@@ -302,8 +318,13 @@
 
 		handleShellKeydown(event);
 	}
+	/** Asset palette open with something picked — the right rail inspects it. */
+	const assetPaletteInspecting = $derived(
+		ui.dockPopover === 'assets' && ui.previewContext !== null && !isAssetRoute(ui.railRoute)
+	);
 	const showInspectorPanel = $derived(
-		ui.railRoute === 'rooms' ||
+		assetPaletteInspecting ||
+			ui.railRoute === 'rooms' ||
 			ui.railRoute === 'object' ||
 			ui.railRoute === 'objects' ||
 			ui.railRoute === 'graph' ||
@@ -398,7 +419,10 @@
 	{/snippet}
 
 	{#snippet rightPanel()}
-		{#if ui.railRoute === 'rooms'}
+		{#if assetPaletteInspecting}
+			<!-- Palette stays a picker; inspection reuses the global right rail. -->
+			<AssetInspectorPanel />
+		{:else if ui.railRoute === 'rooms'}
 			<RightPanel inspectorTabsVisible={ui.inspectorTabsVisible} />
 		{:else if ui.railRoute === 'object'}
 			<ObjectPlaybackInspector />
@@ -424,6 +448,9 @@
 		{/if}
 	{/snippet}
 </AppShell>
+
+<!-- Floating dock palettes — live above the shell, viewport stays visible. -->
+<AssetsDockPopover />
 
 {#if showLoadingOverlay}
 	<LoadingOverlay label={sceneLoading.overlayLabel} detail={sceneLoading.overlayDetail} />

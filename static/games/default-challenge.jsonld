@@ -1,0 +1,371 @@
+{
+	"@context": {
+		"@vocab": "https://game.example/vocab/",
+		"conformsTo": {
+			"@type": "@id"
+		},
+		"components": {
+			"@type": "@json"
+		},
+		"events": {
+			"@type": "@json"
+		}
+	},
+	"@graph": [
+		{
+			"@id": "type:Platform",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Physics"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:box",
+					"color": "#44525f"
+				},
+				"Physics": {
+					"body": "fixed",
+					"collider": "box"
+				}
+			}
+		},
+		{
+			"@id": "type:Core",
+			"@type": "EntityType",
+			"components": [
+				"Transform",
+				"Render",
+				"Collectible"
+			],
+			"defaults": {
+				"Render": {
+					"mesh": "primitive:sphere",
+					"color": "#ffd166"
+				},
+				"Transform": {
+					"scale": [
+						0.8,
+						0.8,
+						0.8
+					]
+				},
+				"Collectible": {
+					"radius": 1.4,
+					"value": 50
+				}
+			},
+			"events": {
+				"collision": [
+					{
+						"with": "Player",
+						"do": [
+							{
+								"score": "=Collectible.value"
+							},
+							{
+								"sfx": "=Collectible.sfx"
+							},
+							{
+								"destroy": "self"
+							}
+						]
+					}
+				]
+			}
+		},
+		{
+			"@id": "entity:light/ambient",
+			"@type": "Thing",
+			"conformsTo": "AmbientLight",
+			"components": {
+				"Light": {
+					"intensity": 0.55
+				}
+			}
+		},
+		{
+			"@id": "entity:light/sun",
+			"@type": "Thing",
+			"conformsTo": "DirectionalLight",
+			"components": {
+				"Light": {
+					"intensity": 1.1
+				},
+				"Transform": {
+					"position": {
+						"x": 12,
+						"y": 26,
+						"z": 8
+					}
+				}
+			}
+		},
+		{
+			"@id": "entity:base/start",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						0.5,
+						0
+					],
+					"scale": [
+						5,
+						1,
+						5
+					]
+				},
+				"Render": {
+					"color": "#2a2a33"
+				}
+			}
+		},
+		{
+			"@id": "entity:spawn/start",
+			"@type": "Thing",
+			"conformsTo": "SpawnPoint",
+			"components": {
+				"Transform": {
+					"position": [
+						0,
+						1.05,
+						0
+					]
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/platform/1",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						7.06,
+						2.25,
+						2.34
+					]
+				},
+				"Render": {
+					"color": "#3a4a5a"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/platform/2",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						10.12,
+						3.72,
+						-0.6
+					]
+				},
+				"Render": {
+					"color": "#3f5566"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/platform/3",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						13.18,
+						4.76,
+						-2.18
+					]
+				},
+				"Render": {
+					"color": "#44515f"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/platform/4",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						16.24,
+						6.21,
+						1.17
+					]
+				},
+				"Render": {
+					"color": "#557a68"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/platform/5",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						19.3,
+						7.26,
+						1.88
+					]
+				},
+				"Render": {
+					"color": "#6c8c5a"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/platform/6",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						22.36,
+						9.86,
+						-1.65
+					]
+				},
+				"Render": {
+					"color": "#7ca05a"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/platform/7",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						25.42,
+						12.01,
+						-1.46
+					]
+				},
+				"Render": {
+					"color": "#9ecf8e"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/platform/8",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						28.48,
+						14.61,
+						2.03
+					]
+				},
+				"Render": {
+					"color": "#3a4a5a"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/platform/9",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						31.54,
+						16.87,
+						0.94
+					]
+				},
+				"Render": {
+					"color": "#3f5566"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/platform/10",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						34.6,
+						19.05,
+						-2.27
+					]
+				},
+				"Render": {
+					"color": "#44515f"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/finish",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						38.66,
+						21.05,
+						-2.27
+					]
+				},
+				"Render": {
+					"color": "#3ecf8e"
+				}
+			}
+		},
+		{
+			"@id": "entity:default-challenge/core",
+			"@type": "Thing",
+			"conformsTo": "Core",
+			"components": {
+				"Transform": {
+					"position": [
+						38.66,
+						22.25,
+						-2.27
+					]
+				},
+				"Render": {
+					"color": "#ffd166"
+				},
+				"Collectible": {
+					"value": 50
+				}
+			}
+		},
+		{
+			"@id": "entity:abyss/floor",
+			"@type": "Thing",
+			"conformsTo": "Platform",
+			"components": {
+				"Transform": {
+					"position": [
+						14.33,
+						-26,
+						0
+					],
+					"scale": [
+						58.66,
+						0.4,
+						18.72
+					]
+				},
+				"Render": {
+					"color": "#08080d"
+				}
+			}
+		}
+	]
+}

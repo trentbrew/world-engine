@@ -158,41 +158,6 @@
 			}
 		},
 		{
-			"@id": "entity:water/pond",
-			"@type": "Thing",
-			"conformsTo": "WaterSurface",
-			"components": {
-				"Water": {
-					"size": 18,
-					"params": {
-						"scale": 0.35,
-						"cellSpeed": 0.8,
-						"noiseScale": 1.1,
-						"deepColor": "#1f6fa8",
-						"midColor": "#5ec6ee"
-					}
-				},
-				"Transform": {
-					"position": [
-						-6,
-						0.06,
-						6
-					],
-					"rotation": [
-						0,
-						0,
-						0,
-						1
-					],
-					"scale": [
-						1,
-						1,
-						1
-					]
-				}
-			}
-		},
-		{
 			"@id": "entity:spawn/gate",
 			"@type": "Thing",
 			"conformsTo": "SpawnPoint",

@@ -353,6 +353,12 @@ class UIState {
 	assetsSection = $state<AssetsSection>('shapes');
 	/** Active kind tab inside the merged `assets` route. */
 	assetsTab = $state<AssetKind>('models');
+	/**
+	 * Prototype (dock palette): when set, that dock route renders as a floating
+	 * palette anchored above the rail instead of taking over the shell. The full
+	 * route stays reachable via the palette's expand affordance.
+	 */
+	dockPopover = $state<WorldRoute | null>(null);
 	assetInspectorTab = $state<AssetInspectorTab>('animations');
 	previewContext = $state<PreviewContext | null>(null);
 	placementDraft = $state<PlacementDraft | null>(null);
@@ -366,6 +372,14 @@ class UIState {
 
 	setTransformGizmoMode(mode: 'translate' | 'rotate' | 'scale') {
 		this.transformGizmoMode = mode;
+	}
+
+	toggleDockPopover(route: WorldRoute) {
+		this.dockPopover = this.dockPopover === route ? null : route;
+	}
+
+	closeDockPopover() {
+		this.dockPopover = null;
 	}
 
 	setRailPosition(position: RailPosition) {

@@ -836,8 +836,8 @@
   bind:ref={orthoCam}
   makeDefault={isOrtho}
   zoom={RESET_ORTHO_ZOOM}
-  near={camera.near}
-  far={Math.max(camera.far, 500)}
+  near={-1000}
+  far={Math.max(camera.far, 1000)}
 />
 
 {@render orbitControls()}

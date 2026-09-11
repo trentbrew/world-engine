@@ -386,6 +386,37 @@ registerComponent({
 		colorHigh: { t: 'color', default: '#8a9a54' },
 		colorRange: { t: 'number', default: 6 },
 		/**
+		 * Sink the rim toward `seabedY` so the plane reads as an island rather than
+		 * a square slab floating in an ocean. Off by default.
+		 */
+		island: { t: 'boolean', default: false },
+		islandInner: { t: 'number', default: 0.55 },
+		islandOuter: { t: 'number', default: 0.92 },
+		seabedY: { t: 'number', default: -4 },
+		/**
+		 * Tint vertices below `waterY` toward `underwaterColor`, so an `island`
+		 * rim that sinks under the water plane reads as submerged.
+		 *
+		 * Replaces `Terrain.infinite`, which additionally tracked the camera in
+		 * XZ the way `Water.infinite` does. That is sound for water — a flat
+		 * plane is translation-invariant — but not for terrain, whose heights
+		 * are baked into geometry in local space: translating the mesh drags
+		 * the landscape along with the viewer and desyncs the trimesh collider.
+		 * Legacy `infinite: true` still maps to this flag; endless terrain needs
+		 * cell-snapped chunks, not a sliding plane.
+		 */
+		underwaterTint: { t: 'boolean', default: false },
+		/**
+		 * World Y of the water surface. Vertices below this are tinted
+		 * `underwaterColor` so submerged land reads as underwater.
+		 */
+		waterY: { t: 'number', default: 0 },
+		/**
+		 * Tint applied to terrain vertices below `waterY` when
+		 * `underwaterColor` is set.
+		 */
+		underwaterColor: { t: 'color', default: '#1a5276' },
+		/**
 		 * Optional grass overlay scattered onto the terrain's own heightmap.
 		 * `enabled` gates it (default off); the rest map onto GrassParams curated
 		 * fields, with `params` as the escape hatch.
@@ -406,7 +437,7 @@ registerComponent({
 			default: 'default'
 		},
 		sfxBase: { t: 'ref', optional: true, sync: 'durable' },
-		sfxVol: { t: 'number', default: 1, sync: 'durable' },
+		sfxVol: { t: 'number', default: 0, sync: 'durable' },
 		variantCount: { t: 'number', default: 5, sync: 'durable' }
 	}
 });
