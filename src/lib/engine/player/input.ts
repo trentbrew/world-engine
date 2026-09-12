@@ -13,6 +13,8 @@ import {
 } from './playInput';
 import { playInputState } from './playInputState.svelte';
 
+import { handSigns } from './handSigns.svelte';
+
 const keys = new Set<string>();
 const pressedThisTick = new Set<string>();
 const releasedThisTick = new Set<string>();
@@ -27,8 +29,36 @@ function onDown(event: KeyboardEvent) {
 	const key = event.key.toLowerCase();
 	keys.add(key);
 	pressedThisTick.add(key);
-	if (key === ' ' || key === 'spacebar') jumpQueued = true;
-	if (key === 'e') interactQueued = true;
+
+	if (handSigns.isModifier(event) && ui.shellMode === 'play') {
+		event.preventDefault();
+		handSigns.activate();
+	}
+
+	// While in hand signs stance (or holding Ctrl), intercept hand sign chords or cancel
+	if ((handSigns.active || event.ctrlKey) && ui.shellMode === 'play') {
+		if (event.key === 'Escape' || event.key === 'Backspace') {
+			event.preventDefault();
+			event.stopPropagation();
+			handSigns.cancel();
+			return;
+		}
+
+		const signKey = handSigns.resolveKey(event);
+		if (signKey) {
+			event.preventDefault();
+			event.stopPropagation();
+			if (!event.repeat) {
+				handSigns.inputSign(event);
+			}
+			return;
+		}
+	}
+
+	if (!handSigns.active) {
+		if (key === ' ' || key === 'spacebar') jumpQueued = true;
+		if (key === 'e') interactQueued = true;
+	}
 }
 
 function onUp(event: KeyboardEvent) {
@@ -36,10 +66,27 @@ function onUp(event: KeyboardEvent) {
 	const key = event.key.toLowerCase();
 	keys.delete(key);
 	releasedThisTick.add(key);
+	if (handSigns.isModifier(event)) {
+		if (!event.ctrlKey) {
+			handSigns.deactivate();
+		}
+	}
+	if (handSigns.active && handSigns.isHandSignKey(event)) {
+		event.preventDefault();
+		event.stopPropagation();
+	}
 }
 
 function onFocusIn() {
-	if (isFormFieldFocused()) keys.clear();
+	if (isFormFieldFocused()) {
+		keys.clear();
+		handSigns.deactivate();
+	}
+}
+
+function onBlur() {
+	keys.clear();
+	handSigns.deactivate();
 }
 
 function keyboardAxis(): { x: number; z: number } {
@@ -67,6 +114,10 @@ export type MovementSample = LocomotionSample & {
 };
 
 function movementSample(): MovementSample {
+	if (handSigns.active) {
+		return { x: 0, z: 0, tier: 'idle', speed: 0, magnitude: 0, source: 'none' };
+	}
+
 	const profile = playInputState.config.locomotion;
 	const kb = keyboardAxis();
 	const pad = gamepadAxis();
@@ -147,6 +198,7 @@ export const input = {
 		window.addEventListener('keydown', onDown);
 		window.addEventListener('keyup', onUp);
 		window.addEventListener('focusin', onFocusIn);
+		window.addEventListener('blur', onBlur);
 		this.attachGamepad();
 	},
 
@@ -155,8 +207,10 @@ export const input = {
 		window.removeEventListener('keydown', onDown);
 		window.removeEventListener('keyup', onUp);
 		window.removeEventListener('focusin', onFocusIn);
+		window.removeEventListener('blur', onBlur);
 		keys.clear();
 		jumpQueued = false;
+		handSigns.reset();
 	},
 
 	/** Direction + locomotion tier/speed for play-mode movement. */
@@ -190,7 +244,7 @@ export const input = {
 	/** True once on the frame Space or the pad's south button was pressed
 	 * (edit-safe; cleared after read). */
 	jumpPressed(): boolean {
-		if (ui.shellMode === 'play' && ui.playPaused) return false;
+		if (ui.shellMode === 'play' && (ui.playPaused || handSigns.active)) return false;
 		// Poll the pad every frame so edge state stays fresh even when ignored.
 		const padJump = gamepadJumpPressed();
 		if (isFormFieldFocused()) return false;
@@ -201,7 +255,7 @@ export const input = {
 
 	/** True once on the frame E or pad West (□/X) was pressed — interact / use. */
 	interactPressed(): boolean {
-		if (ui.shellMode === 'play' && ui.playPaused) return false;
+		if (ui.shellMode === 'play' && (ui.playPaused || handSigns.active)) return false;
 		const padInteract = gamepadInteractPressed();
 		if (isFormFieldFocused()) return false;
 		const queued = interactQueued;
@@ -211,7 +265,7 @@ export const input = {
 
 	/** True while Space or the pad's south button is currently held. */
 	jumpHeld(): boolean {
-		if (ui.shellMode === 'play' && ui.playPaused) return false;
+		if (ui.shellMode === 'play' && (ui.playPaused || handSigns.active)) return false;
 		if (isFormFieldFocused()) return false;
 		return keys.has(' ') || keys.has('spacebar') || gamepadJumpHeld();
 	}

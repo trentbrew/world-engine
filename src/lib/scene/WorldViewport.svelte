@@ -28,6 +28,8 @@
   import PlayModeToolbar from '$lib/ui/PlayModeToolbar.svelte';
   import PlayPauseMenu from '$lib/ui/PlayPauseMenu.svelte';
   import PlayResetOverlay from '$lib/ui/PlayResetOverlay.svelte';
+  import HandSignsOverlay from '$lib/ui/HandSignsOverlay.svelte';
+  import ShadowCloneHud from '$lib/ui/ShadowCloneHud.svelte';
   import ViewportTopRight from '$lib/ui/ViewportTopRight.svelte';
   import ViewportSelectionBar from '$lib/ui/ViewportSelectionBar.svelte';
   import RoomChat from '$lib/ui/RoomChat.svelte';
@@ -235,6 +237,8 @@
     <ViewportTopRight />
     <PlayPauseMenu />
     <PlayResetOverlay />
+    <HandSignsOverlay />
+    <ShadowCloneHud />
   {/if}
 </div>
 

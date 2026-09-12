@@ -34,9 +34,10 @@ export function playSfx(ref?: string, volume = 1): void {
 		cache.set(url, audio);
 	}
 
-	audio.volume = Math.min(1, Math.max(0, volume));
-	audio.currentTime = 0;
-	void audio.play().catch(() => {
+	const toPlay = audio.paused || audio.ended ? audio : (audio.cloneNode(true) as HTMLAudioElement);
+	toPlay.volume = Math.min(1, Math.max(0, volume));
+	toPlay.currentTime = 0;
+	void toPlay.play().catch(() => {
 		// Autoplay policy or missing file — ignore in play mode.
 	});
 }

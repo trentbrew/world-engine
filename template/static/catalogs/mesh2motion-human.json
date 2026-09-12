@@ -271,6 +271,14 @@
       "loop": false
     },
     {
+      "id": "Bow_Start",
+      "category": "social",
+      "file": "addon",
+      "dur": 0.46,
+      "loop": false,
+      "description": "Beginning hand-sign posture from Bow (hands held in front, before bowing down)."
+    },
+    {
       "id": "Sitting_Enter",
       "category": "social",
       "file": "base",
@@ -296,6 +304,13 @@
       "category": "emote",
       "file": "addon",
       "dur": 0.833,
+      "loop": false
+    },
+    {
+      "id": "Confused",
+      "category": "emote",
+      "file": "addon",
+      "dur": 2.917,
       "loop": false
     },
     {

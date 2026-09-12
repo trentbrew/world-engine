@@ -10,7 +10,7 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createConfiguredGltfLoader } from '$lib/engine/render/configureGltfLoader';
-import type { AnimationClip } from 'three';
+import { type AnimationClip, AnimationUtils } from 'three';
 
 export interface CatalogClip {
 	id: string;
@@ -152,7 +152,10 @@ export function getLocomotionBindings(ref: string): Promise<LocomotionBindingPac
 					clipId === bindings.jumpStart ||
 					clipId === bindings.jumpLand ||
 					clipId === bindings.doubleJumpStart ||
-					clipId === bindings.doubleJumpLand
+					clipId === bindings.doubleJumpLand ||
+					clipId === 'Bow' ||
+					clipId === 'Bow_Start' ||
+					clipId === 'Confused'
 				) {
 					return false;
 				}
@@ -189,10 +192,21 @@ export function loadCatalog(ref: string): Promise<ClipCatalog> {
 	const url = catalogRefToUrl(ref);
 	let p = catalogCache.get(url);
 	if (!p) {
-		p = fetch(url).then((r) => {
+		p = (async () => {
+			if (typeof window === 'undefined') {
+				try {
+					const { readFileSync } = await import('node:fs');
+					const { join } = await import('node:path');
+					const pth = join(process.cwd(), 'static', url.replace(/^\//, ''));
+					return JSON.parse(readFileSync(pth, 'utf8')) as ClipCatalog;
+				} catch {
+					// fall through to fetch
+				}
+			}
+			const r = await fetch(url);
 			if (!r.ok) throw new Error(`catalog ${url}: ${r.status}`);
 			return r.json() as Promise<ClipCatalog>;
-		});
+		})();
 		catalogCache.set(url, p);
 	}
 	return p;
@@ -200,6 +214,8 @@ export function loadCatalog(ref: string): Promise<ClipCatalog> {
 
 const byName = (clips: AnimationClip[], name: string): AnimationClip | undefined =>
 	clips.find((c) => c.name === name);
+
+const syntheticClipCache = new Map<string, AnimationClip>();
 
 /**
  * Resolve a clip name to an `AnimationClip`.
@@ -214,6 +230,19 @@ export async function resolveClip(
 	// 1. embedded in the character's own mesh GLB
 	const local = byName(embedded, clipId);
 	if (local) return local;
+
+	// Special synthetic sub-clips (e.g. Bow_Start: beginning hand-sign pose of Bow before bending)
+	if (clipId === 'Bow_Start') {
+		const key = `${catalogRef}:${clipId}`;
+		const cached = syntheticClipCache.get(key);
+		if (cached) return cached;
+		const base = await resolveClip(catalogRef, 'Bow', embedded);
+		if (!base) return undefined;
+		// Frames 0 to 12 at 24fps (~0.46s): upright spine, hands joined in front, before bowing down
+		const sub = AnimationUtils.subclip(base, 'Bow_Start', 0, 12, 24);
+		syntheticClipCache.set(key, sub);
+		return sub;
+	}
 
 	// 2. shared pack declared by the catalog
 	const catalog = await loadCatalog(catalogRef).catch(() => undefined);

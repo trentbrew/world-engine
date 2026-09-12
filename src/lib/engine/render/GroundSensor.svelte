@@ -3,6 +3,7 @@
 	import type { RigidBody } from '@dimforge/rapier3d-compat';
 	import { RigidBodyType } from '@dimforge/rapier3d-compat';
 	import type { Entity } from '$lib/engine/ontology/schema';
+	import { world as engineWorld } from '$lib/engine/runtime/world.svelte';
 	import { bindPlayerCollisionContext, clipUpwardStepDeltaForEntity } from '$lib/engine/player/playerCollision';
 	import { GAMEPLAY_PHYSICS_TICK } from '$lib/engine/physics/physicsTaskKeys';
 	import { registerRapierWorldProbe } from '$lib/engine/physics/rapierWorldProbe';
@@ -56,12 +57,14 @@
 	// player's own capsule (movement blocked). Re-bind whenever `rigidBody` changes.
 	$effect(() => {
 		const rb = rigidBody;
-		if (!rb) return;
+		if (!rb || entity.id !== engineWorld.localPlayerId) return;
 		bindPlayerCollisionContext({ world, rapier, rigidBody: rb });
 		registerRapierWorldProbe(world, rapier);
 		return () => {
-			bindPlayerCollisionContext(null);
-			registerRapierWorldProbe(null, null);
+			if (entity.id === engineWorld.localPlayerId) {
+				bindPlayerCollisionContext(null);
+				registerRapierWorldProbe(null, null);
+			}
 		};
 	});
 
@@ -147,7 +150,7 @@
 
 	usePhysicsTask(
 		() => {
-			if (!playing) return;
+			if (!playing || entity.id !== engineWorld.localPlayerId) return;
 			if (!probeShape) probeShape = new rapier.Ball(PROBE_RADIUS);
 			world.updateSceneQueries();
 

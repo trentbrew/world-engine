@@ -24,8 +24,8 @@
 {@render children()}
 
 <Toaster
-	position="bottom-right"
+	position="bottom-center"
 	closeButton
 	visibleToasts={4}
-	offset={{ bottom: 'var(--toast-inset-bottom)', right: 'var(--toast-inset-right)' }}
+	offset={{ bottom: 'var(--toast-inset-bottom)' }}
 />

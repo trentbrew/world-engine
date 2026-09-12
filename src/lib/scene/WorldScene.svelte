@@ -66,6 +66,7 @@
   import CameraControlsLib from 'camera-controls';
   import { BACKDROP_POLYGON_OFFSET } from '$lib/scene/backdropDepth';
   import { useFollow } from '$lib/engine/camera/useFollow.svelte';
+  import { handSigns } from '$lib/engine/player/handSigns.svelte';
   import { playCamera } from '$lib/engine/camera/playCamera.svelte';
   import { gamepadLookAxis } from '$lib/engine/player/gamepad.svelte';
   import { playInputState } from '$lib/engine/player/playInputState.svelte';
@@ -362,21 +363,61 @@
     }
   }
 
+  let currentLookAtOffsetY = $state<number | null>(null);
+  const targetLookAtOffsetY = $derived(
+    handSigns.active
+      ? handSigns.waistLookAtOffset[1]
+      : handSigns.isJutsuLocked
+        ? 0.35
+        : followCfg.lookAtOffset[1],
+  );
+
+  // Smoothly interpolate lookAtOffsetY between normal height and waist level during hand signs zoom.
+  useTask(
+    (delta) => {
+      if (!useFollowCam) return;
+      if (currentLookAtOffsetY === null) {
+        currentLookAtOffsetY = targetLookAtOffsetY;
+        return;
+      }
+      const diff = targetLookAtOffsetY - currentLookAtOffsetY;
+      if (Math.abs(diff) > 0.0005) {
+        const smoothTime = 0.18;
+        const t = 1 - Math.exp(-delta / smoothTime);
+        currentLookAtOffsetY += diff * t;
+        invalidate();
+      } else if (currentLookAtOffsetY !== targetLookAtOffsetY) {
+        currentLookAtOffsetY = targetLookAtOffsetY;
+        invalidate();
+      }
+    },
+    {
+      stage: renderStage,
+      autoInvalidate: false,
+      running: () => ui.shellMode === 'play' && useFollowCam,
+    },
+  );
+
   useFollow(() => {
     if (!useFollowCam || ui.shellMode !== 'play') {
       return { target: undefined, controls: undefined };
     }
+    const isFacingPlayer = handSigns.active || handSigns.isJutsuLocked;
     return {
       target: playerFollowTarget,
       controls: controls ?? null,
-      lookAtOffset: followCfg.lookAtOffset,
+      lookAtOffset: [
+        followCfg.lookAtOffset[0],
+        currentLookAtOffsetY ?? followCfg.lookAtOffset[1],
+        followCfg.lookAtOffset[2],
+      ],
       deadZone: followCfg.deadZone,
       lookAhead: followCfg.lookAhead,
       lookAheadSmoothTime: followCfg.lookAheadSmoothTime,
       followSmoothTime: followCfg.followSmoothTime,
-      trackRotation: followCfg.trackRotation,
-      trackRotationSmoothTime: followCfg.trackRotationSmoothTime,
-      trackRotationOffset: followCfg.trackRotationOffset,
+      trackRotation: isFacingPlayer ? true : followCfg.trackRotation,
+      trackRotationSmoothTime: isFacingPlayer ? 0.22 : followCfg.trackRotationSmoothTime,
+      trackRotationOffset: isFacingPlayer ? 0 : followCfg.trackRotationOffset,
       prepareTarget: syncPlayerFollowTarget,
     };
   });
@@ -474,6 +515,66 @@
     wasFollowing = useFollowCam;
     if (!worldProfile.is2d || ui.shellMode !== 'play') {
       controls.enabled = useEditOrbitControls || usePlayCameraControls;
+    }
+  });
+
+  let wasHandSignsActive = false;
+  let wasJutsuLocked = false;
+  $effect(() => {
+    const active = handSigns.active;
+    const locked = handSigns.isJutsuLocked;
+    if (!controls || !useFollowCam) {
+      wasHandSignsActive = active;
+      wasJutsuLocked = locked;
+      return;
+    }
+
+    if (active && !wasHandSignsActive) {
+      handSigns.savedDistance = controls.distance;
+      handSigns.savedAzimuth = controls.azimuthAngle;
+      controls.minDistance = Math.min(followCfg.minDistance, 0.5);
+      void controls.dollyTo(handSigns.zoomDistance, true);
+      invalidate();
+    } else if (!active && wasHandSignsActive) {
+      if (locked) {
+        // Jutsu matched: dolly out slightly to showcase distance (~2.8m) while continuing to face player
+        void controls.dollyTo(handSigns.jutsuLockDistance, true);
+        invalidate();
+      } else {
+        // Unmapped or cancelled: return immediately to regular gameplay camera
+        const returnDistance = handSigns.savedDistance ?? followCfg.distance;
+        const returnAzimuth = handSigns.savedAzimuth;
+        handSigns.savedDistance = null;
+        handSigns.savedAzimuth = null;
+        void controls.dollyTo(returnDistance, true);
+        if (returnAzimuth !== null) {
+          void controls.rotateTo(returnAzimuth, controls.polarAngle, true);
+        }
+        controls.minDistance = followCfg.minDistance;
+        invalidate();
+      }
+    } else if (!locked && wasJutsuLocked && !active) {
+      // 3-second jutsu showcase finished: restore normal gameplay camera
+      const returnDistance = handSigns.savedDistance ?? followCfg.distance;
+      const returnAzimuth = handSigns.savedAzimuth;
+      handSigns.savedDistance = null;
+      handSigns.savedAzimuth = null;
+      void controls.dollyTo(returnDistance, true);
+      if (returnAzimuth !== null) {
+        void controls.rotateTo(returnAzimuth, controls.polarAngle, true);
+      }
+      controls.minDistance = followCfg.minDistance;
+      invalidate();
+    }
+    wasHandSignsActive = active;
+    wasJutsuLocked = locked;
+  });
+
+  $effect(() => {
+    if (ui.shellMode !== 'play') {
+      handSigns.reset();
+      wasHandSignsActive = false;
+      wasJutsuLocked = false;
     }
   });
 
@@ -760,7 +861,11 @@
     <CameraControls
       bind:ref={controls}
       camera={activeCam}
-      minDistance={useFollowCam ? followCfg.minDistance : cfg.minDistance}
+      minDistance={useFollowCam
+        ? (handSigns.active || handSigns.isJutsuLocked
+            ? Math.min(followCfg.minDistance, 0.5)
+            : followCfg.minDistance)
+        : cfg.minDistance}
       maxDistance={useFollowCam ? followCfg.maxDistance : cfg.maxDistance}
       minPolarAngle={useFollowCam
         ? followCfg.minPolarAngle

@@ -977,10 +977,48 @@ body {
 	}
 }
 
-/* Collab toasts — peer accent on bottom-right stack */
+/* Neutral minimalist toasts — matches hand sign grid & chain aesthetic */
+:global([data-sonner-toaster] [data-sonner-toast]) {
+	background: rgba(0, 0, 0, 0.65) !important;
+	backdrop-filter: blur(8px) !important;
+	-webkit-backdrop-filter: blur(8px) !important;
+	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	border-radius: 6px !important;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+	color: #f8fafc !important;
+	font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+:global([data-sonner-toast] [data-title]) {
+	font-family: var(--font-mono, ui-monospace, monospace) !important;
+	font-weight: 600 !important;
+	font-size: 12px !important;
+	letter-spacing: 0.02em !important;
+	color: #f8fafc !important;
+}
+
+:global([data-sonner-toast] [data-description]) {
+	font-family: var(--font-mono, ui-monospace, monospace) !important;
+	font-size: 11px !important;
+	color: #94a3b8 !important;
+}
+
+:global([data-sonner-toast] [data-close-button]) {
+	background: rgba(255, 255, 255, 0.08) !important;
+	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	color: #94a3b8 !important;
+	border-radius: 4px !important;
+	transition: background 0.12s ease, color 0.12s ease;
+}
+
+:global([data-sonner-toast] [data-close-button]:hover) {
+	background: rgba(255, 255, 255, 0.16) !important;
+	color: #f8fafc !important;
+}
+
+/* Collab toasts — peer accent on bottom-center stack */
 :global([data-sonner-toast].peer-toast) {
-	border-left: 3px solid var(--peer-accent, var(--primary));
-	background: color-mix(in srgb, var(--peer-accent, var(--primary)) 10%, var(--popover)) !important;
+	border-left: 3px solid var(--peer-accent, var(--primary)) !important;
 }
 
 :global([data-sonner-toast].peer-toast [data-icon]) {

@@ -4,6 +4,8 @@
  */
 import { SvelteMap } from 'svelte/reactivity';
 import { playSfx, SFX_SWITCH } from '$lib/engine/audio/sfx';
+import { sampleRadialStick, type RadialStickSample } from './radialZodiac';
+import { SHOULDER_L1, SHOULDER_L2, SHOULDER_R1, SHOULDER_R2 } from './shoulderSigns';
 
 const CONTROLLER_CONNECT_SFX = SFX_SWITCH.controllerConnect;
 const GAMEPAD_PREFS_KEY = 'engine:gamepad-prefs';
@@ -111,6 +113,8 @@ export function getMappingTable(): GamepadMappingRow[] {
 		{ control: 'Move up', source: 'D-pad button 12' },
 		{ control: 'Move down', source: 'D-pad button 13' },
 		{ control: 'Jump', source: 'South face button 0 (A / Cross)' },
+		{ control: 'Hand signs stance', source: 'North face button 3 (△ / Y / X)' },
+		{ control: 'Hand signs shoulder chords', source: 'L1 / L2 / R1 / R2 chords (while holding stance)' },
 		{ control: 'Pause / menu', source: 'Start button 9 (+ on Pro Controller)' },
 		{ control: 'Reset', source: 'Select button 8 (− on Pro Controller)' },
 		{ control: 'Menu up / down', source: 'D-pad 12 / 13 (while paused)' },
@@ -433,9 +437,22 @@ const GAMEPAD_SELECT = 8;
 const GAMEPAD_START = 9;
 const GAMEPAD_DPAD_UP = 12;
 const GAMEPAD_DPAD_DOWN = 13;
+/** South face (A / Cross depending on layout) — jump. */
 const GAMEPAD_SOUTH = 0;
+/** East face (B / Circle / A depending on layout) — cancel / back. */
+const GAMEPAD_EAST = 1;
 /** West face (□ / X / Y depending on layout) — interact / use. */
 const GAMEPAD_WEST = 2;
+/** North face (△ / Y / X depending on layout) — hand signs stance modifier. */
+const GAMEPAD_NORTH = 3;
+/** Left bumper / shoulder (L1 / LB / L). */
+const GAMEPAD_L1 = 4;
+/** Right bumper / shoulder (R1 / RB / R). */
+const GAMEPAD_R1 = 5;
+/** Left trigger (L2 / LT / ZL). */
+const GAMEPAD_L2 = 6;
+/** Right trigger (R2 / RT / ZR). */
+const GAMEPAD_R2 = 7;
 /** Left-stick deflection that counts as a menu step (rising-edge across threshold). */
 const MENU_STICK_THRESHOLD = 0.55;
 
@@ -599,6 +616,117 @@ function familyWestGlyph(family: PadFamily): string {
 		default:
 			return 'E';
 	}
+}
+
+/**
+ * Single North-face glyph for the active pad family.
+ * No pad / unknown → `CTRL`. Switch → `X`. PlayStation → `△`. Xbox → `Y`.
+ */
+export function gamepadNorthLabel(): string {
+	const override = readTestPadFamily();
+	if (override) return familyNorthGlyph(override);
+	if (!gamepad.connected) return 'CTRL';
+	const pad = localPad();
+	const family = detectPadFamily(pad?.id ?? gamepad.label);
+	return familyNorthGlyph(family);
+}
+
+function familyNorthGlyph(family: PadFamily): string {
+	switch (family) {
+		case 'switch':
+			return 'X';
+		case 'playstation':
+			return '△';
+		case 'xbox':
+			return 'Y';
+		default:
+			return '△';
+	}
+}
+
+/**
+ * Single East-face glyph for the active pad family (cancel / back).
+ * No pad / unknown → `ESC`. Switch → `A`. PlayStation → `◯`. Xbox → `B`.
+ */
+export function gamepadEastLabel(): string {
+	const override = readTestPadFamily();
+	if (override) return familyEastGlyph(override);
+	if (!gamepad.connected) return 'ESC';
+	const pad = localPad();
+	const family = detectPadFamily(pad?.id ?? gamepad.label);
+	return familyEastGlyph(family);
+}
+
+function familyEastGlyph(family: PadFamily): string {
+	switch (family) {
+		case 'switch':
+			return 'A';
+		case 'playstation':
+			return '◯';
+		case 'xbox':
+			return 'B';
+		default:
+			return '◯';
+	}
+}
+
+/** True while East face button (1) is pressed on this client's active pad (cancel jutsu). */
+export function gamepadHandSignsCancelPressed(): boolean {
+	const pad = localPad();
+	if (!pad) return false;
+	return pad.buttons[GAMEPAD_EAST]?.pressed ?? false;
+}
+
+/** True while North face button (3) is held on this client's active pad. */
+export function gamepadHandSignsModifierHeld(): boolean {
+	const pad = localPad();
+	if (!pad) return false;
+	return pad.buttons[GAMEPAD_NORTH]?.pressed ?? false;
+}
+
+function isPadButtonPressed(pad: Gamepad, index: number, threshold = 0.4): boolean {
+	const btn = pad.buttons[index];
+	if (!btn) return false;
+	return btn.pressed || (typeof btn.value === 'number' && btn.value >= threshold);
+}
+
+/** 4-bit bitmask of currently pressed shoulder buttons (L1=1, L2=2, R1=4, R2=8). */
+export function gamepadShoulderMask(): number {
+	const pad = localPad();
+	if (!pad) return 0;
+	let mask = 0;
+	if (isPadButtonPressed(pad, GAMEPAD_L1)) mask |= SHOULDER_L1;
+	if (isPadButtonPressed(pad, GAMEPAD_L2)) mask |= SHOULDER_L2;
+	if (isPadButtonPressed(pad, GAMEPAD_R1)) mask |= SHOULDER_R1;
+	if (isPadButtonPressed(pad, GAMEPAD_R2)) mask |= SHOULDER_R2;
+	return mask;
+}
+
+/** Active gamepad family for UI glyph presentation. */
+export function gamepadActiveFamily(): PadFamily {
+	const override = readTestPadFamily();
+	if (override) return override;
+	if (!gamepad.connected) return 'playstation';
+	const pad = localPad();
+	return detectPadFamily(pad?.id ?? gamepad.label);
+}
+
+/** Left stick radial sample for the 12-hour Zodiac Hand Signs dial. */
+export function gamepadLeftStickRadial(): RadialStickSample {
+	const pad = localPad();
+	if (!pad) {
+		return {
+			active: false,
+			committed: false,
+			magnitude: 0,
+			angleDeg: 0,
+			sector: null,
+			key: null
+		};
+	}
+	const lx = pad.axes[0] ?? 0;
+	const ly = pad.axes[1] ?? 0;
+	return sampleRadialStick(lx, ly, gamepad.invertStickY);
 }
 
 /** True once on the frame the south face button (0) is pressed on this client's pad. */

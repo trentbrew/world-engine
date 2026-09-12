@@ -63,7 +63,7 @@
 	const rot = $derived(rotationQuat(entity));
 	const playing = $derived(ui.shellMode === 'play');
 	const isOwner = $derived(world.isOwner(entity.id));
-	const isLocalPlayer = $derived(isOwner && 'Player' in entity.components);
+	const isLocalPlayer = $derived(entity.id === world.localPlayerId);
 
 	type RapierBodyType = 'fixed' | 'dynamic' | 'kinematicPosition' | 'kinematicVelocity';
 

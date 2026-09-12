@@ -9,11 +9,18 @@ import {
 	getLocomotionBindings,
 	M2M_HUMAN_LOCOMOTION,
 	parseLocomotionOverride,
+	resolveClip,
 	type LocomotionBindingPack,
 	type LocomotionBindings
 } from '$lib/engine/animation/clipCatalog';
 import type { Entity } from '$lib/engine/ontology/schema';
 import type { LocomotionTier } from '$lib/engine/player/playInput';
+
+/** Naruto hand signs chord stance — plays the beginning pose of Bow (hands together, upright stance). */
+export const HAND_SIGNS_BOW_CLIP = 'Bow_Start';
+
+/** Confused head-scratch reaction when an invalid / unmapped jutsu is cast. */
+export const JUTSU_FAILED_CONFUSED_CLIP = 'Confused';
 
 /** Social loop while the room chat panel is open in play mode. */
 export const CHAT_TALKING_CLIP = 'Idle_Talking_Loop';
@@ -51,7 +58,10 @@ const FALLBACK_PACK: LocomotionBindingPack = {
 		clipId !== M2M_HUMAN_LOCOMOTION.jumpStart &&
 		clipId !== M2M_HUMAN_LOCOMOTION.jumpLand &&
 		clipId !== M2M_HUMAN_LOCOMOTION.doubleJumpStart &&
-		clipId !== M2M_HUMAN_LOCOMOTION.doubleJumpLand
+		clipId !== M2M_HUMAN_LOCOMOTION.doubleJumpLand &&
+		clipId !== 'Bow' &&
+		clipId !== 'Bow_Start' &&
+		clipId !== 'Confused'
 };
 
 /** Catalog-pure packs — never store type overrides here. */
@@ -111,18 +121,22 @@ export function invalidateEntityLocomotionPack(entityId: string): void {
 }
 
 /** Preload catalog locomotion bindings (call on player spawn / catalog|locomotion change). */
-export function warmLocomotionPack(entity: Entity): void {
+export async function warmLocomotionPack(entity: Entity): Promise<LocomotionBindingPack> {
 	const ref = catalogRef(entity);
+	void resolveClip(ref, HAND_SIGNS_BOW_CLIP);
+	void resolveClip(ref, JUTSU_FAILED_CONFUSED_CLIP);
 	const override = entityOverride(entity);
 	const apply = (pack: LocomotionBindingPack) => {
 		packByCatalog.set(ref, pack);
-		packByEntity.set(entity.id, packWithOverride(pack, override));
+		const merged = packWithOverride(pack, override);
+		packByEntity.set(entity.id, merged);
+		return merged;
 	};
 	if (packByCatalog.has(ref)) {
-		apply(packByCatalog.get(ref)!);
-		return;
+		return apply(packByCatalog.get(ref)!);
 	}
-	void getLocomotionBindings(ref).then((pack) => apply(pack));
+	const pack = await getLocomotionBindings(ref);
+	return apply(pack);
 }
 
 function setAnimClip(entity: Entity, clip: string): void {
@@ -177,6 +191,18 @@ export function applyChatIdleClip(entity: Entity): void {
 export function applyChatSocialClip(entity: Entity, composing: boolean): void {
 	if (composing) applyChatTalkingClip(entity);
 	else applyChatIdleClip(entity);
+}
+
+/** Naruto hand signs chord stance — switch to bowing animation while holding modifier. */
+export function applyHandSignsClip(entity: Entity): void {
+	if (!('Mesh3DAnimator' in entity.components)) return;
+	setAnimClip(entity, HAND_SIGNS_BOW_CLIP);
+}
+
+/** Confused head-scratch emote when an invalid jutsu sequence is attempted. */
+export function applyConfusedClip(entity: Entity): void {
+	if (!('Mesh3DAnimator' in entity.components)) return;
+	setAnimClip(entity, JUTSU_FAILED_CONFUSED_CLIP);
 }
 
 /** Grounded locomotion tiers only — skip while airborne or landing hold. */

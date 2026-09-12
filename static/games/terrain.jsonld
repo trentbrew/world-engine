@@ -213,35 +213,6 @@
 					]
 				}
 			}
-		},
-		{
-			"@id": "entity:prop/box-copy",
-			"@type": "Thing",
-			"components": {
-				"Transform": {
-					"position": [
-						1.8,
-						0,
-						-8
-					],
-					"rotation": [
-						0,
-						0,
-						0,
-						1
-					],
-					"scale": [
-						1,
-						1,
-						1
-					]
-				},
-				"Render": {
-					"mesh": "primitive:box",
-					"color": "#d4d4d4"
-				}
-			},
-			"conformsTo": "Prop"
 		}
 	]
 }

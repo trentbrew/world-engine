@@ -21,7 +21,8 @@ import {
 	integrateGroundVelocity
 } from './playerMovementUtils';
 import { clipHorizontalVelocity, resolveHorizontalPlayerMove } from './playerCollision';
-import { applyChatSocialClip, applyLocomotionClip } from './playerLocomotionClips';
+import { applyChatSocialClip, applyConfusedClip, applyHandSignsClip, applyLocomotionClip } from './playerLocomotionClips';
+import { handSigns } from './handSigns.svelte';
 import { playerClientId } from './access';
 
 /** Latest ground normal from GroundSensor — used by slope movement. */
@@ -162,13 +163,22 @@ export function playerSystem(ctx: TickContext) {
 		const jumpVy = jump?.vy ?? 0;
 		const motorGrounded = groundStore.grounded && jumpVy <= 0.01;
 
+		handSigns.pollGamepad();
+
 		const move = input.movement();
 		// Talking is an idle pose — walking or jumping out of a conversation hands
 		// the clip back to locomotion (which no-ops mid-air, keeping jump clips).
 		const chatting = ui.shellMode === 'play' && roomChat.open;
-		if (chatting && move.tier === 'idle' && motorGrounded) {
+		if ((handSigns.active || (handSigns.isJutsuLocked && move.tier === 'idle')) && motorGrounded) {
+			applyHandSignsClip(entity);
+		} else if (handSigns.isFailedJutsu && move.tier === 'idle' && motorGrounded) {
+			applyConfusedClip(entity);
+		} else if (chatting && move.tier === 'idle' && motorGrounded) {
 			applyChatSocialClip(entity, roomChat.isComposing(session.clientId));
 		} else {
+			if (handSigns.isFailedJutsu) {
+				handSigns.clearFailedJutsu();
+			}
 			applyLocomotionClip(entity, move.tier);
 		}
 		const speedScale = (player.speed ?? PLAYER_SPEED_BASELINE) / PLAYER_SPEED_BASELINE;
