@@ -8,6 +8,8 @@ A **data-first, realtime-multiplayer 3D game engine** where games are authored a
 from primitives, not by writing engine code. SvelteKit + Threlte (three.js), a
 Trellis realtime relay for multiplayer, and a Trellis-backed durable tier.
 
+**Live demo:** [play.brew.build](https://play.brew.build) · **Source:** [github.com/trentbrew/world-engine](https://github.com/trentbrew/world-engine)
+
 > **Authoring a game?** Read **[AGENTS.md](AGENTS.md)** (the how-to) and
 > **[docs/ontology.md](docs/ontology.md)** (the schema reference). This README is
 > the 30,000-ft view plus a getting-started walkthrough.
@@ -133,8 +135,12 @@ Demo: `http://localhost:9292/?game=agent-demo&mode=play`
 The app ships as a **static-world demo** on Vercel — no Trellis or PartyKit required for the default experience.
 
 1. Connect the repo to [Vercel](https://vercel.com) (framework preset: **SvelteKit**).
-2. Build command: `pnpm build` · Install: `pnpm install` · Node **20.x**.
-3. Open `https://<project>.vercel.app/?game=orbit` after deploy.
+2. Build command: `pnpm build` · Install: `pnpm install` · Node **22.x**.
+3. Open `https://play.brew.build/?game=orbit` after deploy.
+
+The production demo is served at **[play.brew.build](https://play.brew.build)** (Vercel
+project `museum`). Add the domain in the Vercel project settings and point a `play`
+CNAME at the target Vercel shows (plus the `_vercel` TXT record it asks for).
 
 | Feature | Vercel | Local `just run` |
 | ------- | ------ | ---------------- |

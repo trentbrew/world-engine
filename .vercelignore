@@ -1,0 +1,26 @@
+# Local Trellis state (worktrees, ops, blobs) — never upload
+.trellis/
+.trellis-db/
+.trellis-db.json
+.trellis-deploy/
+.trellis-relay/
+.trellis-relay-blobs/
+
+# Agent scratch / test artifacts
+.playwright-mcp/
+test-results/
+docs/scratch/
+
+# Build output & deps
+.svelte-kit/
+node_modules/
+build/
+.output/
+
+# Separate git repo (canonical: github.com/turtlehq/worlds)
+worlds-registry/
+
+# Env & logs
+.env*
+*.log
+*.exit

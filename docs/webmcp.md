@@ -20,7 +20,7 @@ site's own UI/validation stays authoritative.
 ## Enabling it
 
 - **Local dev:** `chrome://flags/#enable-webmcp-testing` → Enabled → relaunch.
-- **Prod:** [origin trial registration](https://developer.chrome.com/origintrials/#/register_trial/4163014905550602241) (Chrome 149+). Set `VITE_WEBMCP_ORIGIN_TRIAL_TOKEN` at build time for `https://trellis-sync-3d-playground.vercel.app` — Vite injects the `<meta http-equiv="origin-trial">` into `app.html`.
+- **Prod:** [origin trial registration](https://developer.chrome.com/origintrials/#/register_trial/4163014905550602241) (Chrome 149+). Set `VITE_WEBMCP_ORIGIN_TRIAL_TOKEN` at build time for the production origin `https://play.brew.build` — Vite injects the `<meta http-equiv="origin-trial">` into `app.html`. Note: the trial token is origin-bound, so moving prod from `trellis-sync-3d-playground.vercel.app` to `play.brew.build` requires re-registering the origin and issuing a token for the new origin.
 - **Testing without an agent:** [Model Context Tool Inspector extension](https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd)
   — lists registered tools, calls them manually, validates schemas, and gives a chat
   UI (defaults to `gemini-3-flash-preview`).
